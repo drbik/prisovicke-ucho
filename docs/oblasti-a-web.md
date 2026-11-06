@@ -6,12 +6,12 @@ Web je jedna stránka s časovou osou projektů. Obsah vznikl pro volební kampa
 
 ## Návrh oblastí pro MVP
 
-Podle F-30 vychází oblasti z aktuálních a budoucích projektů na webu, plus oblast Ostatní. **Návrh, zatím nerozhodnutý:**
+Podle F-30 vychází oblasti z aktuálních a budoucích projektů na webu, plus oblast Ostatní. **Rozhodnuto 1. 11. 2026:**
 
 - pět budoucích projektů níže,
 - Ostatní.
 
-Otevřené: zda z témat k prověření udělat samostatné oblasti, nebo je nechat v Ostatních.
+Témata k prověření se mohou přidat později jako další oblasti. Oblasti spravuje administrátor.
 
 ## Budoucí projekty (5)
 

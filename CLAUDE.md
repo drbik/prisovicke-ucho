@@ -21,6 +21,7 @@ Cloudová session k nim nemá přístup. V lokální session je zpřístupni jen
 - `docs/research-hlasove-podnety.md` – rešerše hotových řešení, hostingu a všech zdrojů.
 - `docs/oblasti-a-web.md` – projekty a témata z webu nezavisli-prisovice.cz, návrh oblastí a technika webu pro F-09.
 - `docs/hlasove-modely.md` – zjištění o hlasových modelech z jiného projektu a co z nich plyne pro výběr modelu přepisu.
+- `docs/plan-mvp.md` – MVP rozdělené na postupné kroky, rozpis kroků 1 až 3 a pořadí testů.
 
 Požadavky mají ID (F-01 až F-83) a prioritu MVP / Později / Zvážit. V commitech a kódu na ně odkazuj.
 
@@ -35,6 +36,28 @@ Požadavky mají ID (F-01 až F-83) a prioritu MVP / Později / Zvážit. V comm
 - Oblasti vychází z aktuálních a budoucích projektů na nezavisli-prisovice.cz.
 - U každé odpovědi musí být upozornění, že nejde o úřední vyjádření obce.
 
+## Rozhodnutí (1. 11. 2026)
+
+- Hosting je Cloudflare: Workers a Hono, D1, Vectorize, AI Search, Workers AI. Web nezavisli-prisovice.cz běží na stejné platformě.
+- Oblasti v MVP: pět budoucích projektů z webu a Ostatní. Témata k prověření se mohou přidat později.
+- Datový model MVP má 11 entit z PRD, bez Slovníku (F-11 je Později).
+- V MVP se nahrávky neukládají, datový model nemá odkaz na nahrávku. Úložiště slouží jen pro dokumenty obce.
+
+## Rozhodnutí (2. 11. 2026)
+
+- Přihlášení je před nahráváním. Nahrávání bez přihlášení (F-06) zůstává Později.
+- Testuje se na Opeře pro Android a na Edge a Opeře ve Windows. Safari na iOS a Firefox se v MVP netestují, F-05 je tak ověřený jen pro prohlížeče na Chromiu.
+- Podrobnosti kroku 2 (limit nahrávky, textové pole, pole `vstup` u podnětu) jsou v `docs/plan-mvp.md`.
+
+## Rozhodnutí (6. 11. 2026)
+
+- Před potvrzením autorem se nic neukládá. Server výsledek přepisu a úpravy podepíše a uloží ho až po potvrzení (F-14).
+- V MVP bez AI Gateway a bez serverové fronty. Obojí by mohlo uložit audio. Při výpadku AI autor pošle nahrávku znovu z prohlížeče.
+- Pro vzkazy občanů se nepoužívají bezplatné modely z OpenRouteru: zaznamenávají vstupy a jsou jen na zkoušku.
+- Kandidáti na AI úpravu a prahy pro výběr jsou v `docs/plan-mvp.md` (krok 3).
+- Kostra aplikace: Astro 7 s adaptérem pro Cloudflare na stránky, stejně jako web Nezávislých. Hono na API pod `/api`.
+- Plánování MVP je uzavřené. Další fáze je testování, pořadí testů je v `docs/plan-mvp.md`.
+
 ## MVP (prezentační verze)
 
 1. Grafika ucha na webu nezavisli-prisovice.cz. Po kliknutí rozhraní s mikrofonem a záložním textovým polem.
@@ -48,16 +71,14 @@ Požadavky mají ID (F-01 až F-83) a prioritu MVP / Později / Zvážit. V comm
 
 Do MVP nepatří e-mail, GDPR souhlasy a moderace, zakrytí osobních údajů, ověření pobytu ani pravidelný index. Nerozšiřuj MVP bez souhlasu.
 
-## Otevřené otázky, které blokují start
+## Otevřené otázky
 
-- Hosting: Cloudflare (Workers, D1, Vectorize, AI Search), nebo český Zerops + Mistral. Rozhodne hlavně to, na čem běží web nezavisli-prisovice.cz. Web běží na Cloudflare Workers (zjištěno 1. 11. 2026), což mluví pro Cloudflare.
-- Které oblasti vzít do MVP. Návrh: pět budoucích projektů z webu a Ostatní. O sedmi tématech k prověření zatím není rozhodnuto (`docs/oblasti-a-web.md`).
 - Vložení do webu (F-09): hlavičky webu dnes zakazují mikrofon i cizí skripty a rámy. Úprava se dělá v projektu webu, varianty jsou v `docs/oblasti-a-web.md`.
 - Kdo bude správce osobních údajů podle GDPR.
 
 ## Zásady pro kód
 
-- Dokud není rozhodnutý hosting, piš přenositelně: TypeScript a Hono, přístup k databázi, úložišti a AI schovaný za vlastní rozhraní.
+- Piš v TypeScriptu pro Cloudflare Workers: Astro 7 na stránky, Hono na API pod `/api`. Logiku drž v modulech, které neznají ani jeden z frameworků. Přístup k databázi, úložišti a AI schovej za vlastní rozhraní, aby šel hosting později vyměnit.
 - Automatická odpověď smí obsahovat jen informace z nalezených úryvků. Každé tvrzení má citaci (URL, název, datum). Bez opory ve zdroji jde dotaz ke správci, nikdy si AI nic nedomýšlí.
 - Ukládej surový přepis i upravený text.
 - Texty pro uživatele piš spisovnou češtinou.
