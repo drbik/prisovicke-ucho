@@ -20,7 +20,7 @@ Aplikace je v Astru 7 s Hono na API a běží na Cloudflare Workers. Potřebuje 
 npm install
 ```
 
-Lokálně běží na http://localhost:4321/ucho. Bez přihlášení ke Cloudflare si zkopírujte `.dev.vars.example` jako `.dev.vars`, místo Whisperu se pak vrací pevný text.
+Lokálně běží na http://localhost:4321/ucho. Bez přihlášení ke Cloudflare si zkopírujte `.dev.vars.example` jako `.dev.vars`, místo Whisperu a jazykového modelu se pak vrací pevný text.
 
 ```bash
 npm run dev

@@ -39,7 +39,24 @@ Zjištění:
 | pro ni | pro ní |
 | vyjíždět | výjíždět |
 
-Záměna „kdo koryto“ za „kdokoliv to“ mění smysl věty. Přesně to má odhalit autor při kontrole textu v kroku 4. Otázky Whisper často zakončí tečkou, opravit to může AI úprava v kroku 3.2.
+Záměna „kdo koryto“ za „kdokoliv to“ mění smysl věty. Přesně to má odhalit autor při kontrole textu v kroku 4. Stejná nahrávka se přitom přepisuje pokaždé trochu jinak, při pozdějším běhu Whisper „kdo koryto“ trefil. Otázky často zakončí tečkou, to opravuje AI úprava.
+
+## AI úprava na ostré adrese
+
+Od 6. 11. 2026 jde každý přepis i napsaný text do jazykového modelu (krok 3.2 a 3.3). Stránka ukáže upravený text, navržený název, typ a oblast a pod rozbalením původní přepis. Model je předběžně Gemma 4 26B, porovnání je v [hlasove-modely.md](hlasove-modely.md#výběr-modelu-ai-úpravy).
+
+| Prohlížeč | Vstup | Přepis | Úprava | Celkem | Pokusů |
+|---|---|---|---|---|---|
+| Edge, Windows | nahrávka 0:18 | 2,6 s | 2,7 s | 5,3 s | 1 |
+| Opera, Windows | nahrávka 2:59 | 9,8 s | 13,4 s | 23,2 s | 1 |
+| Opera, Windows (360 × 740) | napsaný text, 445 znaků | – | 4,1 s | 4,1 s | 1 |
+
+- **Rychlost:** přímo 1minutová nahrávka změřená není, 0:18 a 2:59 ale limit 20 s z plánu naznačují s rezervou.
+- **Opraveno ve 2:59:** „záhumení“, „příšovka“, „k písečákům“, „u návsy“, „pro ní“, „Přísálí“ a tři otázky s tečkou.
+- **Neopraveno:** „výjíždět“ a „vyjde jednu domácnost“.
+- **Přidaná chyba:** „auta ježdí“, přepis měl „jezdí“ správně. Model tedy umí chybu i vyrobit, autor musí text číst.
+- **Přidaná slova v hovorovém textu:** „zpomalovací zařízení, například retardér“ a „rozbitých částí“. Práh z plánu „nepřidá nic, co autor neřekl“ model zatím nesplňuje.
+- **Bez obsahu v logu:** do Workers Logs jde jen doba, model, verze promptu, počet pokusů a počet znaků. Testy to hlídají.
 
 ## Test 2: mikrofon v rámu
 
@@ -53,7 +70,7 @@ Testovací stránku obsluhuje Worker ucha, má tedy `microphone=(self)`. Na str�
 
 ## Scénáře v prohlížeči
 
-Skript prošel 12 scénářů v Edge při běžné velikosti okna a v Opeře při velikosti telefonu (360 × 740). Odpovědi serveru byly podvržené, Whisper se nevolal. Vše prošlo.
+Skript prošel 16 scénářů v Edge při běžné velikosti okna a v Opeře při velikosti telefonu (360 × 740). Odpovědi serveru byly podvržené, Whisper ani jazykový model se nevolaly. Vše prošlo, naposledy po nasazení AI úpravy.
 
 | Scénář | Edge, Windows | Opera, Windows | Opera, Android |
 |---|---|---|---|
@@ -67,6 +84,9 @@ Skript prošel 12 scénářů v Edge při běžné velikosti okna a v Opeře př
 | Výpadek AI: Zkusit znovu pošle stejnou nahrávku | OK | OK | **Čeká** |
 | Výpadek AI: přechod na text | OK | OK | **Čeká** |
 | Výpadek sítě nechá napsaný text v poli | OK | OK | **Čeká** |
+| Výsledek ukáže název, typ, oblast a původní text | OK | OK | **Čeká** |
+| Selhání úpravy u textu nechá vzkaz v poli | OK | OK | **Čeká** |
+| Selhání úpravy u nahrávky: Zkusit znovu i Napsat vzkaz | OK | OK | **Čeká** |
 | Skrytí stránky ukončí nahrávání a kus se odešle | OK (simulováno) | OK (simulováno) | **Čeká**, skutečné zamčení telefonu |
 | Bez vodorovného posuvníku | OK | OK (360 × 740) | **Čeká** |
 | Bluetooth sluchátka | nezkoušeno | nezkoušeno | **Čeká** |
@@ -75,7 +95,7 @@ Skript prošel 12 scénářů v Edge při běžné velikosti okna a v Opeře př
 
 ## Co zbývá: Opera na Androidu
 
-Stačí telefon a asi 15 minut. Po každém pokusu rozbalte na stránce „Technické údaje pro test“ a opište formát, velikost a dobu přepisu.
+Stačí telefon a asi 15 minut. Po každém pokusu rozbalte na stránce „Technické údaje pro test“ a opište formát, velikost a dobu přepisu i úpravy. Rozbalte i „Původní přepis“ a porovnejte ho s upraveným textem. Hlavně sledujte, jestli úprava něco nepřidala nebo nevynechala.
 
 1. Na https://nezavisli-prisovice.cz/ucho namluvit krátký vzkaz s místními názvy.
 2. Namluvit vzkaz na celé 3 minuty: upozornění ve 2:30, samo skončí ve 3:00.

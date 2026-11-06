@@ -111,7 +111,9 @@ Cílem je, aby z nahrávky nebo napsaného textu vznikl upravený vzkaz ve spiso
 | `@cf/deepseek-ai/deepseek-v4.1-flash-1017` | 0,30 / 1,20 USD | Nejsilnější z modelů do zhruba 1 USD za milion výstupních tokenů |
 | `@cf/nvidia/nemotron-3-120b-a12b` (Nemotron 3 Super) | 0,50 / 1,50 USD | Nemotron se používá v lokálních skillech pro shrnutí podcastů |
 
-Češtinu žádného z nich jsem neověřil, to je úkol testu. Při 2 500 tokenech na vstupu a 1 000 na výstupu stojí úprava jednoho vzkazu 0,06 až 0,3 centu. Přepis 3 minut stojí 0,15 centu. Celý vzkaz tak vyjde pod půl centu. Do bezplatných 10 000 neuronů denně se vejdou desítky vzkazů.
+První porovnání z 6. 11. 2026 je v [hlasove-modely.md](hlasove-modely.md#výběr-modelu-ai-úpravy): DeepSeek není na Workers Free plan dostupný a Mistral přidával slova, zbývají Gemma a Nemotron. Stránka zatím používá Gemmu bez uvažování.
+
+Češtinu žádného z nich jsem před prvním porovnáním neověřil, to je úkol testu. Při 2 500 tokenech na vstupu a 1 000 na výstupu stojí úprava jednoho vzkazu 0,06 až 0,3 centu. Přepis 3 minut stojí 0,15 centu. Celý vzkaz tak vyjde pod půl centu. Do bezplatných 10 000 neuronů denně se vejdou desítky vzkazů.
 
 **Rozhodnutí (6. 11. 2026):**
 
@@ -131,7 +133,8 @@ Cílem je, aby z nahrávky nebo napsaného textu vznikl upravený vzkaz ve spiso
 - Dokumentace Workers AI uvádí JSON režim jen u starších modelů a ani tam ho nezaručuje. Výstup proto vždy ověřuje kód.
 - Prompt úpravy výslovně zakazuje přidávat informace a měnit smysl. Automatickou kontrolu přidaných údajů, třeba čísel, přidat, jen když ji test ukáže jako potřebnou.
 - Prompt úpravy nemá vzorové příklady. Nemotron v UctoMatu dvakrát převzal údaj z příkladu v promptu do výstupu.
-- Nemotron 3 Super se volá s vypnutým uvažováním (`enable_thinking: false`), aby se vešel do 20 s.
+- Nemotron 3 Super i Gemma se volají s vypnutým uvažováním (`enable_thinking: false`), aby se vešly do 20 s.
+- Prompt obsahuje seznam místních názvů se správnými pády. Bez něj model neví, že „příšovka“ a „písečáky“ jsou místní názvy.
 - Klíče a ID účtu pro `npm run eval` jsou jen v proměnných prostředí, ne v repozitáři.
 - **Je potřeba:** 20 až 30 lidí, kteří nahrají testovací vzkazy, a dva hodnotitelé pro hodnocení naslepo.
 
@@ -146,7 +149,9 @@ Testuje se od největšího rizika. Každý test může změnit plán, proto se 
 
 Testuje se lokálně a rovnou na ostré adrese nezavisli-prisovice.cz/ucho, bez neveřejných náhledů (rozhodnuto 6. 11. 2026). Web má malou návštěvnost, rozpracovaná stránka tam proto nevadí.
 
-**Stav k 6. 11. 2026:** kostra (1.2, z 1.3 zatím jen rozhraní AI), stránka podání (2.1 až 2.5) a přepis (3.1) běží na ostré adrese. Testy 1 a 2 jsou hotové ve Windows, chybí Opera na Androidu. Whisper přijal WebM z Chromia a tři minuty vcelku, takže WAV ani dělení nahrávky nejsou potřeba, pokud to Android nezmění. Výsledky jsou v [test-zarizeni.md](test-zarizeni.md).
+**Stav k 6. 11. 2026:** kostra (1.2, z 1.3 zatím jen rozhraní AI), stránka podání (2.1 až 2.5), přepis (3.1) a AI úprava (3.2, 3.4, z 3.3 vše kromě podpisu) běží na ostré adrese. Testy 1 a 2 jsou hotové ve Windows, chybí Opera na Androidu. Whisper přijal WebM z Chromia a tři minuty vcelku, takže WAV ani dělení nahrávky nejsou potřeba, pokud to Android nezmění. Výsledky jsou v [test-zarizeni.md](test-zarizeni.md).
+
+Podpis výsledku (3.3) přijde s krokem 4: dokud autor nemá co potvrdit, nikdo by podpis neověřoval. Stránka zatím jen ukáže upravený text, název, typ, oblast a původní přepis, nic se neukládá. Model úpravy je vybraný předběžně, krok 3.6 stále čeká na testovací sadu.
 
 K nasazení stačí přihlášení Wranglerem (`wrangler login`), nebo API token s oprávněním pro Workers AI a pro nasazení Workeru na doménu nezavisli-prisovice.cz. Token patří jen do proměnné prostředí, ne do repozitáře.
 

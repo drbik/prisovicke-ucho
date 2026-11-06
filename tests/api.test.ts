@@ -1,16 +1,18 @@
 import { describe, expect, it, vi } from 'vitest';
 import { vytvorFalesneAi } from '../src/lib/ai/falesna';
+import { VERZE_PROMPTU } from '../src/lib/ai/prompt-upravy';
 import { vytvorApi } from '../src/lib/api/aplikace';
 import { MAX_VELIKOST_NAHRAVKY_B } from '../src/lib/podani/limity';
+import type { VysledekPodani } from '../src/lib/podani/zpracovani';
 
 const ADRESA = 'https://nezavisli-prisovice.cz/ucho/api';
 const PUVOD = 'https://nezavisli-prisovice.cz';
 
-function sestavit(moznosti: Parameters<typeof vytvorFalesneAi>[0] = {}) {
-  const { ai, volani } = vytvorFalesneAi(moznosti);
+function sestavit(moznosti: Parameters<typeof vytvorFalesneAi>[0] = {}, limitUpravyMs?: number) {
+  const { ai, volani, upravy } = vytvorFalesneAi(moznosti);
   const log = vi.fn();
   const limiter = { limit: vi.fn(async (_moznosti: { key: string }) => ({ success: true })) };
-  return { api: vytvorApi({ ai, limiter, log }), volani, log, limiter };
+  return { api: vytvorApi({ ai, limiter, log, limitUpravyMs }), volani, upravy, log, limiter };
 }
 
 function hlavicky(typ: string) {
@@ -40,26 +42,44 @@ describe('GET /api/health', () => {
 });
 
 describe('POST /api/vzkaz/hlas (krok 2.3)', () => {
-  it('vrátí přepis nahrávky', async () => {
-    const { api, volani } = sestavit();
+  it('vrátí surový přepis i úpravu (krok 3.3)', async () => {
+    const { api, volani, upravy } = sestavit({ vysledek: { text: ' surový přepis ' } });
     const odpoved = await api.fetch(nahravka(new Uint8Array([1, 2, 3])));
     expect(odpoved.status).toBe(200);
-    const data = await odpoved.json() as { vstup: string; text: string; technicke: { typ: string; velikostB: number } };
+    const data = await odpoved.json() as VysledekPodani;
     expect(data.vstup).toBe('hlas');
-    expect(data.text).toContain('falešný přepis');
-    expect(data.technicke).toMatchObject({ typ: 'audio/webm', velikostB: 3 });
+    expect(data.surovyText).toBe('surový přepis');
+    expect(data.uprava).toEqual({
+      text: 'Toto je falešně upravený vzkaz pro lokální vývoj.',
+      nazev: 'Falešný název vzkazu',
+      oblast: 'ostatni',
+      typ: 'navrh',
+    });
+    expect(data.technicke).toMatchObject({
+      typ: 'audio/webm',
+      velikostB: 3,
+      modelUpravy: 'falesny-model',
+      verzePromptu: VERZE_PROMPTU,
+      pokusuUpravy: 1,
+    });
     expect(volani).toEqual([new Uint8Array([1, 2, 3])]);
+    expect(upravy).toEqual(['surový přepis']);
   });
 
-  it('do logu dá časy a velikost, ale ne audio ani přepis', async () => {
-    const { api, log } = sestavit({ vysledek: { text: 'Tajný vzkaz občana' } });
+  it('do logu dá časy a velikost, ale ne audio, přepis ani úpravu', async () => {
+    const { api, log } = sestavit({
+      vysledek: { text: 'Tajný vzkaz občana' },
+      vystupyUpravy: ['{"text":"Tajná úprava","nazev":"Tajný název","oblast":"ostatni","typ":"dotaz"}'],
+    });
     await api.fetch(nahravka(new Uint8Array([1, 2, 3])));
-    expect(log).toHaveBeenCalledTimes(1);
-    const zaznam = log.mock.calls[0][0] as Record<string, unknown>;
-    expect(zaznam).toMatchObject({ udalost: 'prepis', typ: 'audio/webm', velikostB: 3 });
-    expect(zaznam).toHaveProperty('cteniMs');
-    expect(zaznam).toHaveProperty('prepisMs');
-    expect(JSON.stringify(zaznam)).not.toContain('Tajný');
+    expect(log).toHaveBeenCalledTimes(2);
+    const [prepis, uprava] = log.mock.calls.map((volani) => volani[0] as Record<string, unknown>);
+    expect(prepis).toMatchObject({ udalost: 'prepis', typ: 'audio/webm', velikostB: 3 });
+    expect(prepis).toHaveProperty('cteniMs');
+    expect(prepis).toHaveProperty('prepisMs');
+    expect(uprava).toMatchObject({ udalost: 'uprava', model: 'falesny-model', pokusu: 1, znakuVstup: 18 });
+    expect(uprava).toHaveProperty('upravaMs');
+    expect(JSON.stringify(log.mock.calls)).not.toContain('Tajn');
   });
 
   it('odmítne jiný typ než zvuk', async () => {
@@ -157,21 +177,64 @@ describe('POST /api/vzkaz/hlas (krok 2.3)', () => {
     expect(log.mock.calls[0][0]).toMatchObject({ udalost: 'prepis-selhal', hlaska: 'Model odmítl vstup' });
   });
 
-  it('prázdný přepis je samostatná chyba', async () => {
-    const { api } = sestavit({ vysledek: { text: '   ' } });
+  it('prázdný přepis je samostatná chyba a do úpravy nejde', async () => {
+    const { api, upravy } = sestavit({ vysledek: { text: '   ' } });
     const odpoved = await api.fetch(nahravka(new Uint8Array([1])));
     expect(odpoved.status).toBe(422);
     expect(await odpoved.json()).toEqual({ chyba: 'prazdny-prepis' });
+    expect(upravy).toHaveLength(0);
+  });
+
+  it('po neplatném výstupu modelu uspěje druhý pokus', async () => {
+    const { api } = sestavit({
+      vystupyUpravy: ['nesmysl', '{"text":"Druhý pokus.","nazev":"Název","oblast":"ostatni","typ":"dotaz"}'],
+    });
+    const data = await (await api.fetch(nahravka(new Uint8Array([1])))).json() as VysledekPodani;
+    expect(data.uprava.text).toBe('Druhý pokus.');
+    expect(data.technicke.pokusuUpravy).toBe(2);
+  });
+});
+
+describe('selhání úpravy (krok 3.4)', () => {
+  it('dvakrát neplatný výstup dá chybu, kterou autor může zopakovat', async () => {
+    const { api, log } = sestavit({ vysledek: { text: 'Tajný vzkaz' }, vystupyUpravy: ['nesmysl', 'taky nesmysl'] });
+    const odpoved = await api.fetch(nahravka(new Uint8Array([1])));
+    expect(odpoved.status).toBe(502);
+    expect(await odpoved.json()).toEqual({ chyba: 'uprava-selhala' });
+    expect(log.mock.calls[1][0]).toMatchObject({ udalost: 'uprava-selhala' });
+    expect(JSON.stringify(log.mock.calls)).not.toContain('nesmysl');
+    expect(JSON.stringify(log.mock.calls)).not.toContain('Tajný');
+  });
+
+  it('výpadek modelu dá stejnou chybu', async () => {
+    const { api, log } = sestavit({ chybaUpravy: new Error('Model nedostupný') });
+    const odpoved = await api.fetch(textovyVzkaz('Prosím o opravu chodníku.'));
+    expect(odpoved.status).toBe(502);
+    expect(await odpoved.json()).toEqual({ chyba: 'uprava-selhala' });
+    expect(log.mock.calls[1][0]).toMatchObject({ udalost: 'uprava-selhala', hlaska: 'Model nedostupný' });
+  });
+
+  it('model, který neodpoví včas, se přestane čekat', async () => {
+    const { api, log } = sestavit({ zpozdeniUpravyMs: 200 }, 5);
+    const odpoved = await api.fetch(textovyVzkaz('Prosím o opravu chodníku.'));
+    expect(odpoved.status).toBe(502);
+    expect(await odpoved.json()).toEqual({ chyba: 'uprava-selhala' });
+    expect(log.mock.calls[1][0]).toMatchObject({ hlaska: 'Model neodpověděl včas.' });
   });
 });
 
 describe('POST /api/vzkaz/text (F-04, krok 2.5)', () => {
-  it('vrátí text stejně jako přepis', async () => {
-    const { api, volani } = sestavit();
+  it('text jde rovnou do úpravy, bez přepisu (krok 3.3)', async () => {
+    const { api, volani, upravy } = sestavit();
     const odpoved = await api.fetch(textovyVzkaz('  Prosím o opravu chodníku.  '));
     expect(odpoved.status).toBe(200);
-    expect(await odpoved.json()).toEqual({ vstup: 'text', text: 'Prosím o opravu chodníku.' });
+    const data = await odpoved.json() as VysledekPodani;
+    expect(data.vstup).toBe('text');
+    expect(data.surovyText).toBe('Prosím o opravu chodníku.');
+    expect(data.uprava.nazev).toBe('Falešný název vzkazu');
+    expect(data.technicke.typ).toBeUndefined();
     expect(volani).toHaveLength(0);
+    expect(upravy).toEqual(['Prosím o opravu chodníku.']);
   });
 
   it.each([
@@ -210,6 +273,7 @@ describe('POST /api/vzkaz/text (F-04, krok 2.5)', () => {
     const { api, log } = sestavit();
     await api.fetch(textovyVzkaz('Soukromý vzkaz občana'));
     expect(log.mock.calls[0][0]).toEqual({ udalost: 'text', znaku: 21 });
+    expect(JSON.stringify(log.mock.calls)).not.toContain('Soukromý');
   });
 });
 

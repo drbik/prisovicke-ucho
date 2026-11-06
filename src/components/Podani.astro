@@ -44,7 +44,7 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
       </section>
 
       <section data-pohled="odesilani" hidden>
-        <h2 tabindex="-1">Přepisuji vzkaz</h2>
+        <h2 tabindex="-1">Zpracovávám vzkaz</h2>
         <p><span class="toceni" aria-hidden="true"></span> Chvilku to potrvá, u dlouhé nahrávky i několik desítek sekund.</p>
         <div class="akce">
           <button class="tlacitko tlacitko--druhe" type="button" data-zrusit data-fokus>Zrušit</button>
@@ -75,10 +75,19 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
       </section>
 
       <section data-pohled="vysledek" hidden>
-        <h2 tabindex="-1" data-fokus>Přepis vzkazu</h2>
+        <h2 tabindex="-1" data-fokus>Upravený vzkaz</h2>
+        <dl class="zarazeni">
+          <dt>Název</dt><dd data-nazev></dd>
+          <dt>Typ</dt><dd data-typ></dd>
+          <dt>Oblast</dt><dd data-oblast></dd>
+        </dl>
         <blockquote class="prepis" data-vysledek></blockquote>
-        <p class="drobne">Zkušební provoz: vzkaz se nikam neuložil.</p>
-        <details class="technicke" data-technicke hidden>
+        <p class="drobne">Text i zařazení navrhla AI. Zkušební provoz: vzkaz se nikam neuložil.</p>
+        <details class="technicke">
+          <summary data-popis-puvodniho>Původní přepis</summary>
+          <p class="puvodni" data-puvodni></p>
+        </details>
+        <details class="technicke">
           <summary>Technické údaje pro test</summary>
           <dl data-technicke-seznam></dl>
         </details>

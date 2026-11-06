@@ -4,6 +4,7 @@ import { ChybaMikrofonu, spustitNahravani, type HotovaNahravka, type Nahravani }
 import type { KodChyby } from '../lib/podani/chyby';
 import { MAX_ZNAKU_TEXTU, MIN_DELKA_NAHRAVKY_S, MIN_ZNAKU_TEXTU, jeTextPlatny } from '../lib/podani/limity';
 import type { TechnickeUdaje, VysledekPodani } from '../lib/podani/zpracovani';
+import { OBLASTI, TYPY_PODNETU } from '../lib/oblasti';
 
 type Pohled = 'zadost' | 'nahravani' | 'odesilani' | 'text' | 'vysledek' | 'chyba';
 
@@ -24,6 +25,7 @@ const TEXTY_CHYB: Partial<Record<KodChyby, string>> = {
   'prazdna-nahravka': 'Nahrávka je prázdná. Zkontrolujte mikrofon a zkuste to znovu.',
   'prazdny-prepis': 'V nahrávce jsme nezachytili žádnou řeč. Zkuste to znovu, nebo vzkaz napište.',
   'prepis-selhal': 'Přepis se nepovedl. Nahrávka zůstává ve vašem prohlížeči, můžete ji poslat znovu.',
+  'uprava-selhala': 'Text se nepodařilo upravit. Vzkaz zůstává ve vašem prohlížeči, můžete ho poslat znovu.',
 };
 const OBECNA_CHYBA = 'Něco se nepovedlo. Zkuste to prosím znovu.';
 const CHYBA_SITE = 'Spojení se nepodařilo. Zkontrolujte připojení a zkuste to znovu.';
@@ -43,9 +45,12 @@ const vysvetleni = prvek('[data-vysvetleni]', panel);
 const pole = prvek<HTMLTextAreaElement>('[data-pole]', panel);
 const pocet = prvek('[data-pocet]', panel);
 const chybaTextu = prvek('[data-chyba-textu]', panel);
-const odeslatText = prvek<HTMLButtonElement>('[data-odeslat]', panel);
+const nazevVzkazu = prvek('[data-nazev]', panel);
+const typVzkazu = prvek('[data-typ]', panel);
+const oblastVzkazu = prvek('[data-oblast]', panel);
 const vysledek = prvek('[data-vysledek]', panel);
-const technicke = prvek('[data-technicke]', panel);
+const popisPuvodniho = prvek('[data-popis-puvodniho]', panel);
+const puvodni = prvek('[data-puvodni]', panel);
 const technickeSeznam = prvek('[data-technicke-seznam]', panel);
 const textChyby = prvek('[data-chyba]', panel);
 const opakovat = prvek<HTMLButtonElement>('[data-opakovat]', panel);
@@ -79,16 +84,25 @@ function ukazatText(duvod = '') {
   ukazat('text', duvod);
 }
 
-function ukazatTechnicke(udaje?: TechnickeUdaje) {
-  technicke.hidden = !udaje;
+function sekundy(ms: number) {
+  return `${(ms / 1000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} s`;
+}
+
+function ukazatTechnicke(udaje: TechnickeUdaje) {
   technickeSeznam.replaceChildren();
-  if (!udaje) return;
-  const radky: [string, string][] = [
-    ['Formát', udaje.typ],
-    ['Velikost', `${(udaje.velikostB / 1024).toLocaleString('cs-CZ', { maximumFractionDigits: 0 })} kB`],
-    ['Přepis trval', `${(udaje.prepisMs / 1000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} s`],
-  ];
+  const radky: [string, string][] = [];
+  if (udaje.typ) radky.push(['Formát', udaje.typ]);
+  if (udaje.velikostB !== undefined) {
+    radky.push(['Velikost', `${(udaje.velikostB / 1024).toLocaleString('cs-CZ', { maximumFractionDigits: 0 })} kB`]);
+  }
+  if (udaje.prepisMs !== undefined) radky.push(['Přepis trval', sekundy(udaje.prepisMs)]);
   if (udaje.delkaS !== undefined) radky.push(['Délka podle Whisperu', formatovatCas(udaje.delkaS)]);
+  radky.push(
+    ['Úprava trvala', sekundy(udaje.upravaMs)],
+    ['Model úpravy', udaje.modelUpravy],
+    ['Verze promptu', String(udaje.verzePromptu)],
+    ['Pokusů o úpravu', String(udaje.pokusuUpravy)],
+  );
   for (const [nazev, hodnota] of radky) {
     const dt = document.createElement('dt');
     dt.textContent = nazev;
@@ -99,9 +113,15 @@ function ukazatTechnicke(udaje?: TechnickeUdaje) {
 }
 
 function ukazatVysledek(data: VysledekPodani) {
-  vysledek.textContent = data.text;
+  const { text, nazev, typ, oblast } = data.uprava;
+  nazevVzkazu.textContent = nazev;
+  typVzkazu.textContent = TYPY_PODNETU[typ];
+  oblastVzkazu.textContent = OBLASTI.find((o) => o.slug === oblast)?.nazev ?? oblast;
+  vysledek.textContent = text;
+  popisPuvodniho.textContent = data.vstup === 'hlas' ? 'Původní přepis' : 'Původní text';
+  puvodni.textContent = data.surovyText;
   ukazatTechnicke(data.technicke);
-  ukazat('vysledek', 'Přepis je hotový.');
+  ukazat('vysledek', 'Vzkaz je upravený.');
 }
 
 async function odeslat(cesta: string, init: RequestInit) {
@@ -120,7 +140,7 @@ async function odeslat(cesta: string, init: RequestInit) {
 }
 
 async function odeslatNahravku(nahravka: HotovaNahravka) {
-  ukazat('odesilani', 'Přepisuji vzkaz.');
+  ukazat('odesilani', 'Přepisuji a upravuji vzkaz.');
   const vystup = await odeslat('hlas', { headers: { 'content-type': nahravka.typ }, body: nahravka.blob });
   if (vystup.zruseno) return;
   if (vystup.data) ukazatVysledek(vystup.data);
@@ -177,19 +197,18 @@ async function odeslatFormular(udalost: SubmitEvent) {
     pole.focus();
     return;
   }
-  chybaTextu.hidden = true;
-  odeslatText.disabled = true;
+  ukazat('odesilani', 'Upravuji vzkaz.');
   const vystup = await odeslat('text', {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ text }),
   });
-  odeslatText.disabled = false;
   if (vystup.zruseno) return;
   if (vystup.data) {
     pole.value = '';
     pocet.textContent = '0';
     ukazatVysledek(vystup.data);
   } else {
+    ukazatText();
     chybaTextu.textContent = vystup.chyba ?? OBECNA_CHYBA;
     chybaTextu.hidden = false;
   }

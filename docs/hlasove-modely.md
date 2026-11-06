@@ -1,6 +1,6 @@
 # Hlasové modely: zjištění z jiného projektu
 
-*Stav k 1. 11. 2026. Zdroj: `lessons-learned.md` z projektu Podcast Language Learning App (jen ke čtení). Poslední doložené pokusy jsou z 16. 10. 2026. Modely, ceny a termíny jsou údaje z té doby, ne nově ověřená nabídka.*
+*Stav k 1. 11. 2026, výběr modelu AI úpravy k 6. 11. 2026. Zdroj: `lessons-learned.md` z projektu Podcast Language Learning App (jen ke čtení). Poslední doložené pokusy jsou z 16. 10. 2026. Modely, ceny a termíny v části o tom projektu jsou údaje z té doby, ne nově ověřená nabídka.*
 
 Projekt zkoušel hlasovou výuku angličtiny přes OpenAI Realtime, Speechmatics, agenta ElevenLabs a Gemini TTS. Testovalo se hlavně v Chromu na Androidu. Přepis české řeči v něm systematicky ověřený není.
 
@@ -24,6 +24,33 @@ PRD počítá s `whisper-large-v3-turbo` na Workers AI a alternativou Deepgram N
 - Druhého poskytovatele přidávat, až když měření ukáže problém s cenou nebo kvalitou prvního.
 
 **První měření `whisper-large-v3-turbo` (6. 11. 2026):** model přijal WebM/Opus z Edge a Opery ve Windows a přepsal 2:59 vcelku za 21,6 s. Šlo o syntetický hlas bez nápovědy `initial_prompt`, takže to není vyhodnocení kvality. To přinese až testovací sada z kroku 3.5. Podrobnosti jsou v [test-zarizeni.md](test-zarizeni.md).
+
+## Výběr modelu AI úpravy
+
+**První porovnání (6. 11. 2026).** Není to slepý test z kroku 3.6, ale rychlé srovnání, aby šla úprava zkoušet na stránce. Vzorků bylo šest: přepis 3minutové a krátké nahrávky ze syntetického hlasu, hovorový text, text s chybami, pochvala a pokus o podstrčení pokynů. Všechny modely měly stejný prompt a teplotu 0,2. Hodnotil jsem je sám a ne naslepo. Skutečné vzkazy od lidí v porovnání nebyly.
+
+| Model | Uvažování | 3 minuty řeči (2 100 znaků) | Krátký vzkaz | Výsledek |
+|---|---|---|---|---|
+| Gemma 4 26B | vypnuté | 7–15 s | 1–5 s | **Vybraný předběžně.** Nejlepší velká písmena, jména a otazníky |
+| Gemma 4 26B | zapnuté | přes 150 s | 66–82 s | Text nejlepší, pro čekání na stránce nepoužitelné |
+| Nemotron 3 Super | vypnuté | 7–9 s | 1–3 s | Nejvěrnější, ale opravuje málo: „k písečákům“, „pro ní“, „Mě by zajímalo ta kanalizace“, „Děkuju“ |
+| Nemotron 3 Super | nízké | 11 s | 2–3 s | Přidá otazníky, zbytek chyb zůstává |
+| Nemotron 3 Super | plné | 38 s | 14–22 s | Lepší věty, ale pomalé a „vyjíždět“ změnil na „vjíždět“ |
+| Mistral Small 3.1 | – | 14 s | 1–6 s | Vypadl v prvním kole: přidal „dlaždic“ a „korun“, u dlouhého textu vrátil neplatný JSON |
+| DeepSeek V4.1 Flash | – | – | – | Nezkoušeno, na Workers Free plan není dostupný (chyba 5035) |
+
+**Co Gemmě zůstává** (bez uvažování, po úpravě promptu, ve dvou opakováních skoro stejné):
+
+- Přidává slova: „zpomalovací zařízení, například retardér“ místo „retardér“ a někdy „rozbitých částí“. To porušuje práh „nepřidá nic, co autor neřekl“, takže v kroku 3.6 zatím neprojde.
+- Mění odstín: „hrůzná“ místo „hrůza“.
+- Neopraví všechno: „výjíždět“, „vyjde jednu domácnost“, někdy nechá „A taky“.
+- Umí chybu i přidat: „auta ježdí“, i když přepis měl „jezdí“ správně.
+- Slovo, které nezná, nahradí jiným. Než se „přísálí Sokolovny“ dostalo do seznamu názvů, psala „předsíň“ a v prvním kole „přilehlost“. Bez pádů v seznamu napsala i „ze Sviján“. Totéž se může stát u jiných místních výrazů.
+- Obsahové chyby přepisu opravit nemůže. „Kdokoliv to“ místo „kdo koryto“ změnila na „kdo to“, takže věta dává smysl, ale jiný než autor řekl. Proto je nutné potvrzení autorem v kroku 4.
+
+Pokus o podstrčení pokynů žádný model neposlechl. Všechny ale větu s pokynem z upraveného textu vypustily, zůstala jen v surovém přepisu. U skutečné stížnosti se to stát nesmí, patří to proto do testovací sady.
+
+**Cena:** Gemma stojí 0,10 / 0,30 USD za milion tokenů, úprava 3minutového vzkazu vyjde na 0,04 centu a 37 neuronů. Přepis 3 minut je 140 neuronů. Do bezplatných 10 000 neuronů denně se vejde asi 55 tříminutových vzkazů, potom na Workers Free každý další požadavek skončí chybou a autor uvidí Zkusit znovu.
 
 ## Čtení odpovědí nahlas (mimo MVP)
 

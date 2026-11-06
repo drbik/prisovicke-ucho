@@ -70,7 +70,7 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 - Před potvrzením autorem se nic neukládá. Server výsledek přepisu a úpravy podepíše a uloží ho až po potvrzení (F-14).
 - V MVP bez AI Gateway a bez serverové fronty. Obojí by mohlo uložit audio. Při výpadku AI autor pošle nahrávku znovu z prohlížeče.
 - Pro vzkazy občanů se nepoužívají bezplatné modely z OpenRouteru: zaznamenávají vstupy a jsou jen na zkoušku.
-- Kandidáti na AI úpravu a prahy pro výběr jsou v `docs/plan-mvp.md` (krok 3).
+- Kandidáti na AI úpravu a prahy pro výběr jsou v `docs/plan-mvp.md` (krok 3). Stránka zatím používá Gemmu 4 26B bez uvažování, definitivně rozhodne krok 3.6.
 - Kostra aplikace: Astro 7 s adaptérem pro Cloudflare na stránky, stejně jako web Nezávislých. Hono na API pod `/api`.
 - Plánování MVP je uzavřené. Další fáze je testování, pořadí testů je v `docs/plan-mvp.md`.
 - Ucho poběží na doméně webu pod cestou nezavisli-prisovice.cz/ucho. Testuje se lokálně a rovnou na této ostré adrese, bez neveřejných náhledů (workers.dev, preview). Web má malou návštěvnost, proto se rozdíl mezi veřejnou a neveřejnou verzí neřeší.

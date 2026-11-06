@@ -8,6 +8,7 @@ const STATUSY = {
   'spatny-text': 422,
   'prepis-selhal': 502,
   'prazdny-prepis': 422,
+  'uprava-selhala': 502,
 } as const;
 
 export type KodChyby = keyof typeof STATUSY;

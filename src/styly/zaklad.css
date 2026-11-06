@@ -77,6 +77,10 @@ textarea { display: block; width: 100%; min-height: 150px; padding: 12px; border
 .chyba { margin: 10px 0 0; color: #a63a22; font-weight: 650; }
 
 .prepis { margin: 0 0 14px; padding: 14px 16px; border-left: 3px solid var(--past); border-radius: 0 7px 7px 0; background: #edf2e8; white-space: pre-wrap; overflow-wrap: anywhere; }
+.zarazeni { display: grid; grid-template-columns: auto 1fr; gap: 2px 14px; margin: 0 0 14px; }
+.zarazeni dt { color: var(--ink-soft); }
+.zarazeni dd { margin: 0; font-weight: 650; overflow-wrap: anywhere; }
+.puvodni { margin: 8px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .technicke { margin-top: 14px; padding: 10px 0; border-top: 1px solid var(--linka); font-size: .84rem; }
 .technicke summary { min-height: 28px; font-weight: 700; cursor: pointer; }
 .technicke dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 14px; margin: 8px 0 0; }

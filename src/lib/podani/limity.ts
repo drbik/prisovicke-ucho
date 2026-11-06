@@ -10,6 +10,9 @@ export const MAX_ZNAKU_TEXTU = 3000;
 export const MAX_VELIKOST_NAHRAVKY_B = 8 * 1024 * 1024;
 export const MAX_VELIKOST_TEXTU_B = 16 * 1024;
 
+// Když jazykový model do té doby neodpoví, autor dostane Zkusit znovu (krok 3.4).
+export const LIMIT_UPRAVY_MS = 45_000;
+
 export const POVOLENE_TYPY_NAHRAVKY = ['audio/webm', 'audio/mp4', 'audio/ogg', 'audio/wav'];
 
 export function jeTextPlatny(text: string) {
