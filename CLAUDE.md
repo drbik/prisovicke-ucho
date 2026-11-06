@@ -37,7 +37,7 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 - **Vzhled:** barvy a písma podle webu (`DESIGN_SPEC.md`, styly v `src/pages/index.astro`).
 - **Hlas textů:** `SIMPLE_COPY_PROMPT.md` je politický hlas karet webu. Odpovědi ucha jsou věcné, s citací a upozorněním, že nejde o úřední vyjádření obce.
 - **Hlavičky:** `src/lib/security-headers.ts` a `public/_headers` musí souhlasit, hlídá to `npm run test:security`. Mění se jen v projektu webu.
-- **Nasazení:** ucho má vlastní Worker. Do Workeru webu `prisovice-nezavisli` se nikdy nenasazuje. Web se nasazuje jen v jeho projektu a jen na výslovný pokyn.
+- **Nasazení:** ucho má vlastní Worker pro cestu `/ucho`. Do Workeru webu `prisovice-nezavisli` se nikdy nenasazuje. Web se nasazuje jen v jeho projektu a jen na výslovný pokyn.
 - Když se ucho a web v něčem, co patří webu, liší, platí web. Rozdíl zapiš do `docs/oblasti-a-web.md`, web neopravuj odsud.
 
 ## Rozhodnutí (24. 10. 2026)
@@ -72,6 +72,7 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 - Kandidáti na AI úpravu a prahy pro výběr jsou v `docs/plan-mvp.md` (krok 3).
 - Kostra aplikace: Astro 7 s adaptérem pro Cloudflare na stránky, stejně jako web Nezávislých. Hono na API pod `/api`.
 - Plánování MVP je uzavřené. Další fáze je testování, pořadí testů je v `docs/plan-mvp.md`.
+- Ucho poběží na doméně webu pod cestou nezavisli-prisovice.cz/ucho. Testuje se lokálně a rovnou na této ostré adrese, bez neveřejných náhledů (workers.dev, preview). Web má malou návštěvnost, proto se rozdíl mezi veřejnou a neveřejnou verzí neřeší.
 
 ## MVP (prezentační verze)
 
@@ -88,7 +89,7 @@ Do MVP nepatří e-mail, GDPR souhlasy a moderace, zakrytí osobních údajů, o
 
 ## Otevřené otázky
 
-- Vložení do webu (F-09): hlavičky webu dnes zakazují mikrofon i cizí skripty a rámy. Úprava se dělá v projektu webu, varianty jsou v `docs/oblasti-a-web.md`.
+- Vložení do webu (F-09): ucho bude na nezavisli-prisovice.cz/ucho. Zbývá ověřit, jak se cesta `/ucho` oddělí od Workeru webu, který dnes obsluhuje celou doménu, a jak ucho otevře grafika na webu. Rozbor je v `docs/oblasti-a-web.md`.
 - Kdo bude správce osobních údajů podle GDPR.
 
 ## Zásady pro kód

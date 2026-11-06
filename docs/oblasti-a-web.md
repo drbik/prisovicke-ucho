@@ -114,3 +114,12 @@ Možnosti:
 3. **Odkaz na samostatnou stránku aplikace.** Hlavičky webu se měnit nemusí, ale člověk web opustí. To F-09 nechce.
 
 Každá varianta znamená úpravu webu. Ta se dělá v jeho vlastním projektu, ne tady.
+
+### Rozhodnuto 6. 11. 2026: ucho na nezavisli-prisovice.cz/ucho
+
+Ucho poběží na doméně webu pod cestou `/ucho` a testuje se rovnou tam. Co z toho plyne:
+
+- **Stejný původ.** Rám i skript z `/ucho` projdou dnešním `frame-src 'self'` a `script-src 'self'`, CSP webu se kvůli tomu měnit nemusí.
+- **Mikrofon na stránce `/ucho`.** Když stránku obslouží Worker ucha, nastaví si vlastní hlavičky a mikrofon si povolí (`microphone=(self)`). Hlavičky webu platí jen pro jeho odpovědi.
+- **Mikrofon v rámu na stránce webu.** Stránky webu posílají `microphone=()`, takže rám s uchem by mikrofon nedostal. Otevření ucha v rámu by vyžadovalo úpravu hlaviček v projektu webu.
+- **Směrování je k ověření.** Worker webu dnes obsluhuje celou doménu jako Custom Domain (`wrangler.jsonc` webu). Je potřeba ověřit v dokumentaci Cloudflare, jestli route `nezavisli-prisovice.cz/ucho*` pro Worker ucha dostane přednost. Druhá cesta je, že Worker webu předá `/ucho` Workeru ucha přes service binding, a to je úprava webu.

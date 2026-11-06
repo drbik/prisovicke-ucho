@@ -64,13 +64,13 @@ Cílem je, aby člověk na telefonu i na počítači namluvil nebo napsal vzkaz 
 | 2.3 | Odeslání: server přijme nahrávku jedním požadavkem, zkontroluje typ a velikost, nic neuloží a vrátí přepis. Čas nahrání a zpracování se zapisuje do logů. | Test ověří, že do úložiště ani do databáze nešlo žádné audio. Logy ukazují časy jednotlivých fází. |
 | 2.4 | Formát pro Whisper: skutečné nahrávky z Opery na Androidu a z Edge a Opery na Windows poslat do `whisper-large-v3-turbo`. Všechny tři prohlížeče stojí na Chromiu a nahrávají WebM/Opus. Dokumentace Workers AI podporované formáty neuvádí a WebM z Chromia nemá v hlavičce délku nahrávky. | Víme, jestli model WebM přijme. Když ne, bude se nahrávat rovnou WAV 16 kHz mono (3 minuty mají asi 5,8 MB). |
 | 2.5 | Textové pole (F-04): 10 až 3 000 znaků, dál pokračuje stejnou cestou jako přepis nahrávky. | Napsaný text dojde na server a vrátí se stejně jako přepis. |
-| 2.6 | Telefony a prohlížeče (F-05): testovací adresa přes HTTPS, protože mimo localhost mikrofon bez HTTPS nefunguje. Stačí náhled na workers.dev nebo Cloudflare Tunnel. Projít matici níže. | Výsledky jsou zapsané v `docs/test-zarizeni.md` a vzkaz dojde na server ze všech tří prohlížečů. |
+| 2.6 | Telefony a prohlížeče (F-05): testovací adresa přes HTTPS, protože mimo localhost mikrofon bez HTTPS nefunguje. Testuje se rovnou na ostré adrese nezavisli-prisovice.cz/ucho, bez náhledů na workers.dev (rozhodnuto 6. 11. 2026). Projít matici níže. | Výsledky jsou zapsané v `docs/test-zarizeni.md` a vzkaz dojde na server ze všech tří prohlížečů. |
 
 **Testovací matice:**
 
 - Zařízení: Opera na Androidu, Edge a Opera na Windows.
 - Scénáře: povolení i zákaz mikrofonu, limit 3 minut, zamčení telefonu během nahrávání, Bluetooth sluchátka, příchozí hovor, pomalá síť.
-- Mikrofon v rámu z jiné domény na Opeře pro Android. Na výsledku závisí, jestli půjde aplikaci v kroku 12 vložit rámem. Stačí testovací stránka na druhé adrese workers.dev, web nezavisli-prisovice.cz se kvůli tomu nemění.
+- Mikrofon v rámu na Opeře pro Android. Ucho je na stejné doméně jako web, takže rám je ze stejného původu. Na výsledku závisí, jestli se ucho v kroku 12 otevře na webu v rámu, nebo jako samostatná stránka `/ucho`. Testovací stránku s rámem obslouží Worker ucha pod `/ucho`, web se kvůli tomu nemění.
 
 **Rozhodnutí (2. 11. 2026):**
 
@@ -139,12 +139,14 @@ Cílem je, aby z nahrávky nebo napsaného textu vznikl upravený vzkaz ve spiso
 
 Testuje se od největšího rizika. Každý test může změnit plán, proto se další kroky rozepíšou až podle výsledků.
 
-1. **Whisper a nahrávky z telefonu** (2.4, 3.1). Jednoduchá testovací stránka na workers.dev nahraje v Opeře na Androidu pár vzkazů, z toho jeden tříminutový, a pošle je do `whisper-large-v3-turbo`. Test ukáže, jestli model přijme WebM, zvládne 3 minuty vcelku a jak přepíše češtinu s místními názvy.
-2. **Mikrofon v rámu** (2.6, krok 12). Testovací stránka na jiné adrese vloží stránku s mikrofonem do rámu. Ověří se na Opeře pro Android.
+1. **Whisper a nahrávky z telefonu** (2.4, 3.1). Jednoduchá testovací stránka na nezavisli-prisovice.cz/ucho nahraje v Opeře na Androidu pár vzkazů, z toho jeden tříminutový, a pošle je do `whisper-large-v3-turbo`. Test ukáže, jestli model přijme WebM, zvládne 3 minuty vcelku a jak přepíše češtinu s místními názvy.
+2. **Mikrofon v rámu** (2.6, krok 12). Testovací stránka pod `/ucho` vloží stránku s mikrofonem do rámu ze stejné domény. Ověří se na Opeře pro Android.
 3. **Kostra a textové pole** (1.2 až 1.5, 2.5). Po nich jde AI úpravu zkoušet na napsaném textu, ještě bez mikrofonu.
 4. **Testovací sada a výběr modelů** (3.5, 3.6).
 
-K prvnímu testu je potřeba Cloudflare účet a API token s oprávněním pro Workers AI. Token patří jen do proměnné prostředí, ne do repozitáře.
+Testuje se lokálně a rovnou na ostré adrese nezavisli-prisovice.cz/ucho, bez neveřejných náhledů (rozhodnuto 6. 11. 2026). Web má malou návštěvnost, rozpracovaná stránka tam proto nevadí.
+
+K prvnímu testu je potřeba Cloudflare účet a API token s oprávněním pro Workers AI a pro nasazení Workeru na doménu nezavisli-prisovice.cz. Token patří jen do proměnné prostředí, ne do repozitáře.
 
 Živé PRD v Claude Docs je od 6. 11. 2026 ve verzi 0.9 a rozhodnutí z 1. až 6. 11. 2026 obsahuje.
 

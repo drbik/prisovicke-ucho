@@ -147,7 +147,7 @@ Návrh má 68 požadavků v sedmi oblastech, 37 z nich je v MVP. Prioritu může
 
 | ID | Požadavek | Priorita |
 | --- | --- | --- |
-| F-09 | Vstupem je grafika ucha na webu nezavisli-prisovice.cz. Kliknutí otevře rozhraní aplikace, aniž by člověk opustil web. Aplikace jde do webu vložit jedním skriptem nebo odkazem, aby úprava webu byla minimální. | MVP |
+| F-09 | Vstupem je grafika ucha na webu nezavisli-prisovice.cz. Kliknutí otevře rozhraní aplikace, aniž by člověk opustil web. Aplikace jde do webu vložit jedním skriptem nebo odkazem, aby úprava webu byla minimální. Ucho poběží na doméně webu pod cestou /ucho (rozhodnuto 6. 11. 2026). | MVP |
 | F-01 | Tlačítko mikrofonu spustí a ukončí nahrávání. Ukazuje uplynulý čas a úroveň hlasitosti. | MVP |
 | F-02 | Nahrávka trvá nejvýš 3 minuty, 30 s před koncem přijde upozornění (**Předpoklad**). | MVP |
 | F-03 | Autor si nahrávku může přehrát, zahodit a nahrát znovu. | Později |
@@ -350,7 +350,7 @@ Ucho je nadstavba webu nezavisli-prisovice.cz, proto v tom, co patří webu, pla
 | Vzhled | `DESIGN_SPEC.md`, barvy v `src/pages/index.astro` | Stejné barvy a písma: tmavě zelená, cihlový akcent, patkové nadpisy. Kontrast textu nejméně 4,5 : 1. |
 | Hlas textů | `SIMPLE_COPY_PROMPT.md` | Platí jen pro karty webu. Odpovědi ucha jsou věcné, s citací a upozorněním, že nejde o úřední vyjádření obce. |
 | Hlavičky | `src/lib/security-headers.ts`, `public/_headers` | Dnes zakazují mikrofon i cizí skripty a rámy. Varianty vložení jsou v `docs/oblasti-a-web.md`. |
-| Nasazení | Worker `prisovice-nezavisli`, `npm run deploy` | Ucho má vlastní Worker a do Workeru webu se nenasazuje. |
+| Nasazení | Worker `prisovice-nezavisli`, `npm run deploy` | Ucho má vlastní Worker pro cestu /ucho a do Workeru webu se nenasazuje. |
 
 Podrobná mapa souborů webu je v repozitáři ucha v `docs/oblasti-a-web.md`.
 
@@ -376,7 +376,7 @@ Prezentační verze poběží celá na jednom Cloudflare účtu. Odhad provozu j
 | Položka | Pro MVP | Cena |
 | --- | --- | --- |
 | Hosting a databáze | Cloudflare účet s plánem Workers Paid: Workers, D1, R2, Vectorize, AI Search, Workers AI, Browser Rendering | 5 USD měsíčně, AI a vyhledávání podle objemu |
-| Adresa aplikace | Bezplatná adresa `*.workers.dev`, vlastní doména až pro ostrý provoz | Zdarma |
+| Adresa aplikace | nezavisli-prisovice.cz/ucho na doméně webu. Testuje se rovnou tam, bez neveřejných náhledů (rozhodnuto 6. 11. 2026). | Zdarma |
 | Telegram | Bot založený přes @BotFather | Zdarma |
 | Data z webu obce | Jednorázově stažený web prisovice.cz, stránky a PDF v R2 | V ceně R2 |
 | Kód a nasazení | Repozitář na GitHubu (už existuje), nasazení příkazem `wrangler deploy` | Zdarma |
@@ -463,6 +463,7 @@ Rozhodnuté otázky jsou zaškrtnuté. Testování MVP žádná z otevřených o
 - [x] **Kanál v MVP:** jen Telegram, e-mail přijde před ostrým spuštěním.
 - [x] **Hlasování v MVP:** bez ověření pobytu hlasuje každý přihlášený (rozhodnuto 24. 10. 2026).
 - [x] **Seznam projektů:** načetla ho lokální session 1. 11. 2026 ze složky webu `WEB_Prisovice`, jen ke čtení. Projekty, oblasti a mapa znalostí webu jsou v repozitáři v `docs/oblasti-a-web.md`.
+- [x] **Doména a vzhled:** ucho poběží na nezavisli-prisovice.cz/ucho a testuje se rovnou na této ostré adrese (rozhodnuto 6. 11. 2026). Vzhled převezme z webu Nezávislých, grafika ucha vznikne v projektu webu.
 - [ ] **Správce osobních údajů:** kdo bude podle GDPR správcem? Sdružení nezávislých kandidátů není právnická osoba, takže spolek, nebo konkrétní člověk?
 - [ ] **Zdroj pro projekty:** mají se odpovědi o projektech brát i z nezavisli-prisovice.cz, nebo jen z prisovice.cz? Pokud ano, tak jen z publikovaných karet webu. Jeho faktický podklad (timeline) obsahuje neveřejné a neověřené údaje.
 - [ ] **Podněty od neobčanů:** smějí po ostrém spuštění podávat podněty i lidé bez trvalého pobytu v Příšovicích?
@@ -476,13 +477,11 @@ Rozhodnuté otázky jsou zaškrtnuté. Testování MVP žádná z otevřených o
 - [ ] **Rozpočet:** kolik může stát provoz měsíčně, včetně SMS a WhatsAppu?
 - [ ] **Nahrávky:** v MVP se neukládají (rozhodnuto 1. 11. 2026). Mají se uchovávat v ostrém provozu, a pokud ano, jak dlouho?
 - [ ] **Termín a pilot:** kdy chcete MVP spustit a s jakou skupinou lidí ho otestovat?
-- [ ] **Doména a vzhled:** vzhled se převezme z webu Nezávislých (barvy, písma) a MVP běží na adrese workers.dev. Na jaké adrese poběží ostrý provoz a má mít ucho vlastní logo?
-
 ## Historie verzí
 
 | Verze | Datum | Změny |
 | --- | --- | --- |
-| 0.9 | 6. 11. 2026 | Hosting Cloudflare, kostra Astro 7 a Hono; nahrávky se v MVP neukládají, bez AI Gateway a serverové fronty; uložení až po potvrzení autorem; 11 entit v MVP; testované prohlížeče a kandidáti modelů; název provozovatele podle webu a vazba na web Nezávislých; plánování MVP uzavřené |
+| 0.9 | 6. 11. 2026 | Hosting Cloudflare, kostra Astro 7 a Hono; nahrávky se v MVP neukládají, bez AI Gateway a serverové fronty; uložení až po potvrzení autorem; 11 entit v MVP; testované prohlížeče a kandidáti modelů; název provozovatele podle webu a vazba na web Nezávislých; plánování MVP uzavřené; adresa nezavisli-prisovice.cz/ucho a testování přímo na ní |
 | 0.8 | 1. 11. 2026 | Název Příšovické ucho (repozitář prisovicke-ucho); vstupem je grafika ucha na webu nezavisli-prisovice.cz (F-09); lokální zdroje jen ke čtení; otázka hlasových modelů a TTS |
 | 0.7 | 24. 10. 2026 | Provozovatelem je uskupení Nezávislí Příšovice (9 z 15 zastupitelů), aplikace bude součástí webu nezavisli-prisovice.cz; katalog cloud computingu se netýká; upozornění, že odpovědi nejsou úředním vyjádřením obce; nová rizika a otázka správce osobních údajů |
 | 0.6 | 24. 10. 2026 | MVP zeštíhleno na prezentační verzi (36 požadavků, jen Telegram), ověření pobytu a GDPR až před ostrým spuštěním, věková hranice 15 let, oblasti podle projektů na nezavisli-prisovice.cz, nároky na provoz |
