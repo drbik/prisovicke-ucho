@@ -1,0 +1,17 @@
+---
+import Zaklad from '../layouts/Zaklad.astro';
+
+// Test 2 z docs/plan-mvp.md: mikrofon v rámu ze stejné domény. Na výsledku závisí způsob vložení v kroku 12.
+const adresaUcha = import.meta.env.BASE_URL;
+---
+
+<Zaklad titulek="Test mikrofonu v rámu" popis="Testovací stránka Příšovického ucha.">
+  <main class="stranka stranka--siroka">
+    <article class="karta">
+      <p class="nadtitulek">Test pro krok 12</p>
+      <h1>Mikrofon v rámu</h1>
+      <p class="uvod">Rám níže načítá stránku ucha ze stejné domény. Klepněte v něm na mikrofon a zkuste vzkaz namluvit.</p>
+      <iframe class="ram" src={adresaUcha} title="Příšovické ucho v rámu" allow="microphone"></iframe>
+    </article>
+  </main>
+</Zaklad>

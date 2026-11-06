@@ -1,0 +1,27 @@
+---
+import '../styly/zaklad.css';
+
+interface Props {
+  titulek: string;
+  popis: string;
+}
+
+const { titulek, popis } = Astro.props;
+---
+
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={popis} />
+    <!-- Zkušební provoz: stránka nepatří do vyhledávačů. -->
+    <meta name="robots" content="noindex" />
+    <!-- Ikona je na stejné doméně a patří webu Nezávislých. -->
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>{titulek}</title>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

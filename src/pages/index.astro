@@ -1,0 +1,23 @@
+---
+import Podani from '../components/Podani.astro';
+import Zaklad from '../layouts/Zaklad.astro';
+---
+
+<Zaklad
+  titulek="Příšovické ucho"
+  popis="Namluvte nebo napište návrh či dotaz k dění v Příšovicích. Zkušební provoz."
+>
+  <main class="stranka">
+    <a class="zpet" href="/" target="_top">← Na web Nezávislých pro Příšovice</a>
+    <article class="karta">
+      <p class="nadtitulek">Nezávislí pro Příšovice</p>
+      <h1>Příšovické ucho</h1>
+      <p class="uvod">Máte návrh nebo dotaz k dění v obci? Řekněte ho vlastními slovy a my ho převedeme na text.</p>
+      <Podani />
+      <aside class="poznamka">
+        <p><strong>Zkušební provoz.</strong> Stránka zatím jen ukáže přepis. Vzkaz se nikam neuloží a nikdo ho nedostane.</p>
+      </aside>
+      <p class="drobne">K přepisu používáme Workers AI od Cloudflare. Nahrávku neukládáme. Ucho není úředním kanálem obce.</p>
+    </article>
+  </main>
+</Zaklad>
