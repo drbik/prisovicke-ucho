@@ -149,7 +149,7 @@ Testuje se od největšího rizika. Každý test může změnit plán, proto se 
 
 Testuje se lokálně a rovnou na ostré adrese nezavisli-prisovice.cz/ucho, bez neveřejných náhledů (rozhodnuto 6. 11. 2026). Web má malou návštěvnost, rozpracovaná stránka tam proto nevadí.
 
-**Stav k 6. 11. 2026:** kostra (1.2, z 1.3 zatím jen rozhraní AI), stránka podání (2.1 až 2.5), přepis (3.1) a AI úprava (3.2, 3.4, z 3.3 vše kromě podpisu) běží na ostré adrese. Testy 1 a 2 jsou hotové ve Windows, chybí Opera na Androidu. Whisper přijal WebM z Chromia a tři minuty vcelku, takže WAV ani dělení nahrávky nejsou potřeba, pokud to Android nezmění. Výsledky jsou v [test-zarizeni.md](test-zarizeni.md).
+**Stav k 6. 11. 2026:** kostra (1.2, z 1.3 zatím jen rozhraní AI), stránka podání (2.1 až 2.5), přepis (3.1) a AI úprava (3.2, 3.4, z 3.3 vše kromě podpisu) běží na ostré adrese. Testy 1 a 2 jsou hotové ve Windows. Na Opeře pro Android prošly tři namluvené vzkazy, 3 minuty a rám tam ještě čekají. Whisper přijal WebM z Chromia a tři minuty vcelku, takže WAV ani dělení nahrávky nejsou potřeba, pokud to 3minutová nahrávka z Androidu nezmění. Výsledky jsou v [test-zarizeni.md](test-zarizeni.md).
 
 Podpis výsledku (3.3) přijde s krokem 4: dokud autor nemá co potvrdit, nikdo by podpis neověřoval. Stránka zatím jen ukáže upravený text, název, typ, oblast a původní přepis, nic se neukládá. Model úpravy je vybraný předběžně, krok 3.6 stále čeká na testovací sadu.
 
