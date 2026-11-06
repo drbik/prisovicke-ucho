@@ -2,7 +2,9 @@
 
 Webová aplikace, kde občané Příšovic namluví návrh nebo dotaz. AI ho přepíše do spisovné češtiny a přiřadí k existujícímu tématu. Pak hledá odpověď na webu obce, a když ji nenajde, odpoví zastupitel. Nejde o chatbota: AI s uživatelem nevede dialog, jen zpracuje jeden vzkaz.
 
-Provozovatel je uskupení Nezávislí Příšovice (9 z 15 zastupitelů). Aplikace není úředním kanálem obce.
+Provozovatel je tým Nezávislí pro Příšovice. Na hlasovacím lístku voleb 2026 kandidoval jako Rozumná cesta (kandidátka č. 2) a získal 9 z 15 mandátů. Aplikace není úředním kanálem obce.
+
+Ucho je nadstavba webu nezavisli-prisovice.cz. V tom, co patří webu, platí zdroje jeho projektu (oddíl Soulad s webem Nezávislých).
 
 Vstupem bude grafika ucha na webu nezavisli-prisovice.cz. Po kliknutí se otevře rozhraní pro dotaz, přihlášení a odpovědi, aniž by člověk opustil web. Aplikaci proto stav tak, aby šla do webu vložit jedním skriptem nebo odkazem (F-09).
 
@@ -10,20 +12,33 @@ Vstupem bude grafika ucha na webu nezavisli-prisovice.cz. Po kliknutí se otevř
 
 Na počítači Tomáše (Windows) jsou dvě složky, ze kterých se smí jen číst. **Nic v nich neměň, nevytvářej ani nemaž soubory a nespouštěj v nich příkazy, které něco zapisují.**
 
-- `C:\Users\tomas\OneDrive\06_CODEX\WEB_Prisovice` – zdrojové soubory webu nezavisli-prisovice.cz. Odsud se berou projekty (oblasti dotazů) a informace o práci obce. Úpravy webu, včetně grafiky ucha, se dělají v jeho vlastním projektu, ne tady.
+- `C:\Users\tomas\OneDrive\06_CODEX\WEB_Prisovice` – projekt webu nezavisli-prisovice.cz (vede se v Codexu). Odsud se berou projekty (oblasti dotazů), fakta o práci obce, vzhled a pravidla webu. Závazná pravidla webu jsou v jeho `AGENTS.md`, rozcestník v `README.md`. Co z kterého souboru plyne pro ucho, je v `docs/oblasti-a-web.md`. Úpravy webu, včetně grafiky ucha, se dělají v jeho vlastním projektu, ne tady.
 - `C:\Users\tomas\OneDrive\06_Podcast Language Learning App\docs\history\lessons-learned.md` – zkušenosti s hlasovými modely (přepis řeči a TTS) z jiného projektu. Použij je při výběru modelů.
 
 Cloudová session k nim nemá přístup. V lokální session je zpřístupni jen ke čtení, např. `/add-dir`.
 
 ## Dokumenty
 
-- `docs/PRD.md` – požadavky, verze 0.8 (export). Živá verze je v Claude Docs: https://claude.ai/artifact/1uqzdxoYxj8jR45McMdo3Z. Při rozporu platí živá verze.
+- `docs/PRD.md` – požadavky, verze 0.9 (export). Živá verze je v Claude Docs: https://claude.ai/artifact/1uqzdxoYxj8jR45McMdo3Z. Při rozporu platí živá verze.
 - `docs/research-hlasove-podnety.md` – rešerše hotových řešení, hostingu a všech zdrojů.
-- `docs/oblasti-a-web.md` – projekty a témata z webu nezavisli-prisovice.cz, návrh oblastí a technika webu pro F-09.
+- `docs/oblasti-a-web.md` – projekty a témata z webu nezavisli-prisovice.cz, mapa znalostí v projektu webu, oblasti a technika webu pro F-09.
 - `docs/hlasove-modely.md` – zjištění o hlasových modelech z jiného projektu a co z nich plyne pro výběr modelu přepisu.
 - `docs/plan-mvp.md` – MVP rozdělené na postupné kroky, rozpis kroků 1 až 3 a pořadí testů.
 
 Požadavky mají ID (F-01 až F-83) a prioritu MVP / Později / Zvážit. V commitech a kódu na ně odkazuj.
+
+## Soulad s webem Nezávislých
+
+Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/oblasti-a-web.md`.
+
+- **Název:** na webu „Nezávislí pro Příšovice“, na hlasovacím lístku „Rozumná cesta“, kandidátka č. 2. Nikdy netvrď, že se kandidátka jmenuje Nezávislí pro Příšovice. Zdroj: `src/content/akce-prisovice-timeline.md`, upřesnění z 1. 10. 2026.
+- **Fakta o projektech:** faktický master je `src/content/akce-prisovice-timeline.md`, publikované karty jsou v `src/content/projects/`. Timeline obsahuje i neveřejné záměry a neověřené údaje (TBD), proto do ucha přebírej jen to, co je v publikované kartě.
+- **Oblasti:** oblast se s kartou projektu páruje stabilním `slug` (např. `dostupne-bydleni`). Název karty se může změnit, slug ne.
+- **Vzhled:** barvy a písma podle webu (`DESIGN_SPEC.md`, styly v `src/pages/index.astro`).
+- **Hlas textů:** `SIMPLE_COPY_PROMPT.md` je politický hlas karet webu. Odpovědi ucha jsou věcné, s citací a upozorněním, že nejde o úřední vyjádření obce.
+- **Hlavičky:** `src/lib/security-headers.ts` a `public/_headers` musí souhlasit, hlídá to `npm run test:security`. Mění se jen v projektu webu.
+- **Nasazení:** ucho má vlastní Worker. Do Workeru webu `prisovice-nezavisli` se nikdy nenasazuje. Web se nasazuje jen v jeho projektu a jen na výslovný pokyn.
+- Když se ucho a web v něčem, co patří webu, liší, platí web. Rozdíl zapiš do `docs/oblasti-a-web.md`, web neopravuj odsud.
 
 ## Rozhodnutí (24. 10. 2026)
 

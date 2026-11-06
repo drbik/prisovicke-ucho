@@ -1,8 +1,35 @@
 # Oblasti dotazů a web nezavisli-prisovice.cz
 
-*Stav k 1. 11. 2026. Zdroj: `src/content/projects/` ve složce WEB_Prisovice (jen ke čtení).*
+*Stav k 6. 11. 2026. Zdroj: projekt webu ve složce WEB_Prisovice (jen ke čtení), poslední commit webu z 11. 10. 2026.*
 
-Web je jedna stránka s časovou osou projektů. Obsah vznikl pro volební kampaň a závěr zve k volbám 9. a 10. října 2026. Po volbách se může měnit, proto oblasti před spuštěním znovu porovnej s webem.
+Ucho je nadstavba webu nezavisli-prisovice.cz. Web je jedna stránka s časovou osou: uskutečněné projekty, milník voleb 9. a 10. října 2026 a budoucí plány. Obsah vznikl pro volební kampaň. Po volbách web 11. 10. 2026 přidal povolební překryv s výsledky a dalším postupem. Karty projektů se od 1. 10. 2026 nezměnily. Oblasti před spuštěním přesto znovu porovnej s webem.
+
+## Znalosti v projektu webu
+
+Cesty jsou relativní ke složce `WEB_Prisovice`. Projekt webu má vlastní pravidla: `AGENTS.md` je závazný, `README.md` je rozcestník a `CLAUDE.md` jen odkazuje na oba. V tom, co patří webu, mají jeho zdroje přednost před tímto repozitářem.
+
+| Soubor | Co obsahuje | Co z toho plyne pro ucho |
+|---|---|---|
+| `AGENTS.md` | Postup úkolu, zdroje pravdy, ověření a nasazení webu | Řídí každou úpravu webu, i grafiku ucha a hlavičky pro F-09 |
+| `README.md` | Struktura příběhu, galerie, analytika, nasazení | První čtení před prací s webem |
+| `src/content/akce-prisovice-timeline.md` | Faktický master: ověřená fakta, částky, dotace, zdroje, TBD, neveřejné záměry, povolební informace | Kontrola faktů o projektech a o provozovateli. Neveřejné a neověřené části se do ucha nepřebírají |
+| `src/content/projects/*.md` | Publikované karty: `kind` (minulost, milník, budoucnost, závěr), stabilní `slug`, veřejný text, mapa | Oblasti MVP (pět karet `kind: future`) a jejich klíč `slug` |
+| `SIMPLE_COPY_PROMPT.md` | Politický hlas veřejných textů karet | Pro odpovědi ucha neplatí, ty jsou věcné a s citací |
+| `DESIGN_SPEC.md` | Produktová a vizuální specifikace webu | Vzhled ucha, viz níže |
+| `src/components/ElectionOverlay.astro` | Povolební překryv v nativním `<dialog>` | Vzor pro rozhraní, které se otevře po kliknutí na ucho |
+| `src/lib/security-headers.ts`, `public/_headers`, `src/middleware.ts` | Bezpečnostní hlavičky a CSP | Dnes brání vložení ucha, viz Co brání vložení aplikace |
+| `SECURITY_MAINTENANCE.md` | Nastavení Cloudflare, hlavičky, ochrana analytiky, DNS pro e-mail | Vzor ochrany endpointu a příprava e-mailu |
+
+### Fakta, která ucho přebírá
+
+- **Název provozovatele:** na webu „Nezávislí pro Příšovice“, na hlasovacím lístku „Rozumná cesta“, kandidátka č. 2. Web nesmí tvrdit, že se kandidátka jmenuje Nezávislí pro Příšovice. Totéž platí pro ucho. Zdroj: timeline, upřesnění z 1. 10. 2026.
+- **Výsledek voleb 2026:** Rozumná cesta 3 659 hlasů (56,30 %) a 9 mandátů, Spolek Hasičů a Občanů Příšovic 2 840 hlasů (43,70 %) a 6 mandátů. Přišlo 510 z 1 020 voličů. Zdroj: timeline, oddíl Povolební informace, data ČSÚ.
+- **Oblasti:** ucho páruje oblast s kartou stabilním `slug`. Název karty se může změnit, slug zůstává.
+- **Neveřejné záměry:** timeline vede i záměry, které se na web nemají dostat, a údaje označené TBD. Ucho z timeline nebere nic, co není v publikované kartě.
+
+### Vzhled
+
+Barvy jsou proměnné v `src/pages/index.astro`: `--ink` #18332e (text a tmavé plochy), `--ink-soft` #536861, `--past` #236b60 (zelená), `--future` #2f6ca6 (modrá budoucích plánů) a `--accent` #d35b3f (cihlový akcent). Nadpisy jsou patkové (Georgia), text bezpatkový (Inter nebo systémové písmo). Podle `DESIGN_SPEC.md` mají plochy jen mírné zaoblení 6–10 px, bez silných rámečků a stínů, a kontrast běžného textu je nejméně 4,5 : 1.
 
 ## Návrh oblastí pro MVP
 
@@ -65,7 +92,11 @@ Důležité pro hosting a pro vložení aplikace do webu (F-09).
 
 - Astro 7 s adaptérem `@astrojs/cloudflare`. Web běží jako Cloudflare Worker na vlastní doméně nezavisli-prisovice.cz, statické soubory jsou ve Workers Assets.
 - Návštěvnost měří vlastní analytika v Analytics Engine. Její přehled chrání Cloudflare Access.
-- Hlavičky se nastavují v `src/lib/security-headers.ts` a musí souhlasit s `public/_headers`, protože statické soubory middleware obchází.
+- Hlavičky se nastavují v `src/lib/security-headers.ts` a musí souhlasit s `public/_headers`, protože statické soubory middleware obchází. Shodu hlídá `npm run test:security`.
+- Skripty se nevkládají do stránky (`vite.build.assetsInlineLimit: 0`), takže CSP vystačí se `script-src 'self'`. Ucho to dělá stejně (`docs/plan-mvp.md`, krok 2).
+- Analytický endpoint je vzor ochrany pro endpoint nahrávky: Rate Limiting binding (120 požadavků za 60 s na hash IP), limit se kontroluje před čtením těla a tělo se čte jako stream s pevným limitem velikosti.
+- Doména dnes poštu odmítá (SPF `-all`, DMARC `reject`). Než ucho začne posílat e-maily (Později), je potřeba upravit DNS podle `SECURITY_MAINTENANCE.md`.
+- Web se nasazuje jen na Worker `prisovice-nezavisli` příkazem `npm run deploy` a jen na výslovný pokyn. Ucho má vlastní Worker a do Workeru webu se nenasazuje.
 
 ### Co brání vložení aplikace
 

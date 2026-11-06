@@ -42,7 +42,7 @@ Cílem je prázdná, ale funkční aplikace, na kterou se dají nabalit další 
 - Hosting je Cloudflare. Vlastní rozhraní zůstávají, aby šel hosting později vyměnit.
 - Kostra je Astro 7 pro stránky a Hono pro API (rozhodnuto 6. 11. 2026). Astro je stejný framework jako web Nezávislých, takže jde sdílet vzhled a později rozhraní přesunout přímo do webu. Hono dostane požadavky pod `/api` přes zachytávací cestu Astra. Logika ucha je v modulech TypeScriptu, které neznají ani jeden z frameworků.
 - Datový model má 11 entit z PRD: Uživatel, Kontakt, Oblast, Téma, Podnět, Hlas, Odpověď, Zdrojový dokument, Citace, Odeslání a Historie. Slovník chybí, protože F-11 je Později. Kontakt má v MVP jen Telegram.
-- Nahrávky se v MVP neukládají a Podnět nemá odkaz na nahrávku. PRD sice ukládá nahrávky na 30 dní do R2, ale CLAUDE.md to v MVP zakazuje. Úložiště slouží jen pro dokumenty obce.
+- Nahrávky se v MVP neukládají a Podnět nemá odkaz na nahrávku. PRD to od verze 0.9 obsahuje také. Úložiště slouží jen pro dokumenty obce.
 - Oblasti jsou v [oblasti-a-web.md](oblasti-a-web.md): pět budoucích projektů a Ostatní.
 
 ## Krok 2: namluvení a textové pole
@@ -146,4 +146,6 @@ Testuje se od největšího rizika. Každý test může změnit plán, proto se 
 
 K prvnímu testu je potřeba Cloudflare účet a API token s oprávněním pro Workers AI. Token patří jen do proměnné prostředí, ne do repozitáře.
 
-Živé PRD v Claude Docs zatím neodráží rozhodnutí z 1. až 6. 11. 2026. Pořád vede hosting jako nerozhodnutý, ukládá nahrávky do R2 a počítá s AI Gateway.
+Živé PRD v Claude Docs je od 6. 11. 2026 ve verzi 0.9 a rozhodnutí z 1. až 6. 11. 2026 obsahuje.
+
+Vzhled stránek ucha se bere z webu Nezávislých (barvy, písma, dialog), viz [Oblasti a web](oblasti-a-web.md#vzhled).
