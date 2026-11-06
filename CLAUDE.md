@@ -24,6 +24,7 @@ Cloudová session k nim nemá přístup. V lokální session je zpřístupni jen
 - `docs/oblasti-a-web.md` – projekty a témata z webu nezavisli-prisovice.cz, mapa znalostí v projektu webu, oblasti a technika webu pro F-09.
 - `docs/hlasove-modely.md` – zjištění o hlasových modelech z jiného projektu a co z nich plyne pro výběr modelu přepisu.
 - `docs/plan-mvp.md` – MVP rozdělené na postupné kroky, rozpis kroků 1 až 3 a pořadí testů.
+- `docs/test-zarizeni.md` – výsledky testů na zařízeních a co zbývá ověřit.
 
 Požadavky mají ID (F-01 až F-83) a prioritu MVP / Později / Zvážit. V commitech a kódu na ně odkazuj.
 
@@ -89,7 +90,7 @@ Do MVP nepatří e-mail, GDPR souhlasy a moderace, zakrytí osobních údajů, o
 
 ## Otevřené otázky
 
-- Vložení do webu (F-09): ucho bude na nezavisli-prisovice.cz/ucho. Zbývá ověřit, jak se cesta `/ucho` oddělí od Workeru webu, který dnes obsluhuje celou doménu, a jak ucho otevře grafika na webu. Rozbor je v `docs/oblasti-a-web.md`.
+- Vložení do webu (F-09): ucho běží na nezavisli-prisovice.cz/ucho, vlastní route má přednost před Custom Domain webu (ověřeno 6. 11. 2026). Zbývá rozhodnout, jak ucho otevře grafika na webu. Závisí to na testu mikrofonu v rámu na Opeře pro Android. Rozbor je v `docs/oblasti-a-web.md`.
 - Kdo bude správce osobních údajů podle GDPR.
 
 ## Zásady pro kód

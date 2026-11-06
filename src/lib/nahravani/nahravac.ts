@@ -72,7 +72,14 @@ export async function spustitNahravani(udalosti: UdalostiNahravani): Promise<Nah
   }
 
   const format = vybratFormat((typ) => MediaRecorder.isTypeSupported(typ));
-  const zaznamnik = new MediaRecorder(proud, { audioBitsPerSecond: DATOVY_TOK, ...(format ? { mimeType: format } : {}) });
+  let zaznamnik: MediaRecorder;
+  try {
+    zaznamnik = new MediaRecorder(proud, { audioBitsPerSecond: DATOVY_TOK, ...(format ? { mimeType: format } : {}) });
+  } catch {
+    // Mikrofon nesmí zůstat zapnutý, když se nahrávání nerozběhne.
+    for (const stopa of proud.getTracks()) stopa.stop();
+    throw new ChybaMikrofonu('nepodporovano');
+  }
   const kusy: Blob[] = [];
   let zruseno = false;
   let delkaS = 0;

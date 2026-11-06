@@ -146,7 +146,9 @@ Testuje se od největšího rizika. Každý test může změnit plán, proto se 
 
 Testuje se lokálně a rovnou na ostré adrese nezavisli-prisovice.cz/ucho, bez neveřejných náhledů (rozhodnuto 6. 11. 2026). Web má malou návštěvnost, rozpracovaná stránka tam proto nevadí.
 
-K prvnímu testu je potřeba Cloudflare účet a API token s oprávněním pro Workers AI a pro nasazení Workeru na doménu nezavisli-prisovice.cz. Token patří jen do proměnné prostředí, ne do repozitáře.
+**Stav k 6. 11. 2026:** kostra (1.2, z 1.3 zatím jen rozhraní AI), stránka podání (2.1 až 2.5) a přepis (3.1) běží na ostré adrese. Testy 1 a 2 jsou hotové ve Windows, chybí Opera na Androidu. Whisper přijal WebM z Chromia a tři minuty vcelku, takže WAV ani dělení nahrávky nejsou potřeba, pokud to Android nezmění. Výsledky jsou v [test-zarizeni.md](test-zarizeni.md).
+
+K nasazení stačí přihlášení Wranglerem (`wrangler login`), nebo API token s oprávněním pro Workers AI a pro nasazení Workeru na doménu nezavisli-prisovice.cz. Token patří jen do proměnné prostředí, ne do repozitáře.
 
 Živé PRD v Claude Docs je od 6. 11. 2026 ve verzi 0.9 a rozhodnutí z 1. až 6. 11. 2026 obsahuje.
 

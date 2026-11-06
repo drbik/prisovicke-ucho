@@ -23,6 +23,8 @@ PRD počítá s `whisper-large-v3-turbo` na Workers AI a alternativou Deepgram N
 - Další kandidáti z katalogu, žádný z nich pro češtinu ověřený: AssemblyAI, Soniox, ElevenLabs (`scribe_v2`), Gemini, OpenAI.
 - Druhého poskytovatele přidávat, až když měření ukáže problém s cenou nebo kvalitou prvního.
 
+**První měření `whisper-large-v3-turbo` (6. 11. 2026):** model přijal WebM/Opus z Edge a Opery ve Windows a přepsal 2:59 vcelku za 21,6 s. Šlo o syntetický hlas bez nápovědy `initial_prompt`, takže to není vyhodnocení kvality. To přinese až testovací sada z kroku 3.5. Podrobnosti jsou v [test-zarizeni.md](test-zarizeni.md).
+
 ## Čtení odpovědí nahlas (mimo MVP)
 
 MVP hlas nepotřebuje, odpovědi jsou text. Kdyby se to později změnilo:
