@@ -45,11 +45,16 @@ Záměna „kdo koryto“ za „kdokoliv to“ mění smysl věty. Přesně to m
 
 Od 6. 11. 2026 jde každý přepis i napsaný text do jazykového modelu (krok 3.2 a 3.3). Stránka ukáže upravený text, navržený název, typ a oblast a pod rozbalením původní přepis. Model je předběžně Gemma 4 26B, porovnání je v [hlasove-modely.md](hlasove-modely.md#výběr-modelu-ai-úpravy).
 
-| Prohlížeč | Vstup | Přepis | Úprava | Celkem | Pokusů |
-|---|---|---|---|---|---|
-| Edge, Windows | nahrávka 0:18 | 2,6 s | 2,7 s | 5,3 s | 1 |
-| Opera, Windows | nahrávka 2:59 | 9,8 s | 13,4 s | 23,2 s | 1 |
-| Opera, Windows (360 × 740) | napsaný text, 445 znaků | – | 4,1 s | 4,1 s | 1 |
+| Prohlížeč | Vstup | Prompt | Přepis | Úprava | Celkem | Pokusů |
+|---|---|---|---|---|---|---|
+| Edge, Windows | nahrávka 0:18 | 1 | 2,6 s | 2,7 s | 5,3 s | 1 |
+| Opera, Windows | nahrávka 2:59 | 1 | 9,8 s | 13,4 s | 23,2 s | 1 |
+| Opera, Windows (360 × 740) | napsaný text, 445 znaků | 1 | – | 4,1 s | 4,1 s | 1 |
+| Opera, Windows (360 × 740) | napsaný text, 445 znaků | 2 | – | 1,7 s | 1,7 s | 1 |
+
+**První vzkazy od člověka (6. 11. 2026, prompt verze 1).** Tomáš namluvil tři vzkazy. Přepis i úpravu vyhodnotil jako v pořádku, chtěl ale uhladit jazyk. To řeší prompt verze 2. Ve třetím vzkazu se jedno slovo zaměnilo. Které to bylo, se už nepamatuje, a text se neukládá, takže nejde zjistit ani to, jestli ho zaměnil Whisper, nebo úprava. Zařízení není zapsané, tyto vzkazy proto zatím neplatí jako test Opery na Androidu. Skutečný mluvčí zatím nezkusil verzi 2.
+
+Body níže platí pro verzi 1, pokud není uvedeno jinak.
 
 - **Rychlost:** přímo 1minutová nahrávka změřená není, 0:18 a 2:59 ale limit 20 s z plánu naznačují s rezervou.
 - **Opraveno ve 2:59:** „záhumení“, „příšovka“, „k písečákům“, „u návsy“, „pro ní“, „Přísálí“ a tři otázky s tečkou.

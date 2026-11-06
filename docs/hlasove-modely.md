@@ -50,7 +50,29 @@ PRD počítá s `whisper-large-v3-turbo` na Workers AI a alternativou Deepgram N
 
 Pokus o podstrčení pokynů žádný model neposlechl. Všechny ale větu s pokynem z upraveného textu vypustily, zůstala jen v surovém přepisu. U skutečné stížnosti se to stát nesmí, patří to proto do testovací sady.
 
-**Cena:** Gemma stojí 0,10 / 0,30 USD za milion tokenů, úprava 3minutového vzkazu vyjde na 0,04 centu a 37 neuronů. Přepis 3 minut je 140 neuronů. Do bezplatných 10 000 neuronů denně se vejde asi 55 tříminutových vzkazů, potom na Workers Free každý další požadavek skončí chybou a autor uvidí Zkusit znovu.
+**Uhlazení jazyka (6. 11. 2026, prompt verze 2).** Po třech namluvených vzkazech chtěl Tomáš jazyk uhladit. Verze 1 opravuje pravopis, ale mluvené věty nechává skoro beze změny. Přibyly proto čtyři vzorky: vymyšlené mluvené vzkazy s vycpávkami, opravami v řeči a dlouhými souvětími. Ze skutečných vzkazů nevychází ani jeden, text se neukládá. Model i teplota zůstaly stejné, měnil se jen prompt. Hodnotil jsem sám a ne naslepo.
+
+| Znění promptu | Výsledek |
+|---|---|
+| Verze 1 | Věrná, ale mluvená: „na tu kanalizaci“, „Jestli mi může někdo říct, kdy to bude, bylo by fajn“, „Minulý týden, tedy předminulý týden“ |
+| Silné přeformulování (jen zkouška) | Hladké, ale úřední a s chybami: „Domnívám se“, „Automobily“, „stát cena za připojení“, „odjela nákladní auto“, „což se starší lidé bojí“. Mění i věc: „Stavíme tam dům“ místo „stavěli“, stížnost na rychlá auta se změnila na „špatný stav silnice“ |
+| **Verze 2** (nasazená) | Mluvené věty přeformuluje co nejmenším zásahem, čisté nechává skoro beze změny. „Můžete mi prosím říct, kdy to bude?“ místo „to by bylo fajn“, u „minulý, teda předminulý“ jen „Předminulý týden“. Zakazuje úřední obraty, přidané úvodní věty a změnu času sloves |
+
+Gemma prošla s verzí 2 šest vzorků dvakrát a další tři jednou, krátké vzkazy trvaly 1–4 s, 3 minuty řeči 14–15 s. Nemotron dostal stejných šest vzorků po jednom běhu. Bez uvažování nechává „k sokolovně“, „pro ní“ a otázky s tečkou, s nízkým uvažováním sklouzává k úřednímu tónu („jedná se přibližně o“). Gemma proto zůstává.
+
+Co verze 2 u Gemmy neřeší:
+
+- Dál přidává „nějaké zpomalovací zařízení, třeba retardér“, takže práh „nepřidá nic, co autor neřekl“ zatím nesplňuje.
+- Umí vyrobit nesmysl: „dvacet metrů rozbitých metrů“ ve dvou ze tří běhů.
+- Mění slova: „Zdravím“ na „Dobrý den“, „psí lejna“ na „psí exkrementy“, „hrůza“ na „hrůzná“.
+- Občas vypadne drobnost: „aby bylo jasné, o co jde“, „hodně dětí“ jen jako „děti“.
+- Místy nechá „zda“ nebo „tak jestli by se to dalo opravit“.
+- Větu s podstrčeným pokynem dál vypouští.
+- Neopraví, co Whisper špatně slyšel. Když přepis zamění slovo za jiné smysluplné, model to nepozná.
+
+U návrhu na lavičky vyšel typ v obou bězích jako dotaz. Na hodnocení zařazení je vzorek malý, patří do kroku 3.6.
+
+**Cena:** Gemma stojí 0,10 / 0,30 USD za milion tokenů, úprava 3minutového vzkazu vyjde s promptem verze 2 na 0,04 centu a 40 neuronů. Přepis 3 minut je 140 neuronů. Do bezplatných 10 000 neuronů denně se vejde asi 55 tříminutových vzkazů, potom na Workers Free každý další požadavek skončí chybou a autor uvidí Zkusit znovu.
 
 ## Čtení odpovědí nahlas (mimo MVP)
 
