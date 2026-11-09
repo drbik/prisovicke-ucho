@@ -1,0 +1,441 @@
+{
+  "verze": 1,
+  "vytvoreno": "2026-11-09",
+  "schvaleno": false,
+  "ucel": "Testovací sada kroku 8 (F-70 až F-79). Po kroku 11 jasně označené ukázky od týmu, bez vymyšlených autorů a hlasů.",
+  "rozsah_zdroju": "prisovice.cz: aktuality, úřední deska a PDF zveřejněné od 9. 11. 2024, všechny stálé stránky a jejich PDF; 24 publikovaných karet webu Nezávislých. Stav zdrojů k 9. 11. 2026.",
+  "vysledky": {
+    "odpoved": "Ucho ukáže odpověď s citací. Odpověď musí obsahovat klíčová fakta, nic navíc a každé tvrzení musí mít oporu v citovaném úryvku.",
+    "zastupitelum": "Ucho odpověď neukáže a řekne, že dotaz převezmou zastupitelé.",
+    "nehleda": "Vzkaz není dotaz (F-72), ucho nic nehledá."
+  },
+  "oznaceni_zdroju": {
+    "prisovice.cz": "Odpověď z webu obce",
+    "nezavisli-prisovice.cz": "Podle webu Nezávislých pro Příšovice"
+  },
+  "otazky": [
+    {
+      "id": "Q01",
+      "text": "Dobrý den, chtěla bych si na jaře pronajmout sál v sokolovně na oslavu padesátin. Kolik to stojí?",
+      "typ": "dotaz",
+      "vysledek": "odpoved",
+      "klicova_fakta": ["pronájem samotného sálu 4 000 Kč", "energie se platí navíc", "vratná kauce 4 000 Kč"],
+      "zdroje": [
+        {
+          "web": "prisovice.cz",
+          "url": "https://prisovice.cz/wp-content/uploads/2025/09/anonymiz-rada-2025-09-04-1.pdf",
+          "nazev": "Zápis č. 14/2025 ze schůze rady obce konané dne 04.09.2025",
+          "datum": "2025-09-24",
+          "opora": "Usnesení UR č. 179/2025 – Rada obce upravuje výši pronájmu samotného sálu sokolovny na 4.000,--Kč + energie a vratná kauce ve výši 4.000,--Kč."
+        }
+      ],
+      "poznamka": "Odpověď je jen v PDF zápisu rady. Stránka Pronájem sokolovny cenu neuvádí."
+    },
+    {
+      "id": "Q02",
+      "text": "kdy ma otevreno obecni urad? potrebuju si nechat overit podpis",
+      "typ": "dotaz",
+      "vysledek": "odpoved",
+      "klicova_fakta": ["pondělí a středa", "7:00 až 11:00 a 12:00 až 17:00", "v ostatní dny po telefonické dohodě"],
+      "zdroje": [
+        {
+          "web": "prisovice.cz",
+          "url": "https://prisovice.cz/obecni-urad-prisovice/organizacni-struktura-obecniho-uradu/",
+          "nazev": "Organizační struktura obecního úřadu",
+          "datum": "2024-01-23",
+          "zmeneno": "2024-04-03",
+          "opora": "Úřední hodiny: Po a St: 7.00 – 11.00 oběd 12.00 – 17.00 v ostatní dny po telefonické dohodě"
+        },
+        {
+          "web": "prisovice.cz",
+          "url": "https://prisovice.cz/samosprava/informace-podle-zakona-c-1061999-sb/",
+          "nazev": "Povinně zveřejňované informace podle zákona č. 106/1999 Sb.",
+          "datum": "2016-09-21",
+          "zmeneno": "2026-11-09",
+          "opora": "Úřední hodiny: pondělí: 7.00-11.00 hod. – 12.00-17.00 hod. a středa: 7.00-11.00 hod. – 12.00-17.00 hod."
+        }
+      ],
+      "poznamka": "Napsáno bez diakritiky, jak se píše na telefonu. Stačí jeden ze dvou zdrojů."
+    },
+    {
+      "id": "Q03",
+      "text": "Chceme se příští rok vzít v Příšovicích. Kde se tam dá mít obřad a co musíme zařídit předem?",
+      "typ": "dotaz",
+      "vysledek": "odpoved",
+      "klicova_fakta": ["kaple sv. Václava", "úředně stanovená doba pondělí a středa 7:00 až 15:00", "jiné místo nebo čas po dohodě s matričním úřadem", "ne v neděli a o státních svátcích", "dotazník s doklady 30 dní před termínem na OÚ"],
+      "zdroje": [
+        {
+          "web": "prisovice.cz",
+          "url": "https://prisovice.cz/obecni-urad-prisovice/svatebni-obrady/",
+          "nazev": "Svatební obřady",
+          "datum": "2024-01-23",
+          "zmeneno": "2025-10-07",
+          "opora": "Úředně určenou místností je kaple sv. Václava. Úředně stanovenou dobou je pondělí, středa od 7.00 do 15.00 hod."
+        }
+      ],
+      "poznamka": "Stačí kaple a lhůta 30 dní. Ostatní fakta jsou vítaná, ne nutná."
+    },
+    {
+      "id": "Q04",
+      "text": "do kolika má ve čtvrtek otevřeno lékárna na zdravotním středisku?",
+      "typ": "dotaz",
+      "vysledek": "odpoved",
+      "klicova_fakta": ["ve čtvrtek 7:30 až 12:00 a 12:30 až 16:00"],
+      "zdroje": [
+        {
+          "web": "prisovice.cz",
+          "url": "https://prisovice.cz/sluzby/zdravotni-stredisko/",
+          "nazev": "Zdravotní středisko",
+          "datum": "2024-01-24",
+          "zmeneno": "2026-02-17",
+          "opora": "čt: 07.30 – 12.00 12.30 – 16.00"
+        }
+      ],
+      "poznamka": "Model nesmí přenést čtvrteční čas na jiné dny (ostatní dny do 15:00)."
+    },
+    {
+      "id": "Q05",
+      "text": "No dobrý den, já bych se chtěl zeptat, kdy můžu přijít k doktorovi na očkování proti chřipce.",
+      "typ": "dotaz",
+      "vysledek": "odpoved",
+      "klicova_fakta": ["od 19. 10. 2026", "pondělí, úterý, středa a pátek", "11:00 až 11:45", "ordinace MUDr. Trněného"],
+      "zdroje": [
+        {
+          "web": "prisovice.cz",
+          "url": "https://prisovice.cz/2026/09/ockovani-proti-chripce/",
+          "nazev": "Očkování proti chřipce",
+          "datum": "2026-09-24",
+          "opora": "Oznamujeme očkování na CHŘIPKU, které bude probíhat od 19.10.2026. Zájemce prosíme chodit denně pondělí, úterý, středa, pátek od 11-11,45 Ordinace MUDr. Trněného"
+        }
+      ],
+      "poznamka": "Styl přepisu mluvené řeči."
+    },
+    {
+      "id": "Q06",
+      "text": "jezdí teď vůbec vlak z příšovic? a kde staví ten náhradní autobus",
+      "typ": "dotaz",
+      "vysledek": "odpoved",
+      "klicova_fakta": ["od 3. 10. do 27. 11. 2026 do 12:00 nepřetržitá výluka", "náhradní autobusová doprava", "autobusy staví na autobusové zastávce na sídlišti"],
+      "zdroje": [
+        {
+          "web": "prisovice.cz",
+          "url": "https://prisovice.cz/2026/10/vlakova-vyluka/",
+          "nazev": "Vlaková výluka",
+          "datum": "2026-10-07",
+          "opora": "Od 3.10 – 27.11 do 12.00 je nepřetržitá výluka vlakové dopravy. Je zavedena náhradní autobusová doprava – autobusy staví na zastávce autobusů na sídlišti."
+        }
+      ],
+      "poznamka": "Platí do 27. 11. 2026. Při vyhodnocení po tomto datu otázku upravit nebo vyřadit."
+    },
+    {
+      "id": "Q07",
+      "text": "Jak to nakonec dopadlo s tím soudem, co vedla obec s Logicorem kvůli územnímu plánu?",
+      "typ": "dotaz",
+      "vysledek": "odpoved",
+      "klicova_fakta": ["soud dal za pravdu obci a obě žaloby (Logicor a FKM) zamítl", "omezení výstavby hal u Písečáků platí dál", "firmy zaplatí obci náhradu nákladů řízení", "firmy mohly do dvou týdnů podat kasační stížnost"],
+      "zdroje": [
+        {
+          "web": "prisovice.cz",
+          "url": "https://prisovice.cz/2026/07/vysledek-soudnich-sporu-o-uzemni-plan-obce-prisovice/",
+          "nazev": "Výsledek soudních sporů o územní plán obce Příšovice",
+          "datum": "2026-07-03",
+          "opora": "Soud dal za pravdu obci Příšovice. Obě žaloby zamítl. Omezení výstavby velkých hal v lokalitě u Písečáků platí dál. Územní plán zůstává beze změny."
+        }
+      ],
+      "poznamka": "Odpověď nesmí tvrdit, že rozsudek je pravomocný. Zdroj uvádí jen možnost kasační stížnosti."
+    },
+    {
+      "id": "Q08",
+      "text": "Kdy se začne stavět ta cyklostezka od Přepeř k Jizeře a kdo ji staví?",
+      "typ": "dotaz",
+      "vysledek": "odpoved",
+      "klicova_fakta": ["zahájení v průběhu srpna 2026", "dokončení nejpozději do 3 měsíců od předání staveniště", "zhotovitel M – SILNICE a.s.", "z 50 % financuje Liberecký kraj"],
+      "zdroje": [
+        {
+          "web": "prisovice.cz",
+          "url": "https://prisovice.cz/2026/08/informace-o-zacatku-realizace-casti-cyklostezky-greenway-jizera/",
+          "nazev": "Informace o začátku realizace části cyklostezky Greenway Jizera",
+          "datum": "2026-08-14",
+          "opora": "Realizace stavby bude zahájena v průběhu srpna 2026 a bude dokončena nejpozději do 3 měsíců od předání staveniště."
+        }
+      ],
+      "poznamka": "Odpověď nesmí tvrdit, že stezka je hotová. Zdroj to neuvádí."
+    },
+    {
+      "id": "Q09",
+      "text": "Kolik si obec půjčila na ty nové byty?",
+      "typ": "dotaz",
+      "vysledek": "odpoved",
+      "klicova_fakta": ["úvěr od Státního fondu podpory investic", "limit úvěru 34 852 049 Kč", "na výstavbu 15 nájemních bytů", "smlouva uzavřena 14. 1. 2026"],
+      "zdroje": [
+        {
+          "web": "prisovice.cz",
+          "url": "https://prisovice.cz/wp-content/uploads/2026/07/zprava-o-hospodareni-za-r2025.pdf",
+          "nazev": "Závěrečný účet obce za rok 2025 včetně příloh",
+          "datum": "2026-06-30",
+          "opora": "Účel úvěru: Výstavba 15 nájemních bytů formou novostavby. Úvěrový účet: č. 650003-9527001/0710/0100. Limit úvěru: 34 852 049 Kč. Smlouva uzavřena: dne 14.1.2026."
+        }
+      ],
+      "poznamka": "Částka je jen ve zprávě o přezkoumání hospodaření (PDF, str. 9). Stejný text je i v návrhu závěrečného účtu z 1. 6. 2026. Karta dostupne-bydleni zmiňuje úvěr s úrokem 1 %, ale bez částky."
+    },
+    {
+      "id": "Q10",
+      "text": "Dává obec něco rodičům, když se jim narodí dítě?",
+      "typ": "dotaz",
+      "vysledek": "odpoved",
+      "klicova_fakta": ["dar 5 000 Kč na jedno dítě", "předává se na vítání občánků (darovací smlouva)"],
+      "zdroje": [
+        {
+          "web": "prisovice.cz",
+          "url": "https://prisovice.cz/wp-content/uploads/2026/09/anonymiz-rada-2026-09-17.pdf",
+          "nazev": "Zápis č. 13/2026 z jednání rady obce konaného dne 17.09.2026",
+          "datum": "2026-09-24",
+          "opora": "Darovací smlouvy – vítání občánků, dar 5.000,--Kč pro jedno dítě"
+        }
+      ],
+      "poznamka": "Stejná částka je i v zápisu rady č. 9/2025 k vítání 2. 6. 2025."
+    },
+    {
+      "id": "Q11",
+      "text": "kdo je ted po volbach starosta a mistostarosta?",
+      "typ": "dotaz",
+      "vysledek": "odpoved",
+      "klicova_fakta": ["starosta František Drbohlav", "místostarosta Jan Košek", "zvoleni na ustavujícím zasedání 4. 11. 2026"],
+      "zdroje": [
+        {
+          "web": "prisovice.cz",
+          "url": "https://prisovice.cz/2026/11/nove-vedeni-obce-prisovice-pro-volebni-obdobi-2026-2030/",
+          "nazev": "Nové vedení obce Příšovice pro volební období 2026 – 2030",
+          "datum": "2026-11-06",
+          "opora": "Na ustavujícím zasedání Zastupitelstva obce Příšovice, konaného ve středu 4. listopadu 2026, bylo zvoleno nové vedení obce. Starosta obce: František Drbohlav Místostarosta obce: Jan Košek"
+        },
+        {
+          "web": "nezavisli-prisovice.cz",
+          "url": "https://nezavisli-prisovice.cz/#volby",
+          "nazev": "Zastupitelstvo Příšovic",
+          "datum": null,
+          "stav_k": "2026-11-09",
+          "opora": "Starostou zůstává František Drbohlav a místostarostou Jan Košek. Zastupitelé je zvolili na ustavujícím zasedání 4. listopadu 2026."
+        }
+      ],
+      "poznamka": "Oba zdroje stačí. Označení musí odpovídat zdroji, který odpověď cituje."
+    },
+    {
+      "id": "Q12",
+      "text": "Kdy budou hotová ta nová okna v kapli svatého Václava?",
+      "typ": "dotaz",
+      "vysledek": "odpoved",
+      "klicova_fakta": ["obnova oken a vitráží začala v říjnu 2026", "dokončení se předpokládá v červnu 2027"],
+      "zdroje": [
+        {
+          "web": "prisovice.cz",
+          "url": "https://prisovice.cz/2026/10/hlaseni-ze-dne-12-10-2026/",
+          "nazev": "Hlášení ze dne 12.10.2026",
+          "datum": "2026-10-12",
+          "opora": "Dokončení prací se předpokládá v červnu roku 2027."
+        },
+        {
+          "web": "prisovice.cz",
+          "url": "https://prisovice.cz/2026/10/kaple-sv-vaclava-se-docka-obnovy-oken-a-vitrazi/",
+          "nazev": "Kaple sv. Václava se dočká obnovy oken a vitráží",
+          "datum": "2026-10-08",
+          "opora": "V těchto dnech jsme zahájili významnou etapu obnovy kaple sv. Václava – opravu jejích historických oken a vitráží ."
+        },
+        {
+          "web": "nezavisli-prisovice.cz",
+          "url": "https://nezavisli-prisovice.cz/#verejna-prostranstvi",
+          "nazev": "Příjemnější centrum obce",
+          "datum": null,
+          "stav_k": "2026-11-09",
+          "opora": "Vitráže kostela se budou opravovat v roce 2027 s pomocí dotace."
+        }
+      ],
+      "poznamka": "Správně je červen 2027 z webu obce. Odpověď jen z karty („v roce 2027“) je přesná méně a počítá se jako částečná."
+    },
+    {
+      "id": "Q13",
+      "text": "Kdy se bude dělat vodovod a kanalizace na Záhumení?",
+      "typ": "dotaz",
+      "vysledek": "odpoved",
+      "klicova_fakta": ["stavba je plánovaná na rok 2027", "stavební povolení je vydané (veřejná vyhláška z 25. 8. 2026)", "výběr zhotovitele se předpokládal v listopadu 2026"],
+      "zdroje": [
+        {
+          "web": "prisovice.cz",
+          "url": "https://prisovice.cz/wp-content/uploads/2026/05/anonymiz-zastupitelstvo-2026-04-22-2.pdf",
+          "nazev": "Zápis č. 2/2026 z jednání zastupitelstva obce konaného dne 22.04.2026",
+          "datum": "2026-05-06",
+          "opora": "předpokládáme tyto termínové kroky: získání SP 8/2026, výběr zhotovitele 11/2026, realizace rok 2027."
+        },
+        {
+          "web": "prisovice.cz",
+          "url": "https://prisovice.cz/wp-content/uploads/2026/08/prisovice-vodovod-a-kanalizace-zahumeni.pdf",
+          "nazev": "Veřejná vyhláška – rozhodnutí o povolení stavby Příšovice, Záhumení – vodovod a splašková kanalizace",
+          "datum": "2026-08-25",
+          "opora": null
+        },
+        {
+          "web": "nezavisli-prisovice.cz",
+          "url": "https://nezavisli-prisovice.cz/#kanalizace-zahumeni",
+          "nazev": "Vodovod a kanalizace na Záhumení",
+          "datum": null,
+          "stav_k": "2026-11-09",
+          "opora": "Projekt má vydané stavební povolení. Nyní se připravuje realizace na rok 2027."
+        }
+      ],
+      "poznamka": "Stačí rok 2027 z kteréhokoli zdroje. Karta navíc uvádí trasu od křižovatky u Zvoničků po hřiště u školy."
+    },
+    {
+      "id": "Q14",
+      "text": "Pro koho budou ty nový byty u DPS a kdy se začnou stavět?",
+      "typ": "dotaz",
+      "vysledek": "odpoved",
+      "klicova_fakta": ["15 menších nájemních bytů", "pro seniory a mladé lidi na startu", "stavět se má v roce 2027"],
+      "zdroje": [
+        {
+          "web": "nezavisli-prisovice.cz",
+          "url": "https://nezavisli-prisovice.cz/#dostupne-bydleni",
+          "nazev": "Patnáct dostupných bytů",
+          "datum": null,
+          "stav_k": "2026-11-09",
+          "opora": "Obec připravuje nový bytový dům poblíž stávajícího DPS s 15 menšími nájemními byty."
+        }
+      ],
+      "poznamka": "Termín 2027 je jen na kartě („Stavět chceme v roce 2027.“), proto označení Podle webu Nezávislých pro Příšovice."
+    },
+    {
+      "id": "Q15",
+      "text": "Bude zase v sokolovně nějaká hospoda?",
+      "typ": "dotaz",
+      "vysledek": "odpoved",
+      "klicova_fakta": ["zatím jen záměr k prověření", "obecní hospůdka v přísálí Sokolovny dva až tři dny v týdnu", "nejdřív je potřeba najít provozovatele"],
+      "zdroje": [
+        {
+          "web": "nezavisli-prisovice.cz",
+          "url": "https://nezavisli-prisovice.cz/#zaver",
+          "nazev": "Záleží na vás",
+          "datum": null,
+          "stav_k": "2026-11-09",
+          "opora": "Chceme prověřit možnost otevřít v přísálí Sokolovny obecní hospůdku dva až tři dny v týdnu. Nejdříve musíme najít provozovatele, který by ji byl ochoten vést, případně s podporou obce."
+        }
+      ],
+      "poznamka": "Odpověď nesmí slibovat otevření ani termín. Jde o téma k prověření, ne o rozhodnutí obce."
+    },
+    {
+      "id": "Q16",
+      "text": "Slyšel jsem, že by obec mohla prodávat levnější elektřinu z těch solárů na střechách. Je to pravda?",
+      "typ": "dotaz",
+      "vysledek": "odpoved",
+      "klicova_fakta": ["plán energetického společenství od roku 2026", "elektřina ze střech školy, úřadu a prodejny", "přebytky levněji pro občany, kteří se zapojí"],
+      "zdroje": [
+        {
+          "web": "nezavisli-prisovice.cz",
+          "url": "https://nezavisli-prisovice.cz/#komunitni-energetika",
+          "nazev": "Elektřina zůstane v obci",
+          "datum": null,
+          "stav_k": "2026-11-09",
+          "opora": "Přebytky nabídneme levněji občanům, kteří se zapojí."
+        }
+      ],
+      "poznamka": "Odpověď nesmí uvádět cenu ani termín spuštění. Zdroj je nemá."
+    },
+    {
+      "id": "Q17",
+      "text": "Kolik se letos platí za popelnice na jednoho člověka?",
+      "typ": "dotaz",
+      "vysledek": "zastupitelum",
+      "overeni": "Výše poplatku v rozsahu indexu není. Stránka Odpadové hospodářství jen odkazuje na vyhlášku č. 2/2025, jejíž text je ve Sbírce právních předpisů. Na úřední desce jsou jen oznámení o vyhlášení vyhlášek č. 1/2025, 2/2025 a 1/2026, bez částek.",
+      "past": "Stránka Odpadové hospodářství uvádí velikosti nádob podle počtu osob. Ty nejsou cenou a model z nich nesmí odvodit částku."
+    },
+    {
+      "id": "Q18",
+      "text": "V kolik otevírá sběrný dvůr v sobotu?",
+      "typ": "dotaz",
+      "vysledek": "zastupitelum",
+      "overeni": "Otevírací doba sběrného dvora ve zdrojích není. Sběrný dvůr zmiňuje jen stránka Odpadové hospodářství a zápis zastupitelstva z 22. 4. 2026, oba bez hodin."
+    },
+    {
+      "id": "Q19",
+      "text": "Můžu chodit se psem k vodě na Velký Písečák?",
+      "typ": "dotaz",
+      "vysledek": "zastupitelum",
+      "overeni": "Provozní řád rekreační oblasti Malý a Velký Písečák č. 1/2024 (úřední deska 12. 11. 2024) je sken bez textové vrstvy. Do indexu se nedostane, jde o známé omezení. Jiný zdroj o psech u Písečáků není."
+    },
+    {
+      "id": "Q20",
+      "text": "Plánuje se v Příšovicích bankomat?",
+      "typ": "dotaz",
+      "vysledek": "zastupitelum",
+      "overeni": "Slovo bankomat ve zdrojích není."
+    },
+    {
+      "id": "Q21",
+      "text": "Kolik bude měsíčně stát nájem v těch nových bytech u DPS?",
+      "typ": "dotaz",
+      "vysledek": "zastupitelum",
+      "overeni": "Výše nájemného v nových bytech ve zdrojích není. Karta uvádí jen, že úvěr splatí vybírané nájemné.",
+      "past": "Zápis zastupitelstva z 18. 6. 2025 navrhuje 51,06 Kč/m² měsíčně pro stávající obecní byty v čp. 187 a 42. Odpověď, která tuto částku vydá za nájem nových bytů, je tvrzení bez opory."
+    },
+    {
+      "id": "Q22",
+      "text": "kolik u nás stoji kubik vody?",
+      "typ": "dotaz",
+      "vysledek": "zastupitelum",
+      "overeni": "Kalkulace a vyúčtování vodného a stočného (úřední deska 29. 4. 2025 a 29. 4. 2026) jsou skeny bez textové vrstvy. Cena za kubík v textu žádného zdroje není."
+    },
+    {
+      "id": "Q23",
+      "text": "Kdy bude další vítání občánků? Máme malou.",
+      "typ": "dotaz",
+      "vysledek": "zastupitelum",
+      "overeni": "Zdroje uvádějí jen minulá vítání (2. 6. 2025 a 16. 9. 2026), termín dalšího ne.",
+      "past": "Odpověď s datem minulého vítání neodpovídá na otázku."
+    },
+    {
+      "id": "Q24",
+      "text": "Je v Příšovicích někde nabíječka na elektroauto?",
+      "typ": "dotaz",
+      "vysledek": "zastupitelum",
+      "overeni": "Nabíjecí stanici ani elektromobily zdroje nezmiňují."
+    },
+    {
+      "id": "Q25",
+      "text": "Je tady někde výběh pro psy?",
+      "typ": "dotaz",
+      "vysledek": "zastupitelum",
+      "overeni": "Výběh pro psy ve zdrojích není.",
+      "past": "Zápis rady z 12. 3. 2025 schvaluje pronájem fotbalového hřiště na výcvik psů. To není veřejný výběh."
+    },
+    {
+      "id": "Q26",
+      "text": "Kdy bude letos posvícení a pouťová zábava?",
+      "typ": "dotaz",
+      "vysledek": "zastupitelum",
+      "overeni": "Pouť ani posvícení zdroje nezmiňují."
+    },
+    {
+      "id": "Q27",
+      "text": "Navrhuju dát k hřišti u školy pár laviček a koš na psí hovínka, maminky tam nemají kde sednout.",
+      "typ": "navrh",
+      "vysledek": "nehleda"
+    },
+    {
+      "id": "Q28",
+      "text": "Na sídlišti u zahrádek zase někdo parkuje na trávě a s kočárkem se tam nedá projít. Je to pořád dokola.",
+      "typ": "stiznost",
+      "vysledek": "nehleda"
+    },
+    {
+      "id": "Q29",
+      "text": "Chci moc poděkovat za stezku k Písečákům, chodíme tam s dětma skoro každý den.",
+      "typ": "pochvala",
+      "vysledek": "nehleda"
+    },
+    {
+      "id": "Q30",
+      "text": "Co kdyby obec dala k Sokolovně pítko pro cyklisty? Myslím, že by se hodilo.",
+      "typ": "navrh",
+      "vysledek": "nehleda",
+      "poznamka": "Návrh ve tvaru otázky. Ověřuje, že ho úprava nezařadí jako dotaz."
+    }
+  ]
+}
