@@ -2,7 +2,7 @@
 
 *Stav k 9. 11. 2026. Kroky vychází z diagramu toku v PRD (sekce Uživatelské scénáře), písmena odkazují na jeho uzly.*
 
-**Plánování je uzavřené (6. 11. 2026).** Rozepsané jsou kroky 1 až 4, další kroky se rozepíšou, až na ně přijde řada. Další fáze je testování, viz [poslední oddíl](#další-fáze-testování).
+**Plánování je uzavřené (6. 11. 2026).** Rozepsané jsou kroky 1 až 4 a krok 8 (rozpis z 9. 11. 2026 čeká na schválení). Další kroky se rozepíšou, až na ně přijde řada. Další fáze je testování, viz [poslední oddíl](#další-fáze-testování).
 
 ## Kroky
 
@@ -156,6 +156,119 @@ Cílem je, aby autor návrh AI zkontroloval, opravil a potvrdil (F-14). Teprve p
 - Po potvrzení stránka ukáže, která pole autor oproti návrhu AI změnil. Hodí se to pro testy a později k vyhodnocení úpravy (3.6).
 - Kontroly polí jsou v modulu `src/lib/podani/potvrzeni.ts`, který nezná prohlížeč. S uložením je použije i server.
 
+## Krok 8: index webu a odpověď s citací
+
+*Rozpis z 9. 11. 2026 podle [zadání](zadani-krok-8.md). Čeká na schválení Tomášem, do té doby se nic nestaví.*
+
+Cílem je, aby autor po potvrzení dotazu hned viděl odpověď z webu obce nebo z karet webu Nezávislých, s citací zdroje. Když odpověď ve zdrojích není, nebo jí ucho nemá dost opory, stránka řekne, že dotaz převezmou zastupitelé. Návrhy, stížnosti a pochvaly se nehledají (F-72).
+
+**Jak to uvidí uživatel (návrh):**
+
+1. Autor u typu dotaz klepne na Potvrdit (4.1). Pod souhrnem se objeví „Hledáme odpověď na webu obce…“.
+2. Do 10 s se ukáže odpověď po větách. Za každou větou je číslo zdroje, pod odpovědí seznam zdrojů s názvem, datem a odkazem. Zdroj z prisovice.cz má označení „Odpověď z webu obce“, karta z webu Nezávislých „Podle webu Nezávislých pro Příšovice“.
+3. Pod každou odpovědí je upozornění, že nejde o úřední vyjádření obce Příšovice.
+4. Když odpověď není, stránka napíše, že ji ve zdrojích nenašla a že dotaz mají převzít zastupitelé. Dokud nejsou hotové fronta správce a ukládání (kroky 4.3 a 9), dodá, že dotaz zatím nikam neodešel.
+5. U návrhu, stížnosti a pochvaly zůstane jen souhrn z 4.1, nic se nehledá.
+
+**Rozsah zdrojů (průzkum 9. 11. 2026, okno 2 let od 9. 11. 2024):**
+
+| Zdroj | Celkem | V okně | Text v okně | Poznámka |
+|---|---|---|---|---|
+| Stálé stránky prisovice.cz | 80 | 3 zveřejněné, 17 změněné | 117 tis. znaků všech 80 stránek | Kontakty, služby, odpady, pronájem Sokolovny |
+| Aktuality | 57 | 46 | 32 tis. znaků | Z toho 4 hlášení rozhlasu |
+| Úřední deska na prisovice.cz | 366 | 272 | 10 tis. znaků | Stránka je jen obálka (medián 29 znaků), obsah je v PDF |
+| PDF odkázaná z obsahu webu | 338 | 327: 246 MB, 1 313 stran | 2,47 mil. znaků | 54 skenů bez textu (161 stran, 54 MB), dalších 49 stran bez textu v 10 PDF |
+| Starší PDF ze stálých stránek | 10 | – | 6,1 MB | Jednací řád ZO, sazebník úhrad, dohoda o pronájmu Sokolovny, formuláře |
+| Karty webu Nezávislých | 24 | 24 | krátké | Jedna karta = jeden úsek |
+
+Celkem asi 2,6 mil. znaků, tedy asi 2 600 až 3 000 úseků a 0,9 mil. tokenů pro embeddingy. Bez okna by se index do Vectorize zdarma nejspíš nevešel: knihovna médií má 610 PDF, v okně je jich 327, a zdarma se vejde asi 4 880 úseků (viz Cena). Odhad, neověřeno.
+
+| # | Dílčí krok | Hotovo, když |
+|---|---|---|
+| 8.1 | Průzkum a rozpis (fáze A zadání): rozsah prisovice.cz, robots.txt, REST API, limity Cloudflare na Workers Free, architektura, cena, rizika | Rozpis schválil Tomáš. |
+| 8.2 | Typové otázky (fáze B): 20 až 30 otázek, jak by je řekli občané, s očekávaným výsledkem ze skutečného zdroje. Strojově čitelně v `tests/data/` a přehled pro Tomáše v `docs/`. | Sadu schválil Tomáš. Do té doby se k vyhodnocení nepoužije. |
+| 8.3 | Stahování: ruční skript `npm run index:stahnout`. Řídí se robots.txt, posílá nejvýš 1 požadavek za sekundu s obecným User-Agentem, bere jen okno 2 let (viz rozhodnutí). Seznam adres ze sitemapy, data zveřejnění a změny z REST API a ze stránky. Karty se čtou z ostrého webu nezavisli-prisovice.cz. Stažené soubory leží mimo git. | Skript stáhne celé okno a druhý běh nestahuje nic, co se nezměnilo. Seznam staženého a vynechaného je zapsaný. |
+| 8.4 | Zpracování: text z HTML (jen obsah článku, bez menu a patičky) a z PDF, dělení na úseky, metadata Zdrojového dokumentu (URL, název, web, typ, datum zveřejnění a změny, otisk obsahu, datum stažení). PDF bez textové vrstvy jdou na seznam známých omezení. | Testy vytažení textu a dělení na úseky projdou. Počty dokumentů a úseků a seznam vynechaných PDF jsou zapsané. |
+| 8.5 | Index: migrace D1 (Zdrojový dokument, Úsek s fulltextem FTS5, Citace), index ve Vectorize, embeddingy `@cf/baai/bge-m3`, nahrání. Přístup k indexu je za vlastním rozhraním s implementací pro Cloudflare a falešnou pro testy. | Počty v D1 a ve Vectorize souhlasí se zpracováním. |
+| 8.6 | Hledání a odpověď: kombinace vektorového a fulltextového hledání, prompt odpovědi s číslem verze, ověření každé věty proti úryvku (F-73 až F-76). Endpoint `POST /ucho/api/dotaz` se stejnou ochranou jako dosavadní (kontrola původu, limit požadavků, limit velikosti). Logy jen s časy, počty, modelem a verzí promptu. | Testy s falešnou AI pokryjí: odpověď s citací, žádný úryvek, tvrzení bez opory, návrh bez hledání, upozornění v odpovědi a log bez textu dotazu. |
+| 8.7 | Stránka: po Potvrdit u typu dotaz zavolá endpoint a ukáže odpověď, nebo „zastupitelům“. Texty spisovnou češtinou, ovládání klávesnicí, oznámení pro čtečky obrazovky. | `npm test` a `npm run check` projdou. Na ostré adrese prošel napsaný dotaz v Edge a v Opeře při šířce 360 × 740 s odpovědí i bez ní, bez chyb v konzoli a bez vodorovného posunu. |
+| 8.8 | Vyhodnocení: `npm run eval:odpovedi` pošle schválenou sadu přes celé hledání a vytvoří tabulku k ruční kontrole. | Prahy níže platí a výsledek je zapsaný v `docs/vyhodnoceni-odpovedi.md`. |
+| 8.9 | Nasazení a dokumentace: jen Worker `prisovicke-ucho`. Stav v tomto plánu, `docs/test-zarizeni.md`, Opera na Androidu ověřená, nebo zapsaná jako čekající. | Vše je commitnuté ve větvi kroku. Push, PR a sloučení jen na pokyn Tomáše. |
+
+**Rozhodnutí:** Tomáš 9. 11. 2026 omezil stahování i databázi zatím na poslední 2 roky. Ostatní body jsou návrh a čekají na jeho souhlas.
+
+- **Okno 2 let** (rozhodnuto 9. 11. 2026). Aktuality, úřední deska a jejich PDF jdou do indexu jen se zveřejněním od 9. 11. 2024. PDF se posuzuje podle měsíce nahrání v adrese (`/uploads/RRRR/MM/`), a když ho adresa nemá, podle data stránky, která na PDF odkazuje.
+- **Návrh: stálé stránky celé.** Jen 3 z 80 stálých stránek vznikly v okně, přitom popisují platný stav (kontakty, úřední hodiny, odpady, pronájem Sokolovny). Mají dohromady 117 tis. znaků. Navrhuji vzít je celé i s 10 staršími PDF, na která odkazují (6,1 MB): jednací řád zastupitelstva, sazebník úhrad, dohodu o pronájmu Sokolovny, formuláře a výroční zprávu o informacích za rok 2023. Bez nich skončí dotazy na pronájem Sokolovny nebo jednací řád u zastupitelů, i když odpověď na webu je.
+- **Návrh: úřední deska na prisovice.cz patří do indexu.** Obec ji od ledna 2024 vede přímo ve WordPressu (typ `urednideska`), nezávisle na staré desce na prisovice.e-obec.cz, která se nesleduje. Jsou na ní zápisy zastupitelstva a rady, rozpočty, vyhlášky a oznámení, tedy většina zveřejněných dokumentů.
+- **Návrh: z úřední desky vynechat řízení soukromých osob.** Jde o dražební vyhlášky a usnesení exekutorů (5 v okně), řízení stavebního úřadu o rodinných domech, přístavbách, tůních a dělení pozemků včetně odstranění staveb (zhruba 10). Obsahují jména, adresy a majetkové poměry a pro dotazy občanů nemají význam. Pozná se to podle kategorie `stavebni-urad` a podle slov v názvu. Seznam vynechaných dokumentů se zapíše. Více v rizicích.
+- **Karty webu Nezávislých: všech 24 souborů ze `src/content/projects/`.** Na webu nemají příznak konceptu, vykreslí se každý soubor. Všech 24 je 9. 11. 2026 na ostrém webu s kotvou `https://nezavisli-prisovice.cz/#<slug>` a texty souhlasí se soubory. Jde o 22 projektů, kartu Volby se složením zastupitelstva a závěrečnou kartu s tématy k prověření. Text se bere z ostrého webu, soubor na disku slouží jen ke kontrole. Karty nemají datum zveřejnění, citace proto uvede „stav webu k <datum stažení>“. Tlampač a `/podklady/` webu Nezávislých do indexu nejdou, protože je zadání neuvádí.
+- **Vlastní index ve Vectorize a D1, ne AI Search.** Zdůvodnění je v oddílu Architektura.
+- **Bez R2.** Stažené HTML a PDF zůstávají jen na počítači, kde běží skript. Do Cloudflare jde jen vytažený text úseků a citace odkazuje na původní adresu na prisovice.cz.
+- **Model odpovědi:** `@cf/google/gemma-4-26b-a4b-it` bez uvažování, stejný jako u úpravy. Když na sadě neprojde, zkusí se Nemotron 3 Super.
+- **Citace v D1 vznikne, ale zůstane prázdná.** Patří k Odpovědi a ta se zatím neukládá (4.3, F-77). Do té doby se použité úryvky jen zobrazí.
+- **Datový model:** Zdrojový dokument podle PRD, typ ale bude stránka, aktualita, úřední deska, PDF nebo karta. Úsek je technická tabulka indexu. V PRD jako entita není a nebude.
+
+**Architektura:**
+
+- **Stahování a zpracování běží ručně na počítači**, ne ve Workeru. Worker na Workers Free má jen 10 ms procesoru na požadavek a na čtení PDF to nestačí. Ruční běh odpovídá F-71 pro MVP (jednorázové zaindexování a ruční aktualizace). PDF čte `pdfjs-dist` (čistý JavaScript, bez instalace dalších programů). HTML se čte bez prohlížeče, protože web obce je statický WordPress.
+- **Nahrání do Cloudflare přes přihlášení Wranglerem**, bez API tokenu v souborech. Nejdřív zkusím vzdálené vazby Wrangleru (`remote: true`), aby skript použil stejné rozhraní jako Worker. Záloha jsou příkazy `wrangler d1 execute --remote` a `wrangler vectorize insert`.
+- **Vytažení textu:** ke každému kusu textu z PDF zůstane číslo strany, takže citace může vést rovnou na stranu (`…pdf#page=3`). Spojí se slova rozdělená na konci řádku a odstraní se záhlaví a zápatí, která se opakují na každé straně. Ze stránek webu se bere jen obsah článku. Patička se jmény vedení obce, která je na každé stránce, do indexu nejde. Strana s méně než 50 znaky se počítá jako sken.
+- **Úseky** mají asi 1 200 znaků. Dokument se nejdřív dělí podle své stavby (body jednání, usnesení, nadpisy, odstavce), teprve dlouhé části dál, nikdy uprostřed věty a s překryvem 150 znaků. Každý úsek dostane hlavičku s názvem dokumentu, datem a stranou, třeba „Zápis z jednání rady obce 21. 10. 2026, str. 3“. Název se bere ze stránky úřední desky, ne z názvu souboru PDF.
+- **Hledání kombinuje dvě metody.** Vektory z `bge-m3` (vícejazyčný model, 1 024 rozměrů) ve Vectorize najdou úsek podle významu, i když používá jiná slova. Fulltext FTS5 v D1 bez diakritiky najde přesné výrazy: čísla zápisů a usnesení, jména firem a ulic, místní názvy. FTS5 nezná české skloňování, proto se slova z dotazu hledají podle začátku (`popelnic*`). Výsledky se spojí reciproční fúzí pořadí (RRF) a do modelu jde 6 nejlepších úseků. Když žádný nepřekročí práh podobnosti, dotaz jde zastupitelům bez volání jazykového modelu. Práh se nastaví na typových otázkách.
+- **Odpověď** model vrací v JSON po větách. U každé věty je číslo úseku a doslovná opora z něj. Když odpověď v úsecích není, vrátí jen „nevím“. Prompt zakazuje obecné znalosti a domněnky (F-73) a je v repozitáři s číslem verze.
+- **Ověření (F-75) má dvě vrstvy.** Kód zkontroluje, že každá věta má citaci, že doslovná opora v citovaném úseku opravdu je a že každé číslo a datum z věty je i v úseku. Potom druhý dotaz na model posoudí, jestli věta z opory plyne. Když neprojde jediná věta, nepoužije se celá odpověď a dotaz jde zastupitelům (F-76).
+- **Rozhraní:** `IndexZdroju` (hledat, nahrát) s implementací pro Vectorize a D1 a falešnou pro testy. `SluzbaAi` dostane embedding a odpověď. Hledání, ověření a skládání odpovědi jsou v `src/lib/odpovedi/` a neznají Astro ani Hono. Skripty indexu jsou v `nastroje/index/`.
+
+**Proč ne AI Search:** spravované hledání by ušetřilo vlastní dělení a hledání a umí číst i skeny. Procházení webu ale funguje jen pro domény ve stejném účtu Cloudflare, takže prisovice.cz by se stejně stahoval vlastním skriptem. AI Search se od 1. 12. 2026 účtuje a na bezplatném účtu má v ceně 1 000 dotazů měsíčně. Metadata úseků jsou omezená na 5 polí a hledání se hůř testuje s falešnou AI. Zůstává jako záloha, kdyby vlastní hledání na sadě neprošlo.
+
+**Proč ne Browser Rendering `/crawl`:** na Workers Free má 10 minut prohlížeče denně a web obce prohlížeč nepotřebuje.
+
+**Technické poznámky:**
+
+- `robots.txt` prisovice.cz zakazuje jen `/wp-admin/`. Podmínky užití web nemá, stahování nic nebrání. Úřední dokumenty obce nejsou podle § 3 autorského zákona chráněné. Aktuality chráněné být můžou, ucho z nich ale ukazuje jen krátké úryvky s odkazem.
+- REST API `/wp-json/wp/v2/` je zapnuté pro stránky a aktuality a dává přesná data zveřejnění a změny. Úřední deska v něm není a knihovna médií vrací jen 116 z 610 PDF. Seznam adres se proto bere ze sitemapy (`wp-sitemap.xml`), PDF z odkazů ve stránkách a datum položky úřední desky ze stránky.
+- Web obce odpovídá zhruba za 2 s na stránku. Celé stažení okna trvalo při průzkumu asi půl hodiny: HTML 19 minut, PDF 10 minut. Opakovaný běh přeskočí položky, jejichž datum změny v sitemapě se nezměnilo.
+- Zápisy rady a část odpovědí podle zákona 106 zveřejňuje obec anonymizované (`anonymiz-rada-…pdf`, `anonymizovana-odpoved-…pdf`).
+- Stavební úřad v Příšovicích vede řízení i pro okolní obce (Svijanský Újezd, Soběslavice, Všeň), proto jsou na desce i jejich stavby.
+- Odpověď nemá paměť, stejný dotaz se hledá znovu. Ukládání odpovědí k tématu je F-77 a přijde s krokem 4.3.
+- User-Agent skriptu je obecný název ucha bez osobních údajů. Průzkum použil `prisovicke-ucho-pruzkum/0.1`.
+
+**Cena (Workers Free, 10 000 neuronů denně sdílí přepis, úprava i odpovědi):**
+
+| Položka | Spotřeba | Na Workers Free |
+|---|---|---|
+| Embeddingy indexu, jednorázově | asi 1 mil. tokenů × 1 075 neuronů za milion | asi 1 100 neuronů, vejde se do jednoho dne |
+| Vectorize, uložené | asi 3 000 úseků × 1 024 rozměrů = 3,1 mil. | v ceně je 5 mil. uložených rozměrů, tedy asi 4 880 úseků |
+| Vectorize, dotazy | (dotazy + 3 000) × 1 024 měsíčně | v ceně je 30 mil., tedy asi 26 000 dotazů měsíčně |
+| D1 | text a fulltext do 20 MB, desítky čtených řádků na dotaz | v ceně je 5 GB a 5 mil. čtených řádků denně |
+| Odpověď na jeden dotaz | Gemma asi 4 000 tokenů vstup a 600 výstup, ověření asi 1 500 a 200, embedding dotazu zanedbatelný | asi 70 až 90 neuronů |
+| Celý namluvený dotaz | přepis 3 min, úprava a odpověď | asi 280 neuronů, tedy asi 35 dotazů denně zdarma |
+
+Na Workers Paid by odpověď stála asi 0,1 centu. Vyhodnocení sady (30 otázek, i opakovaně) se vejde do jednoho dne. Na testování bezplatný plán stačí, na ostrý provoz s kampaní ne.
+
+**Prahy (oddíl „Kdy je hotovo“ v zadání)**, na schválené sadě a ručně zkontrolováno:
+
+- žádná zobrazená odpověď nemá tvrzení bez opory v citovaném úryvku,
+- každá zobrazená odpověď má citaci s adresou, názvem a datem, správné označení zdroje a upozornění, že nejde o úřední vyjádření obce,
+- aspoň 90 % otázek bez odpovědi ve zdrojích skončí u zastupitelů,
+- aspoň 70 % otázek s odpovědí ve zdrojích dostane správnou odpověď (práh může Tomáš při schválení změnit),
+- žádný návrh, stížnost ani pochvala nejde do hledání,
+- aspoň 90 % odpovědí přijde do 10 s od potvrzení.
+
+**Rizika:**
+
+- **Osobní údaje v PDF obce.** Úřední deska obsahuje i dokumenty se jmény, adresami a majetkem občanů: dražební vyhlášky, stavební řízení, záměry pronájmu a směny pozemků a oznámení o vstupu na pozemky. Zakrytí osobních údajů (F-17) je Později. Text s osobními údaji se tak dostane do D1 v Cloudflare a odpověď ho může ocitovat. Obec dokumenty zveřejnila, po sejmutí z desky ale účel zveřejnění skončil. Zmírnění v MVP: vynechat řízení soukromých osob (viz rozhodnutí), zakázat v promptu jména soukromých osob a ukazovat jen krátké úryvky s odkazem na originál. Úplné to není: jména můžou zůstat i v zápisech, smlouvách a záměrech. Kdo bude správce osobních údajů, je stále otevřené.
+- **Skeny bez textové vrstvy** se do indexu nedostanou. Jde o 54 PDF celých (161 stran) a 49 stran v dalších 10 PDF. Jsou to hlavně stavební rozhodnutí, vyúčtování vodného a stočného a naskenované přílohy aktualit. OCR v MVP není.
+- **Tabulky** (rozpočty, kalkulace vodného) ztratí při vytažení textu sloupce. Čísla zůstanou, ale model je může přiřadit ke špatnému řádku. Kontrola čísel v ověření pozná jen číslo, které v úseku vůbec není, ne číslo ze špatného řádku.
+- **Okno 2 let** vynechá starší, ale platné dokumenty, třeba starší vyhlášky, územní plán a ceníky. Dotaz na ně skončí u zastupitelů, i když odpověď na webu je.
+- **Zastaralý index.** Aktualizace je ruční. Odpověď proto vždy ukazuje datum zdroje.
+- **Kvalita češtiny Gemmy u odpovědí se zdroji** není ověřená. Záloha je Nemotron 3 Super, stojí ale asi pětkrát víc neuronů za token.
+- **10 s na odpověď.** Dvě volání modelu za sebou můžou limit přesáhnout. Měří se ve vyhodnocení. Při překročení se zkrátí ověření modelem, kontrola kódem zůstane.
+- **Denní limit neuronů.** Po vyčerpání Workers AI požadavky odmítá. Stránka pak řekne, že odpověď teď nejde najít, a dotaz nechá zastupitelům.
+- **10 ms procesoru na Workers Free.** Spojení výsledků a kontrola opory jsou malé výpočty. Čas procesoru se přesto ověří ve Workers Logs.
+- **Vzdálené vazby Wrangleru pro skript** nejsou ověřené, záloha jsou příkazy Wrangleru.
+- **Web obce se může změnit**, třeba šablona stránek nebo struktura úřední desky. Vytažení textu je pak potřeba upravit. Skript proto hlásí stránky, ze kterých nevytáhl žádný text.
+
 ## Další fáze: testování
 
 Testuje se od největšího rizika. Každý test může změnit plán, proto se další kroky rozepíšou až podle výsledků.
@@ -169,7 +282,7 @@ Testuje se lokálně a rovnou na ostré adrese nezavisli-prisovice.cz/ucho, bez 
 
 **Stav k 9. 11. 2026:** kostra (1.2, z 1.3 zatím jen rozhraní AI), stránka podání (2.1 až 2.5), přepis (3.1), AI úprava (3.2, 3.4, z 3.3 vše kromě podpisu) a formulář k opravě a potvrzení (4.1) běží na ostré adrese. Testy 1 a 2 jsou hotové ve Windows. Na Opeře pro Android prošly tři namluvené vzkazy a jeden na 3 minuty, rám tam ještě čeká. Whisper přijal nahrávky z Chromia na počítači i z Androidu a tři minuty vcelku, takže WAV ani dělení nahrávky nejsou potřeba. Výsledky jsou v [test-zarizeni.md](test-zarizeni.md).
 
-**Další na řadě (9. 11. 2026):** krok 8, index webu a odpověď s citací, v samostatné session. Zadání i pravidlo, kdy je krok hotový, jsou v [zadani-krok-8.md](zadani-krok-8.md). Součástí jsou ukázkové dotazy, které do kroku 11 slouží jako testovací sada (rozhodnutí v `CLAUDE.md`).
+**Další na řadě (9. 11. 2026):** krok 8, index webu a odpověď s citací, v samostatné session. Zadání i pravidlo, kdy je krok hotový, jsou v [zadani-krok-8.md](zadani-krok-8.md). Součástí jsou ukázkové dotazy, které do kroku 11 slouží jako testovací sada (rozhodnutí v `CLAUDE.md`). Průzkum (8.1) je hotový a [rozpis kroku 8](#krok-8-index-webu-a-odpověď-s-citací) čeká na schválení. Nic z kroku 8 zatím není postavené.
 
 Podpis výsledku (3.3, 4.2) a uložení (4.3) přijdou s přihlášením: dokud se nic neukládá, nikdo by podpis neověřoval. Autor teď návrh AI opraví a potvrdí, potvrzený vzkaz se ale nikam neuloží. Model úpravy je vybraný předběžně, krok 3.6 stále čeká na testovací sadu.
 

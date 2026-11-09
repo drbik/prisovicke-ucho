@@ -81,6 +81,7 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 - Další je krok 8: index webu a odpověď s citací. Běží v samostatné session podle `docs/zadani-krok-8.md`.
 - Zdroje odpovědí: prisovice.cz včetně PDF a publikované karty projektů z webu Nezávislých. `akce-prisovice-timeline.md` se do indexu nikdy nedostane. Odpověď z webu Nezávislých se označí „Podle webu Nezávislých pro Příšovice“, ne „Odpověď z webu obce“.
 - Ukázkové dotazy: jen jasně označené ukázky od týmu, bez vymyšlených autorů a hlasů, s odpověďmi ze skutečných zdrojů. Do té doby, než bude veřejný seznam témat (krok 11), slouží jako testovací sada kroku 8. Je to rozšíření MVP se souhlasem Tomáše.
+- Stahování i index prisovice.cz zatím jen za poslední 2 roky, od 9. 11. 2024. Platí to pro aktuality, úřední desku a PDF. Jak okno platí pro stálé stránky, řeší rozpis kroku 8 v `docs/plan-mvp.md`.
 
 ## MVP (prezentační verze)
 
