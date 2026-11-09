@@ -25,6 +25,7 @@ Cloudová session k nim nemá přístup. V lokální session je zpřístupni jen
 - `docs/hlasove-modely.md` – zjištění o hlasových modelech z jiného projektu a co z nich plyne pro výběr modelu přepisu.
 - `docs/plan-mvp.md` – MVP rozdělené na postupné kroky, rozpis kroků 1 až 4 a pořadí testů.
 - `docs/test-zarizeni.md` – výsledky testů na zařízeních a co zbývá ověřit.
+- `docs/zadani-krok-8.md` – zadání kroku 8 (index webu a odpověď s citací) pro samostatnou session, včetně pravidla, kdy je hotový.
 
 Požadavky mají ID (F-01 až F-83) a prioritu MVP / Později / Zvážit. V commitech a kódu na ně odkazuj.
 
@@ -74,6 +75,12 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 - Kostra aplikace: Astro 7 s adaptérem pro Cloudflare na stránky, stejně jako web Nezávislých. Hono na API pod `/api`.
 - Plánování MVP je uzavřené. Další fáze je testování, pořadí testů je v `docs/plan-mvp.md`.
 - Ucho poběží na doméně webu pod cestou nezavisli-prisovice.cz/ucho. Testuje se lokálně a rovnou na této ostré adrese, bez neveřejných náhledů (workers.dev, preview). Web má malou návštěvnost, proto se rozdíl mezi veřejnou a neveřejnou verzí neřeší.
+
+## Rozhodnutí (9. 11. 2026)
+
+- Další je krok 8: index webu a odpověď s citací. Běží v samostatné session podle `docs/zadani-krok-8.md`.
+- Zdroje odpovědí: prisovice.cz včetně PDF a publikované karty projektů z webu Nezávislých. `akce-prisovice-timeline.md` se do indexu nikdy nedostane. Odpověď z webu Nezávislých se označí „Podle webu Nezávislých pro Příšovice“, ne „Odpověď z webu obce“.
+- Ukázkové dotazy: jen jasně označené ukázky od týmu, bez vymyšlených autorů a hlasů, s odpověďmi ze skutečných zdrojů. Do té doby, než bude veřejný seznam témat (krok 11), slouží jako testovací sada kroku 8. Je to rozšíření MVP se souhlasem Tomáše.
 
 ## MVP (prezentační verze)
 

@@ -169,6 +169,8 @@ Testuje se lokálně a rovnou na ostré adrese nezavisli-prisovice.cz/ucho, bez 
 
 **Stav k 9. 11. 2026:** kostra (1.2, z 1.3 zatím jen rozhraní AI), stránka podání (2.1 až 2.5), přepis (3.1), AI úprava (3.2, 3.4, z 3.3 vše kromě podpisu) a formulář k opravě a potvrzení (4.1) běží na ostré adrese. Testy 1 a 2 jsou hotové ve Windows. Na Opeře pro Android prošly tři namluvené vzkazy a jeden na 3 minuty, rám tam ještě čeká. Whisper přijal nahrávky z Chromia na počítači i z Androidu a tři minuty vcelku, takže WAV ani dělení nahrávky nejsou potřeba. Výsledky jsou v [test-zarizeni.md](test-zarizeni.md).
 
+**Další na řadě (9. 11. 2026):** krok 8, index webu a odpověď s citací, v samostatné session. Zadání i pravidlo, kdy je krok hotový, jsou v [zadani-krok-8.md](zadani-krok-8.md). Součástí jsou ukázkové dotazy, které do kroku 11 slouží jako testovací sada (rozhodnutí v `CLAUDE.md`).
+
 Podpis výsledku (3.3, 4.2) a uložení (4.3) přijdou s přihlášením: dokud se nic neukládá, nikdo by podpis neověřoval. Autor teď návrh AI opraví a potvrdí, potvrzený vzkaz se ale nikam neuloží. Model úpravy je vybraný předběžně, krok 3.6 stále čeká na testovací sadu.
 
 K nasazení stačí přihlášení Wranglerem (`wrangler login`), nebo API token s oprávněním pro Workers AI a pro nasazení Workeru na doménu nezavisli-prisovice.cz. Token patří jen do proměnné prostředí, ne do repozitáře.
