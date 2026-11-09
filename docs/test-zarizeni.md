@@ -1,8 +1,8 @@
 # Testy na zařízeních
 
-*Stav k 6. 11. 2026. Krok 2.6 a testy 1 a 2 z [plánu MVP](plan-mvp.md#další-fáze-testování). Adresa: https://nezavisli-prisovice.cz/ucho, rám: https://nezavisli-prisovice.cz/ucho/test-ramu.*
+*Stav k 9. 11. 2026. Krok 2.6 a testy 1 a 2 z [plánu MVP](plan-mvp.md#další-fáze-testování). Adresa: https://nezavisli-prisovice.cz/ucho, rám: https://nezavisli-prisovice.cz/ucho/test-ramu.*
 
-**Stav: Windows je ověřený, Opera na Androidu z části.** Tři vzkazy namluvené skutečným mikrofonem na Opeře pro Android prošly přepisem i úpravou. Hlavní riziko plánu (nahrávka z telefonu ve Whisperu) tím odpadá. Délka, formát a časy těchto pokusů nejsou zapsané, takže 3 minuty, rám a zamčení telefonu zůstávají neověřené.
+**Stav: Windows je ověřený, Opera na Androidu z části.** Tři vzkazy a potom jeden na 3 minuty, namluvené skutečným mikrofonem na Opeře pro Android, prošly přepisem i úpravou. Hlavní riziko plánu (nahrávka z telefonu ve Whisperu) tím odpadá a dělení nahrávky ani WAV nejsou potřeba ani na telefonu. Formát a časy těchto pokusů nejsou zapsané. Rám a zamčení telefonu zůstávají neověřené.
 
 ## Jak se ve Windows testovalo
 
@@ -18,7 +18,8 @@ Co to neověří: skutečný mikrofon, dialog povolení mikrofonu, čtečku obra
 | Opera, Windows | 0:20 | 95 kB | `audio/webm;codecs=opus` | 1,8 s | Přepsáno celé |
 | Edge, Windows | 2:59 | 920 kB | `audio/webm;codecs=opus` | 21,6 s | Přepsáno celé, až do poslední věty |
 | Opera, Windows | 2:59 | 922 kB | `audio/webm;codecs=opus` | 15,1 s | Přepsáno celé, až do poslední věty |
-| Opera, Android | neuvedeno | neuvedeno | neuvedeno | neuvedeno | Tři vzkazy přepsané, skutečný mikrofon. 3 minuty **čekají na test** |
+| Opera, Android | tři vzkazy, délka neuvedena | neuvedeno | neuvedeno | neuvedeno | Přepsáno, skutečný mikrofon |
+| Opera, Android | asi 3 minuty | neuvedeno | neuvedeno | neuvedeno | Přepsáno celé |
 
 Zjištění:
 
@@ -52,7 +53,9 @@ Od 6. 11. 2026 jde každý přepis i napsaný text do jazykového modelu (krok 3
 | Opera, Windows (360 × 740) | napsaný text, 445 znaků | 1 | – | 4,1 s | 4,1 s | 1 |
 | Opera, Windows (360 × 740) | napsaný text, 445 znaků | 2 | – | 1,7 s | 1,7 s | 1 |
 
-**První vzkazy od člověka (6. 11. 2026, prompt verze 1).** Tomáš namluvil tři vzkazy. Přepis i úpravu vyhodnotil jako v pořádku, chtěl ale uhladit jazyk. To řeší prompt verze 2. Ve třetím vzkazu se jedno slovo zaměnilo. Které to bylo, se už nepamatuje, a text se neukládá, takže nejde zjistit ani to, jestli ho zaměnil Whisper, nebo úprava. Vzkazy šly z Opery na Androidu. Skutečný mluvčí zatím nezkusil verzi 2.
+**První vzkazy od člověka (6. 11. 2026, prompt verze 1).** Tomáš namluvil tři vzkazy. Přepis i úpravu vyhodnotil jako v pořádku, chtěl ale uhladit jazyk. To řeší prompt verze 2. Ve třetím vzkazu se jedno slovo zaměnilo. Které to bylo, se už nepamatuje, a text se neukládá, takže nejde zjistit ani to, jestli ho zaměnil Whisper, nebo úprava. Vzkazy šly z Opery na Androidu.
+
+**Tříminutový vzkaz z Androidu (prompt verze 2).** Přepsal se celý a AI navrhla upravenou verzi. Tomáš na výsledku hledal, kde upravený text opravit, a nenašel. Úprava textu autorem patří do kroku 4 (F-14) a zatím není hotová, stránka text jen ukazuje. Jak vypadá uhlazený jazyk na skutečné řeči, zatím zapsané není.
 
 Body níže platí pro verzi 1, pokud není uvedeno jinak.
 
@@ -82,7 +85,7 @@ Skript prošel 16 scénářů v Edge při běžné velikosti okna a v Opeře př
 | Jen klávesnice: Tab, Enter, Escape zruší, fokus se vrátí | OK | OK | nepoužije se |
 | Povolení mikrofonu | OK (umělé) | OK (umělé) | OK |
 | Zákaz mikrofonu ukáže textové pole s vysvětlením | OK | OK | **Čeká** |
-| Upozornění ve 2:30 a konec ve 3:00 | OK | OK | **Čeká** |
+| Upozornění ve 2:30 a konec ve 3:00 | OK | OK | **Čeká**, 3minutová nahrávka prošla, upozornění a konec nezapsané |
 | Nahrávka kratší než 2 s se neodešle | OK | OK | **Čeká** |
 | Zrušit při nahrávání nic neodešle | OK | OK | **Čeká** |
 | Zrušit při čekání na přepis | OK | OK | **Čeká** |
@@ -103,7 +106,7 @@ Skript prošel 16 scénářů v Edge při běžné velikosti okna a v Opeře př
 Stačí telefon a asi 15 minut. Po každém pokusu rozbalte na stránce „Technické údaje pro test“ a opište formát, velikost a dobu přepisu i úpravy. Rozbalte i „Původní přepis“ a porovnejte ho s upraveným textem. Hlavně sledujte, jestli úprava něco nepřidala nebo nevynechala.
 
 1. Na https://nezavisli-prisovice.cz/ucho namluvit krátký vzkaz s místními názvy a opsat údaje. Tři vzkazy prošly, údaje z nich ale chybí.
-2. Namluvit vzkaz na celé 3 minuty: upozornění ve 2:30, samo skončí ve 3:00.
+2. Namluvit vzkaz na celé 3 minuty: upozornění ve 2:30, samo skončí ve 3:00. Přepis i úprava prošly, upozornění a konec zapsané nejsou.
 3. Na https://nezavisli-prisovice.cz/ucho/test-ramu namluvit vzkaz v rámu. Na výsledku závisí krok 12.
 4. Během nahrávání zamknout telefon. Po odemčení se má ukázat přepis nahraného kusu.
 5. Zakázat mikrofon v nastavení stránky: má se ukázat textové pole.
