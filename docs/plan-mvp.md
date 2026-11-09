@@ -2,7 +2,7 @@
 
 *Stav k 9. 11. 2026. Kroky vychází z diagramu toku v PRD (sekce Uživatelské scénáře), písmena odkazují na jeho uzly.*
 
-**Plánování je uzavřené (6. 11. 2026).** Rozepsané jsou kroky 1 až 4 a krok 8 (rozpis z 9. 11. 2026 čeká na schválení). Další kroky se rozepíšou, až na ně přijde řada. Další fáze je testování, viz [poslední oddíl](#další-fáze-testování).
+**Plánování je uzavřené (6. 11. 2026).** Rozepsané jsou kroky 1 až 4 a krok 8 (rozpis schválený 9. 11. 2026). Další kroky se rozepíšou, až na ně přijde řada. Další fáze je testování, viz [poslední oddíl](#další-fáze-testování).
 
 ## Kroky
 
@@ -158,7 +158,7 @@ Cílem je, aby autor návrh AI zkontroloval, opravil a potvrdil (F-14). Teprve p
 
 ## Krok 8: index webu a odpověď s citací
 
-*Rozpis z 9. 11. 2026 podle [zadání](zadani-krok-8.md). Čeká na schválení Tomášem, do té doby se nic nestaví.*
+*Rozpis z 9. 11. 2026 podle [zadání](zadani-krok-8.md). Tomáš ho schválil 9. 11. 2026 bez výhrad, včetně všech návrhů v oddílu Rozhodnutí a prahu 70 %.*
 
 Cílem je, aby autor po potvrzení dotazu hned viděl odpověď z webu obce nebo z karet webu Nezávislých, s citací zdroje. Když odpověď ve zdrojích není, nebo jí ucho nemá dost opory, stránka řekne, že dotaz převezmou zastupitelé. Návrhy, stížnosti a pochvaly se nehledají (F-72).
 
@@ -185,7 +185,7 @@ Celkem asi 2,6 mil. znaků, tedy asi 2 600 až 3 000 úseků a 0,9 mil. tokenů 
 
 | # | Dílčí krok | Hotovo, když |
 |---|---|---|
-| 8.1 | Průzkum a rozpis (fáze A zadání): rozsah prisovice.cz, robots.txt, REST API, limity Cloudflare na Workers Free, architektura, cena, rizika | Rozpis schválil Tomáš. |
+| 8.1 | Průzkum a rozpis (fáze A zadání): rozsah prisovice.cz, robots.txt, REST API, limity Cloudflare na Workers Free, architektura, cena, rizika | Hotovo 9. 11. 2026, rozpis schválil Tomáš. |
 | 8.2 | Typové otázky (fáze B): 20 až 30 otázek, jak by je řekli občané, s očekávaným výsledkem ze skutečného zdroje. Strojově čitelně v `tests/data/` a přehled pro Tomáše v `docs/`. | Sadu schválil Tomáš. Do té doby se k vyhodnocení nepoužije. |
 | 8.3 | Stahování: ruční skript `npm run index:stahnout`. Řídí se robots.txt, posílá nejvýš 1 požadavek za sekundu s obecným User-Agentem, bere jen okno 2 let (viz rozhodnutí). Seznam adres ze sitemapy, data zveřejnění a změny z REST API a ze stránky. Karty se čtou z ostrého webu nezavisli-prisovice.cz. Stažené soubory leží mimo git. | Skript stáhne celé okno a druhý běh nestahuje nic, co se nezměnilo. Seznam staženého a vynechaného je zapsaný. |
 | 8.4 | Zpracování: text z HTML (jen obsah článku, bez menu a patičky) a z PDF, dělení na úseky, metadata Zdrojového dokumentu (URL, název, web, typ, datum zveřejnění a změny, otisk obsahu, datum stažení). PDF bez textové vrstvy jdou na seznam známých omezení. | Testy vytažení textu a dělení na úseky projdou. Počty dokumentů a úseků a seznam vynechaných PDF jsou zapsané. |
@@ -195,12 +195,12 @@ Celkem asi 2,6 mil. znaků, tedy asi 2 600 až 3 000 úseků a 0,9 mil. tokenů 
 | 8.8 | Vyhodnocení: `npm run eval:odpovedi` pošle schválenou sadu přes celé hledání a vytvoří tabulku k ruční kontrole. | Prahy níže platí a výsledek je zapsaný v `docs/vyhodnoceni-odpovedi.md`. |
 | 8.9 | Nasazení a dokumentace: jen Worker `prisovicke-ucho`. Stav v tomto plánu, `docs/test-zarizeni.md`, Opera na Androidu ověřená, nebo zapsaná jako čekající. | Vše je commitnuté ve větvi kroku. Push, PR a sloučení jen na pokyn Tomáše. |
 
-**Rozhodnutí:** Tomáš 9. 11. 2026 omezil stahování i databázi zatím na poslední 2 roky. Ostatní body jsou návrh a čekají na jeho souhlas.
+**Rozhodnutí (9. 11. 2026):** Tomáš omezil stahování i databázi zatím na poslední 2 roky a schválil všechny body níže.
 
 - **Okno 2 let** (rozhodnuto 9. 11. 2026). Aktuality, úřední deska a jejich PDF jdou do indexu jen se zveřejněním od 9. 11. 2024. PDF se posuzuje podle měsíce nahrání v adrese (`/uploads/RRRR/MM/`), a když ho adresa nemá, podle data stránky, která na PDF odkazuje.
-- **Návrh: stálé stránky celé.** Jen 3 z 80 stálých stránek vznikly v okně, přitom popisují platný stav (kontakty, úřední hodiny, odpady, pronájem Sokolovny). Mají dohromady 117 tis. znaků. Navrhuji vzít je celé i s 10 staršími PDF, na která odkazují (6,1 MB): jednací řád zastupitelstva, sazebník úhrad, dohodu o pronájmu Sokolovny, formuláře a výroční zprávu o informacích za rok 2023. Bez nich skončí dotazy na pronájem Sokolovny nebo jednací řád u zastupitelů, i když odpověď na webu je.
-- **Návrh: úřední deska na prisovice.cz patří do indexu.** Obec ji od ledna 2024 vede přímo ve WordPressu (typ `urednideska`), nezávisle na staré desce na prisovice.e-obec.cz, která se nesleduje. Jsou na ní zápisy zastupitelstva a rady, rozpočty, vyhlášky a oznámení, tedy většina zveřejněných dokumentů.
-- **Návrh: z úřední desky vynechat řízení soukromých osob.** Jde o dražební vyhlášky a usnesení exekutorů (5 v okně), řízení stavebního úřadu o rodinných domech, přístavbách, tůních a dělení pozemků včetně odstranění staveb (zhruba 10). Obsahují jména, adresy a majetkové poměry a pro dotazy občanů nemají význam. Pozná se to podle kategorie `stavebni-urad` a podle slov v názvu. Seznam vynechaných dokumentů se zapíše. Více v rizicích.
+- **Stálé stránky celé.** Jen 3 z 80 stálých stránek vznikly v okně, přitom popisují platný stav (kontakty, úřední hodiny, odpady, pronájem Sokolovny). Mají dohromady 117 tis. znaků. Berou se celé i s 10 staršími PDF, na která odkazují (6,1 MB): jednací řád zastupitelstva, sazebník úhrad, dohodu o pronájmu Sokolovny, formuláře a výroční zprávu o informacích za rok 2023. Bez nich skončí dotazy na pronájem Sokolovny nebo jednací řád u zastupitelů, i když odpověď na webu je.
+- **Úřední deska na prisovice.cz patří do indexu.** Obec ji od ledna 2024 vede přímo ve WordPressu (typ `urednideska`), nezávisle na staré desce na prisovice.e-obec.cz, která se nesleduje. Jsou na ní zápisy zastupitelstva a rady, rozpočty, vyhlášky a oznámení, tedy většina zveřejněných dokumentů.
+- **Z úřední desky se vynechají řízení soukromých osob.** Jde o dražební vyhlášky a usnesení exekutorů (5 v okně), řízení stavebního úřadu o rodinných domech, přístavbách, tůních a dělení pozemků včetně odstranění staveb (zhruba 10). Obsahují jména, adresy a majetkové poměry a pro dotazy občanů nemají význam. Pozná se to podle kategorie `stavebni-urad` a podle slov v názvu. Seznam vynechaných dokumentů se zapíše. Více v rizicích.
 - **Karty webu Nezávislých: všech 24 souborů ze `src/content/projects/`.** Na webu nemají příznak konceptu, vykreslí se každý soubor. Všech 24 je 9. 11. 2026 na ostrém webu s kotvou `https://nezavisli-prisovice.cz/#<slug>` a texty souhlasí se soubory. Jde o 22 projektů, kartu Volby se složením zastupitelstva a závěrečnou kartu s tématy k prověření. Text se bere z ostrého webu, soubor na disku slouží jen ke kontrole. Karty nemají datum zveřejnění, citace proto uvede „stav webu k <datum stažení>“. Tlampač a `/podklady/` webu Nezávislých do indexu nejdou, protože je zadání neuvádí.
 - **Vlastní index ve Vectorize a D1, ne AI Search.** Zdůvodnění je v oddílu Architektura.
 - **Bez R2.** Stažené HTML a PDF zůstávají jen na počítači, kde běží skript. Do Cloudflare jde jen vytažený text úseků a citace odkazuje na původní adresu na prisovice.cz.
@@ -282,7 +282,7 @@ Testuje se lokálně a rovnou na ostré adrese nezavisli-prisovice.cz/ucho, bez 
 
 **Stav k 9. 11. 2026:** kostra (1.2, z 1.3 zatím jen rozhraní AI), stránka podání (2.1 až 2.5), přepis (3.1), AI úprava (3.2, 3.4, z 3.3 vše kromě podpisu) a formulář k opravě a potvrzení (4.1) běží na ostré adrese. Testy 1 a 2 jsou hotové ve Windows. Na Opeře pro Android prošly tři namluvené vzkazy a jeden na 3 minuty, rám tam ještě čeká. Whisper přijal nahrávky z Chromia na počítači i z Androidu a tři minuty vcelku, takže WAV ani dělení nahrávky nejsou potřeba. Výsledky jsou v [test-zarizeni.md](test-zarizeni.md).
 
-**Další na řadě (9. 11. 2026):** krok 8, index webu a odpověď s citací, v samostatné session. Zadání i pravidlo, kdy je krok hotový, jsou v [zadani-krok-8.md](zadani-krok-8.md). Součástí jsou ukázkové dotazy, které do kroku 11 slouží jako testovací sada (rozhodnutí v `CLAUDE.md`). Průzkum (8.1) je hotový a [rozpis kroku 8](#krok-8-index-webu-a-odpověď-s-citací) čeká na schválení. Nic z kroku 8 zatím není postavené.
+**Další na řadě (9. 11. 2026):** krok 8, index webu a odpověď s citací, v samostatné session. Zadání i pravidlo, kdy je krok hotový, jsou v [zadani-krok-8.md](zadani-krok-8.md). Součástí jsou ukázkové dotazy, které do kroku 11 slouží jako testovací sada (rozhodnutí v `CLAUDE.md`). Průzkum (8.1) je hotový a [rozpis kroku 8](#krok-8-index-webu-a-odpověď-s-citací) Tomáš schválil 9. 11. 2026. Na řadě jsou typové otázky (8.2), stavba začne po jejich schválení.
 
 Podpis výsledku (3.3, 4.2) a uložení (4.3) přijdou s přihlášením: dokud se nic neukládá, nikdo by podpis neověřoval. Autor teď návrh AI opraví a potvrdí, potvrzený vzkaz se ale nikam neuloží. Model úpravy je vybraný předběžně, krok 3.6 stále čeká na testovací sadu.
 
