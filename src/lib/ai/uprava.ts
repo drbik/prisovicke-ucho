@@ -1,7 +1,7 @@
-import { OBLASTI, TYPY_PODNETU, type SlugOblasti, type TypPodnetu } from '../oblasti';
+import { jeOblast, jeTyp, type SlugOblasti, type TypPodnetu } from '../oblasti';
+import { MAX_ZNAKU_NAZVU } from '../podani/limity';
 import { sestavitZpravy, type ZpravaModelu } from './prompt-upravy';
 
-export const MAX_ZNAKU_NAZVU = 80;
 const MAX_POKUSU = 2;
 
 export interface UpravaVzkazu {
@@ -27,14 +27,6 @@ function vyjmoutJson(vystup: string) {
 
 function neprazdny(hodnota: unknown) {
   return typeof hodnota === 'string' ? hodnota.trim() : '';
-}
-
-function jeOblast(hodnota: unknown): hodnota is SlugOblasti {
-  return OBLASTI.some((oblast) => oblast.slug === hodnota);
-}
-
-function jeTyp(hodnota: unknown): hodnota is TypPodnetu {
-  return typeof hodnota === 'string' && Object.hasOwn(TYPY_PODNETU, hodnota);
 }
 
 // Workers AI JSON nezaručuje, výstup proto vždy ověřuje kód (F-13, krok 3.2).

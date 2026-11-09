@@ -30,7 +30,7 @@ h2 { margin-bottom: 14px; font-size: 1.6rem; }
 h2:focus { outline: none; }
 p { margin: 0 0 14px; }
 
-:is(button, a, summary, textarea):focus-visible { outline: 3px solid var(--fokus); outline-offset: 3px; }
+:is(button, a, summary, textarea, input, select):focus-visible { outline: 3px solid var(--fokus); outline-offset: 3px; }
 
 .stranka { width: min(560px, 100%); margin: 0 auto; padding: 24px 16px 40px; }
 .stranka--siroka { width: min(760px, 100%); }
@@ -72,7 +72,14 @@ p { margin: 0 0 14px; }
 .tlacitko--druhe:hover { color: #fff; background: var(--past); }
 
 label { display: block; margin-bottom: 6px; font-weight: 700; }
-textarea { display: block; width: 100%; min-height: 150px; padding: 12px; border: 1px solid #18332e66; border-radius: 7px; color: inherit; background: #fff; font: inherit; resize: vertical; }
+textarea, input, select { display: block; width: 100%; padding: 12px; border: 1px solid #18332e66; border-radius: 7px; color: inherit; background: #fff; font: inherit; }
+textarea { min-height: 150px; resize: vertical; }
+input, select { min-height: 48px; padding-block: 10px; }
+[aria-invalid="true"] { border: 2px solid #a63a22; }
+/* Celý upravený vzkaz je vidět bez posouvání uvnitř pole. Prohlížeče bez field-sizing použijí rows. */
+.upraveny { field-sizing: content; min-height: 12lh; }
+form > label:not(:first-child), .dvojice { margin-top: 16px; }
+.dvojice { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
 .pocitadlo { margin: 6px 0 0; color: var(--ink-soft); font-size: .84rem; }
 .chyba { margin: 10px 0 0; color: #a63a22; font-weight: 650; }
 

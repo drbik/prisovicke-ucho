@@ -1,8 +1,8 @@
 # Plán MVP po krocích
 
-*Stav k 6. 11. 2026. Kroky vychází z diagramu toku v PRD (sekce Uživatelské scénáře), písmena odkazují na jeho uzly.*
+*Stav k 9. 11. 2026. Kroky vychází z diagramu toku v PRD (sekce Uživatelské scénáře), písmena odkazují na jeho uzly.*
 
-**Plánování je uzavřené (6. 11. 2026).** Rozepsané jsou kroky 1 až 3, další kroky se rozepíšou, až na ně přijde řada. Další fáze je testování, viz [poslední oddíl](#další-fáze-testování).
+**Plánování je uzavřené (6. 11. 2026).** Rozepsané jsou kroky 1 až 4, další kroky se rozepíšou, až na ně přijde řada. Další fáze je testování, viz [poslední oddíl](#další-fáze-testování).
 
 ## Kroky
 
@@ -138,6 +138,24 @@ První porovnání z 6. 11. 2026 je v [hlasove-modely.md](hlasove-modely.md#výb
 - Klíče a ID účtu pro `npm run eval` jsou jen v proměnných prostředí, ne v repozitáři.
 - **Je potřeba:** 20 až 30 lidí, kteří nahrají testovací vzkazy, a dva hodnotitelé pro hodnocení naslepo.
 
+## Krok 4: potvrzení a oprava textu autorem
+
+Cílem je, aby autor návrh AI zkontroloval, opravil a potvrdil (F-14). Teprve potvrzený vzkaz se uloží, a to se surovým přepisem i upraveným textem (F-15).
+
+| # | Dílčí krok | Hotovo, když |
+|---|---|---|
+| 4.1 | Formulář: upravený text, název, typ a oblast jdou opravit, pod formulářem je původní přepis k porovnání. Potvrdit ověří pole a ukáže souhrn, Zahodit se před zahozením zeptá. | Hotovo 9. 11. 2026 na ostré adrese. Potvrzení zatím nic neodesílá. |
+| 4.2 | Podpis (3.3): server podepíše surový přepis a návrh AI a při potvrzení podpis ověří. | Test ověří, že server podvržený surový přepis odmítne. |
+| 4.3 | Uložení: potvrzený podnět s polem `vstup`, surovým přepisem a textem autora do D1 (datový model z 1.4). Jestli se uloží i návrh AI, rozhodne se tady. | Podnět potřebuje autora, proto 4.2 a 4.3 přijdou s přihlášením z kroku 5. |
+
+**Jak je postavený 4.1:**
+
+- Formulář se ukáže hned po úpravě. Opravit jde text, název, typ i oblast.
+- Upravený text smí mít až 4 000 znaků, napsaný vzkaz 3 000. Úprava rychlé řeči může limit pro psaní přesáhnout a autor by ji jinak musel zkracovat.
+- Zahodit, Zavřít, Escape i gesto zpět se před zahozením neuloženého vzkazu zeptají. U Escape a gesta zpět to prohlížeč dovolí jen po nedávné aktivitě uživatele, jinak se panel zavře bez otázky.
+- Po potvrzení stránka ukáže, která pole autor oproti návrhu AI změnil. Hodí se to pro testy a později k vyhodnocení úpravy (3.6).
+- Kontroly polí jsou v modulu `src/lib/podani/potvrzeni.ts`, který nezná prohlížeč. S uložením je použije i server.
+
 ## Další fáze: testování
 
 Testuje se od největšího rizika. Každý test může změnit plán, proto se další kroky rozepíšou až podle výsledků.
@@ -149,9 +167,9 @@ Testuje se od největšího rizika. Každý test může změnit plán, proto se 
 
 Testuje se lokálně a rovnou na ostré adrese nezavisli-prisovice.cz/ucho, bez neveřejných náhledů (rozhodnuto 6. 11. 2026). Web má malou návštěvnost, rozpracovaná stránka tam proto nevadí.
 
-**Stav k 6. 11. 2026:** kostra (1.2, z 1.3 zatím jen rozhraní AI), stránka podání (2.1 až 2.5), přepis (3.1) a AI úprava (3.2, 3.4, z 3.3 vše kromě podpisu) běží na ostré adrese. Testy 1 a 2 jsou hotové ve Windows. Na Opeře pro Android prošly tři namluvené vzkazy a jeden na 3 minuty, rám tam ještě čeká. Whisper přijal nahrávky z Chromia na počítači i z Androidu a tři minuty vcelku, takže WAV ani dělení nahrávky nejsou potřeba. Výsledky jsou v [test-zarizeni.md](test-zarizeni.md).
+**Stav k 9. 11. 2026:** kostra (1.2, z 1.3 zatím jen rozhraní AI), stránka podání (2.1 až 2.5), přepis (3.1), AI úprava (3.2, 3.4, z 3.3 vše kromě podpisu) a formulář k opravě a potvrzení (4.1) běží na ostré adrese. Testy 1 a 2 jsou hotové ve Windows. Na Opeře pro Android prošly tři namluvené vzkazy a jeden na 3 minuty, rám tam ještě čeká. Whisper přijal nahrávky z Chromia na počítači i z Androidu a tři minuty vcelku, takže WAV ani dělení nahrávky nejsou potřeba. Výsledky jsou v [test-zarizeni.md](test-zarizeni.md).
 
-Podpis výsledku (3.3) přijde s krokem 4: dokud autor nemá co potvrdit, nikdo by podpis neověřoval. Stránka zatím jen ukáže upravený text, název, typ, oblast a původní přepis, nic se neukládá. Model úpravy je vybraný předběžně, krok 3.6 stále čeká na testovací sadu.
+Podpis výsledku (3.3, 4.2) a uložení (4.3) přijdou s přihlášením: dokud se nic neukládá, nikdo by podpis neověřoval. Autor teď návrh AI opraví a potvrdí, potvrzený vzkaz se ale nikam neuloží. Model úpravy je vybraný předběžně, krok 3.6 stále čeká na testovací sadu.
 
 K nasazení stačí přihlášení Wranglerem (`wrangler login`), nebo API token s oprávněním pro Workers AI a pro nasazení Workeru na doménu nezavisli-prisovice.cz. Token patří jen do proměnné prostředí, ne do repozitáře.
 

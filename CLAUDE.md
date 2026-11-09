@@ -23,7 +23,7 @@ Cloudová session k nim nemá přístup. V lokální session je zpřístupni jen
 - `docs/research-hlasove-podnety.md` – rešerše hotových řešení, hostingu a všech zdrojů.
 - `docs/oblasti-a-web.md` – projekty a témata z webu nezavisli-prisovice.cz, mapa znalostí v projektu webu, oblasti a technika webu pro F-09.
 - `docs/hlasove-modely.md` – zjištění o hlasových modelech z jiného projektu a co z nich plyne pro výběr modelu přepisu.
-- `docs/plan-mvp.md` – MVP rozdělené na postupné kroky, rozpis kroků 1 až 3 a pořadí testů.
+- `docs/plan-mvp.md` – MVP rozdělené na postupné kroky, rozpis kroků 1 až 4 a pořadí testů.
 - `docs/test-zarizeni.md` – výsledky testů na zařízeních a co zbývá ověřit.
 
 Požadavky mají ID (F-01 až F-83) a prioritu MVP / Později / Zvážit. V commitech a kódu na ně odkazuj.

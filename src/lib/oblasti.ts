@@ -19,3 +19,11 @@ export const TYPY_PODNETU = {
 } as const;
 
 export type TypPodnetu = keyof typeof TYPY_PODNETU;
+
+export function jeOblast(hodnota: unknown): hodnota is SlugOblasti {
+  return OBLASTI.some((oblast) => oblast.slug === hodnota);
+}
+
+export function jeTyp(hodnota: unknown): hodnota is TypPodnetu {
+  return typeof hodnota === 'string' && Object.hasOwn(TYPY_PODNETU, hodnota);
+}

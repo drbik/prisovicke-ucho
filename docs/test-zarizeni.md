@@ -44,7 +44,7 @@ Záměna „kdo koryto“ za „kdokoliv to“ mění smysl věty. Přesně to m
 
 ## AI úprava na ostré adrese
 
-Od 6. 11. 2026 jde každý přepis i napsaný text do jazykového modelu (krok 3.2 a 3.3). Stránka ukáže upravený text, navržený název, typ a oblast a pod rozbalením původní přepis. Model je předběžně Gemma 4 26B, porovnání je v [hlasove-modely.md](hlasove-modely.md#výběr-modelu-ai-úpravy).
+Od 6. 11. 2026 jde každý přepis i napsaný text do jazykového modelu (krok 3.2 a 3.3). Stránka nabídne upravený text, navržený název, typ a oblast k opravě a pod rozbalením ukáže původní přepis. Model je předběžně Gemma 4 26B, porovnání je v [hlasove-modely.md](hlasove-modely.md#výběr-modelu-ai-úpravy).
 
 | Prohlížeč | Vstup | Prompt | Přepis | Úprava | Celkem | Pokusů |
 |---|---|---|---|---|---|---|
@@ -55,7 +55,7 @@ Od 6. 11. 2026 jde každý přepis i napsaný text do jazykového modelu (krok 3
 
 **První vzkazy od člověka (6. 11. 2026, prompt verze 1).** Tomáš namluvil tři vzkazy. Přepis i úpravu vyhodnotil jako v pořádku, chtěl ale uhladit jazyk. To řeší prompt verze 2. Ve třetím vzkazu se jedno slovo zaměnilo. Které to bylo, se už nepamatuje, a text se neukládá, takže nejde zjistit ani to, jestli ho zaměnil Whisper, nebo úprava. Vzkazy šly z Opery na Androidu.
 
-**Tříminutový vzkaz z Androidu (prompt verze 2).** Přepsal se celý a AI navrhla upravenou verzi. Tomáš na výsledku hledal, kde upravený text opravit, a nenašel. Úprava textu autorem patří do kroku 4 (F-14) a zatím není hotová, stránka text jen ukazuje. Jak vypadá uhlazený jazyk na skutečné řeči, zatím zapsané není.
+**Tříminutový vzkaz z Androidu (prompt verze 2).** Přepsal se celý a AI navrhla upravenou verzi. Tomáš na výsledku hledal, kde upravený text opravit, a nenašel. Úprava textu autorem patří do kroku 4 (F-14). Od 9. 11. 2026 je na stránce formulář, ve kterém jde text, název, typ i oblast opravit a potvrdit (4.1). Jak vypadá uhlazený jazyk na skutečné řeči, zatím zapsané není.
 
 Body níže platí pro verzi 1, pokud není uvedeno jinak.
 
@@ -78,7 +78,7 @@ Testovací stránku obsluhuje Worker ucha, má tedy `microphone=(self)`. Na str�
 
 ## Scénáře v prohlížeči
 
-Skript prošel 16 scénářů v Edge při běžné velikosti okna a v Opeře při velikosti telefonu (360 × 740). Odpovědi serveru byly podvržené, Whisper ani jazykový model se nevolaly. Vše prošlo, naposledy po nasazení AI úpravy.
+Skript prošel 24 kontrol v Edge při běžné velikosti okna a v Opeře při velikosti telefonu (360 × 740). Odpovědi serveru byly podvržené, Whisper ani jazykový model se nevolaly. Vše prošlo, naposledy 9. 11. 2026 s formulářem k potvrzení, na lokálním sestavení. Na ostré adrese prošla v Opeře 360 × 740 oprava a potvrzení se skutečným modelem: po úpravě odešel jediný požadavek, potvrzení nic neodeslalo.
 
 | Scénář | Edge, Windows | Opera, Windows | Opera, Android |
 |---|---|---|---|
@@ -93,6 +93,11 @@ Skript prošel 16 scénářů v Edge při běžné velikosti okna a v Opeře př
 | Výpadek AI: přechod na text | OK | OK | **Čeká** |
 | Výpadek sítě nechá napsaný text v poli | OK | OK | **Čeká** |
 | Výsledek ukáže název, typ, oblast a původní text | OK | OK | OK (podle autora, bez podrobností) |
+| Oprava textu, názvu, typu a oblasti, potvrzení ukáže změny | OK | OK | **Čeká** |
+| Prázdný název nepustí dál, řekne proč a vrátí fokus | OK | OK | **Čeká** |
+| Zpět k úpravám nechá opravy v polích | OK | OK | **Čeká** |
+| Zahodit, Zavřít a Escape se zeptají, po potvrzení už ne | OK | OK | **Čeká**, gesto zpět |
+| Celý upravený text je vidět bez posuvníku v poli | OK | OK (360 × 740) | **Čeká** |
 | Selhání úpravy u textu nechá vzkaz v poli | OK | OK | **Čeká** |
 | Selhání úpravy u nahrávky: Zkusit znovu i Napsat vzkaz | OK | OK | **Čeká** |
 | Skrytí stránky ukončí nahrávání a kus se odešle | OK (simulováno) | OK (simulováno) | **Čeká**, skutečné zamčení telefonu |
@@ -110,7 +115,8 @@ Stačí telefon a asi 15 minut. Po každém pokusu rozbalte na stránce „Techn
 3. Na https://nezavisli-prisovice.cz/ucho/test-ramu namluvit vzkaz v rámu. Na výsledku závisí krok 12.
 4. Během nahrávání zamknout telefon. Po odemčení se má ukázat přepis nahraného kusu.
 5. Zakázat mikrofon v nastavení stránky: má se ukázat textové pole.
-6. Podle chuti: Bluetooth sluchátka, příchozí hovor, pomalá síť.
+6. Na upraveném vzkazu opravit text a třeba oblast a potvrdit. Potom na dalším vzkazu zkusit gesto zpět: stránka se má zeptat, jestli vzkaz zahodit.
+7. Podle chuti: Bluetooth sluchátka, příchozí hovor, pomalá síť.
 
 ## Na ostré adrese ověřeno
 

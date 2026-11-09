@@ -1,6 +1,7 @@
 ---
-import { MAX_DELKA_NAHRAVKY_S, MAX_ZNAKU_TEXTU, MIN_ZNAKU_TEXTU } from '../lib/podani/limity';
+import { MAX_DELKA_NAHRAVKY_S, MAX_ZNAKU_NAZVU, MAX_ZNAKU_TEXTU, MAX_ZNAKU_UPRAVY, MIN_ZNAKU_TEXTU } from '../lib/podani/limity';
 import { formatovatCas } from '../lib/nahravani/casovac';
+import { OBLASTI, TYPY_PODNETU } from '../lib/oblasti';
 
 const formatZnaku = new Intl.NumberFormat('cs-CZ');
 ---
@@ -75,14 +76,46 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
       </section>
 
       <section data-pohled="vysledek" hidden>
-        <h2 tabindex="-1" data-fokus>Upravený vzkaz</h2>
-        <dl class="zarazeni">
-          <dt>Název</dt><dd data-nazev></dd>
-          <dt>Typ</dt><dd data-typ></dd>
-          <dt>Oblast</dt><dd data-oblast></dd>
-        </dl>
-        <blockquote class="prepis" data-vysledek></blockquote>
-        <p class="drobne">Text i zařazení navrhla AI. Zkušební provoz: vzkaz se nikam neuložil.</p>
+        <h2 tabindex="-1" data-fokus>Zkontrolujte vzkaz</h2>
+        <p>AI vzkaz převedla do spisovné češtiny a navrhla název a zařazení. Zkontrolujte, jestli všechno sedí, a cokoli opravte.</p>
+        <form data-formular-potvrzeni novalidate>
+          <label for="vzkaz-upraveny">Text vzkazu</label>
+          <textarea
+            id="vzkaz-upraveny"
+            class="upraveny"
+            rows="10"
+            maxlength={MAX_ZNAKU_UPRAVY}
+            aria-describedby="chyba-text"
+            data-upraveny
+          ></textarea>
+          <p class="chyba" id="chyba-text" role="alert" data-chyba-pole="text" hidden></p>
+
+          <label for="vzkaz-nazev">Název</label>
+          <input id="vzkaz-nazev" type="text" maxlength={MAX_ZNAKU_NAZVU} autocomplete="off" aria-describedby="chyba-nazev" data-nazev />
+          <p class="chyba" id="chyba-nazev" role="alert" data-chyba-pole="nazev" hidden></p>
+
+          <div class="dvojice">
+            <div>
+              <label for="vzkaz-typ">Typ</label>
+              <select id="vzkaz-typ" aria-describedby="chyba-typ" data-typ>
+                {Object.entries(TYPY_PODNETU).map(([klic, nazev]) => <option value={klic}>{nazev}</option>)}
+              </select>
+              <p class="chyba" id="chyba-typ" role="alert" data-chyba-pole="typ" hidden></p>
+            </div>
+            <div>
+              <label for="vzkaz-oblast">Oblast</label>
+              <select id="vzkaz-oblast" aria-describedby="chyba-oblast" data-oblast>
+                {OBLASTI.map((oblast) => <option value={oblast.slug}>{oblast.nazev}</option>)}
+              </select>
+              <p class="chyba" id="chyba-oblast" role="alert" data-chyba-pole="oblast" hidden></p>
+            </div>
+          </div>
+
+          <div class="akce">
+            <button class="tlacitko" type="submit" data-potvrdit>Potvrdit</button>
+            <button class="tlacitko tlacitko--druhe" type="button" data-zahodit>Zahodit</button>
+          </div>
+        </form>
         <details class="technicke">
           <summary data-popis-puvodniho>Původní přepis</summary>
           <p class="puvodni" data-puvodni></p>
@@ -91,8 +124,21 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
           <summary>Technické údaje pro test</summary>
           <dl data-technicke-seznam></dl>
         </details>
+      </section>
+
+      <section data-pohled="potvrzeno" hidden>
+        <h2 tabindex="-1" data-fokus>Vzkaz je potvrzený</h2>
+        <p class="poznamka">Zkušební provoz: vzkaz se nikam neuložil a nikdo ho nedostane. Ukládání přibude spolu s přihlášením.</p>
+        <dl class="zarazeni">
+          <dt>Název</dt><dd data-potvrzeny-nazev></dd>
+          <dt>Typ</dt><dd data-potvrzeny-typ></dd>
+          <dt>Oblast</dt><dd data-potvrzena-oblast></dd>
+        </dl>
+        <blockquote class="prepis" data-potvrzeny-text></blockquote>
+        <p class="drobne" data-zmeny></p>
         <div class="akce">
           <button class="tlacitko" type="button" data-novy>Nový vzkaz</button>
+          <button class="tlacitko tlacitko--druhe" type="button" data-zpet-k-uprave>Zpět k úpravám</button>
         </div>
       </section>
 

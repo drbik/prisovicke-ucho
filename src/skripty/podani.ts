@@ -3,10 +3,17 @@ import type { DruhChybyMikrofonu } from '../lib/nahravani/format';
 import { ChybaMikrofonu, spustitNahravani, type HotovaNahravka, type Nahravani } from '../lib/nahravani/nahravac';
 import type { KodChyby } from '../lib/podani/chyby';
 import { MAX_ZNAKU_TEXTU, MIN_DELKA_NAHRAVKY_S, MIN_ZNAKU_TEXTU, jeTextPlatny } from '../lib/podani/limity';
+import {
+  POLE_POTVRZENI,
+  overitPotvrzeni,
+  zmenenaPole,
+  type PolePotvrzeni,
+  type PotvrzenyVzkaz,
+} from '../lib/podani/potvrzeni';
 import type { TechnickeUdaje, VysledekPodani } from '../lib/podani/zpracovani';
 import { OBLASTI, TYPY_PODNETU } from '../lib/oblasti';
 
-type Pohled = 'zadost' | 'nahravani' | 'odesilani' | 'text' | 'vysledek' | 'chyba';
+type Pohled = 'zadost' | 'nahravani' | 'odesilani' | 'text' | 'vysledek' | 'potvrzeno' | 'chyba';
 
 const API = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/api/vzkaz`;
 
@@ -29,6 +36,8 @@ const TEXTY_CHYB: Partial<Record<KodChyby, string>> = {
 };
 const OBECNA_CHYBA = 'Něco se nepovedlo. Zkuste to prosím znovu.';
 const CHYBA_SITE = 'Spojení se nepodařilo. Zkontrolujte připojení a zkuste to znovu.';
+const OTAZKA_ZAHOZENI = 'Opravdu vzkaz zahodit? Nikam se neuložil, takže se k němu už nevrátíte.';
+const NAZVY_POLI: Record<PolePotvrzeni, string> = { text: 'text', nazev: 'název', typ: 'typ', oblast: 'oblast' };
 
 function prvek<T extends HTMLElement>(selektor: string, koren: ParentNode = document) {
   const nalezeny = koren.querySelector<T>(selektor);
@@ -37,6 +46,7 @@ function prvek<T extends HTMLElement>(selektor: string, koren: ParentNode = docu
 }
 
 const panel = prvek<HTMLDialogElement>('#podani-panel');
+const obsahPanelu = prvek('.panel__obsah', panel);
 const oznameni = prvek('[data-oznameni]', panel);
 const cas = prvek('[data-cas]', panel);
 const hladina = prvek('[data-hladina]', panel);
@@ -45,13 +55,20 @@ const vysvetleni = prvek('[data-vysvetleni]', panel);
 const pole = prvek<HTMLTextAreaElement>('[data-pole]', panel);
 const pocet = prvek('[data-pocet]', panel);
 const chybaTextu = prvek('[data-chyba-textu]', panel);
-const nazevVzkazu = prvek('[data-nazev]', panel);
-const typVzkazu = prvek('[data-typ]', panel);
-const oblastVzkazu = prvek('[data-oblast]', panel);
-const vysledek = prvek('[data-vysledek]', panel);
+const polePotvrzeni: Record<PolePotvrzeni, HTMLTextAreaElement | HTMLInputElement | HTMLSelectElement> = {
+  text: prvek<HTMLTextAreaElement>('[data-upraveny]', panel),
+  nazev: prvek<HTMLInputElement>('[data-nazev]', panel),
+  typ: prvek<HTMLSelectElement>('[data-typ]', panel),
+  oblast: prvek<HTMLSelectElement>('[data-oblast]', panel),
+};
 const popisPuvodniho = prvek('[data-popis-puvodniho]', panel);
 const puvodni = prvek('[data-puvodni]', panel);
 const technickeSeznam = prvek('[data-technicke-seznam]', panel);
+const potvrzenyNazev = prvek('[data-potvrzeny-nazev]', panel);
+const potvrzenyTyp = prvek('[data-potvrzeny-typ]', panel);
+const potvrzenaOblast = prvek('[data-potvrzena-oblast]', panel);
+const potvrzenyText = prvek('[data-potvrzeny-text]', panel);
+const zmeny = prvek('[data-zmeny]', panel);
 const textChyby = prvek('[data-chyba]', panel);
 const opakovat = prvek<HTMLButtonElement>('[data-opakovat]', panel);
 
@@ -60,12 +77,18 @@ let odeslani: AbortController | null = null;
 let poOpakovani: () => void = () => {};
 // Zavření panelu zneplatní rozběhnutý pokus, třeba když čeká na povolení mikrofonu.
 let cisloPokusu = 0;
+let aktualniPohled: Pohled | null = null;
+// Návrh AI, se kterým se při potvrzení porovná, co autor změnil.
+let navrh: PotvrzenyVzkaz | null = null;
 
 function ukazat(pohled: Pohled, hlaseni = '') {
+  aktualniPohled = pohled;
   for (const sekce of panel.querySelectorAll<HTMLElement>('[data-pohled]')) {
     sekce.hidden = sekce.dataset.pohled !== pohled;
   }
   if (!panel.open) panel.showModal();
+  // Dlouhý formulář nechává panel odrolovaný, další pohled má začít nahoře.
+  obsahPanelu.scrollTop = 0;
   oznameni.textContent = hlaseni;
   const sekce = prvek(`[data-pohled="${pohled}"]`, panel);
   (sekce.querySelector<HTMLElement>('[data-fokus]') ?? sekce.querySelector<HTMLElement>('h2'))?.focus();
@@ -112,16 +135,62 @@ function ukazatTechnicke(udaje: TechnickeUdaje) {
   }
 }
 
+function ukazatChybyPoli(chyby: Partial<Record<PolePotvrzeni, string>>) {
+  for (const pole of POLE_POTVRZENI) {
+    const chyba = prvek(`[data-chyba-pole="${pole}"]`, panel);
+    chyba.textContent = chyby[pole] ?? '';
+    chyba.hidden = !chyby[pole];
+    if (chyby[pole]) polePotvrzeni[pole].setAttribute('aria-invalid', 'true');
+    else polePotvrzeni[pole].removeAttribute('aria-invalid');
+  }
+}
+
 function ukazatVysledek(data: VysledekPodani) {
   const { text, nazev, typ, oblast } = data.uprava;
-  nazevVzkazu.textContent = nazev;
-  typVzkazu.textContent = TYPY_PODNETU[typ];
-  oblastVzkazu.textContent = OBLASTI.find((o) => o.slug === oblast)?.nazev ?? oblast;
-  vysledek.textContent = text;
+  navrh = { text, nazev, typ, oblast };
+  for (const pole of POLE_POTVRZENI) polePotvrzeni[pole].value = navrh[pole];
+  ukazatChybyPoli({});
   popisPuvodniho.textContent = data.vstup === 'hlas' ? 'Původní přepis' : 'Původní text';
   puvodni.textContent = data.surovyText;
   ukazatTechnicke(data.technicke);
-  ukazat('vysledek', 'Vzkaz je upravený.');
+  ukazat('vysledek', 'Vzkaz je upravený. Zkontrolujte ho a potvrďte.');
+}
+
+// Zkušební provoz: potvrzení zatím nic neodesílá, uložení přijde s přihlášením (krok 4, F-14).
+function potvrdit(udalost: SubmitEvent) {
+  udalost.preventDefault();
+  const overeni = overitPotvrzeni({
+    text: polePotvrzeni.text.value,
+    nazev: polePotvrzeni.nazev.value,
+    typ: polePotvrzeni.typ.value,
+    oblast: polePotvrzeni.oblast.value,
+  });
+  if (!overeni.platne) {
+    ukazatChybyPoli(overeni.chyby);
+    const prvni = POLE_POTVRZENI.find((pole) => overeni.chyby[pole]);
+    if (prvni) polePotvrzeni[prvni].focus();
+    return;
+  }
+  ukazatChybyPoli({});
+  const { vzkaz } = overeni;
+  potvrzenyNazev.textContent = vzkaz.nazev;
+  potvrzenyTyp.textContent = TYPY_PODNETU[vzkaz.typ];
+  potvrzenaOblast.textContent = OBLASTI.find((o) => o.slug === vzkaz.oblast)?.nazev ?? vzkaz.oblast;
+  potvrzenyText.textContent = vzkaz.text;
+  const zmenene = navrh ? zmenenaPole(navrh, vzkaz) : [];
+  zmeny.textContent = zmenene.length
+    ? `Změny oproti návrhu AI: ${zmenene.map((pole) => NAZVY_POLI[pole]).join(', ')}.`
+    : 'Návrh AI zůstal beze změny.';
+  ukazat('potvrzeno', 'Vzkaz je potvrzený.');
+}
+
+// Upravený vzkaz existuje jen v prohlížeči, proto se před zahozením ptáme.
+function muzeZavrit() {
+  return aktualniPohled !== 'vysledek' || window.confirm(OTAZKA_ZAHOZENI);
+}
+
+function zavrit() {
+  if (muzeZavrit()) panel.close();
 }
 
 async function odeslat(cesta: string, init: RequestInit) {
@@ -217,17 +286,26 @@ async function odeslatFormular(udalost: SubmitEvent) {
 prvek('[data-nahrat]').addEventListener('click', () => void zacitNahravat());
 prvek('[data-napsat]').addEventListener('click', () => ukazatText());
 prvek('[data-hotovo]', panel).addEventListener('click', () => nahravani?.dokoncit());
-prvek('[data-zavrit]', panel).addEventListener('click', () => panel.close());
+prvek('[data-zavrit]', panel).addEventListener('click', zavrit);
+prvek('[data-zahodit]', panel).addEventListener('click', zavrit);
 prvek('[data-novy]', panel).addEventListener('click', () => panel.close());
+prvek('[data-zpet-k-uprave]', panel).addEventListener('click', () => ukazat('vysledek'));
 prvek('[data-prejit-na-text]', panel).addEventListener('click', () => ukazatText());
 opakovat.addEventListener('click', () => poOpakovani());
 for (const zrusit of panel.querySelectorAll('[data-zrusit]')) zrusit.addEventListener('click', () => panel.close());
 
 pole.addEventListener('input', () => { pocet.textContent = String(pole.value.length); });
 prvek<HTMLFormElement>('[data-formular]', panel).addEventListener('submit', (udalost) => void odeslatFormular(udalost));
+prvek<HTMLFormElement>('[data-formular-potvrzeni]', panel).addEventListener('submit', potvrdit);
 
-// Tlačítko Zavřít i klávesa Escape končí tady: rozdělanou nahrávku zahodí a odeslání přeruší.
+// Escape a na Androidu i gesto zpět. Bez nedávné aktivity uživatele prohlížeč zavření zrušit nedovolí.
+panel.addEventListener('cancel', (udalost) => {
+  if (udalost.cancelable && !muzeZavrit()) udalost.preventDefault();
+});
+
+// Všechny cesty k zavření končí tady: rozdělanou nahrávku zahodí a odeslání přeruší.
 panel.addEventListener('close', () => {
+  aktualniPohled = null;
   cisloPokusu += 1;
   nahravani?.zrusit();
   nahravani = null;

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { sestavitZpravy, VERZE_PROMPTU } from '../src/lib/ai/prompt-upravy';
-import { MAX_ZNAKU_NAZVU, NeplatnyVystup, precistUpravu, upravitVzkaz } from '../src/lib/ai/uprava';
+import { NeplatnyVystup, precistUpravu, upravitVzkaz } from '../src/lib/ai/uprava';
+import { MAX_ZNAKU_NAZVU } from '../src/lib/podani/limity';
 import { OBLASTI, TYPY_PODNETU } from '../src/lib/oblasti';
 
 const PLATNA = { text: 'Upravený vzkaz.', nazev: 'Název vzkazu', oblast: 'bezpecne-trasy', typ: 'dotaz' };
