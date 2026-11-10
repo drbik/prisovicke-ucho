@@ -1,6 +1,6 @@
 # Typové otázky kroku 8
 
-*Sada z 9. 11. 2026, verze 1. Čeká na schválení Tomášem. Do té doby se nepoužije k vyhodnocení.*
+*Sada z 9. 11. 2026, verze 1. Tomáš ji schválil 10. 11. 2026.*
 
 Strojově čitelná podoba je v [`tests/data/typove-otazky.json`](../tests/data/typove-otazky.json). Do kroku 11 sada slouží jako testovací sada kroku 8. Potom z ní budou jasně označené ukázky od týmu na veřejném seznamu témat (rozhodnutí v `CLAUDE.md` z 9. 11. 2026).
 
