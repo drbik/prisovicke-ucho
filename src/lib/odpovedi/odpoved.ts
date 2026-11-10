@@ -1,6 +1,6 @@
 import type { SluzbaAi } from '../ai/rozhrani';
 import { PRAH_PODOBNOSTI, hledatUseky } from './hledani';
-import { ZamitnutaOdpoved, overitKodem, precistOdpoved, precistOvereni, type DuvodZamitnuti } from './overeni';
+import { ZamitnutaOdpoved, jeTextVUseku, overitKodem, precistOdpoved, precistOvereni, type DuvodZamitnuti } from './overeni';
 import { VERZE_PROMPTU_ODPOVEDI, zpravyOdpovedi, zpravyOvereni } from './prompt-odpovedi';
 import type { IndexZdroju } from './rozhrani';
 import type { NalezenyUsek, WebZdroje } from './typy';
@@ -55,19 +55,21 @@ export interface ZavislostiOdpovedi {
 const MAX_TOKENU_ODPOVEDI = 900;
 const MAX_TOKENU_OVERENI = 200;
 
-// Odpověď ukáže citace v pořadí prvního použití. Jeden úsek je jeden zdroj, i když z něj čerpá víc vět.
+// Odpověď ukáže citace v pořadí prvního použití. Jeden odkaz (dokument, u PDF strana) je jeden zdroj,
+// i když z něj čerpá víc vět nebo víc úseků.
 function sestavitOdpoved(vety: { veta: string; usek: number; citace: string }[], useky: NalezenyUsek[]): ZobrazenaOdpoved {
-  const poradi = new Map<number, number>();
+  const poradi = new Map<string, number>();
   const zdroje: CitovanyZdroj[] = [];
   const vystup = vety.map((veta) => {
-    let cislo = poradi.get(veta.usek);
+    const usek = useky[veta.usek - 1];
+    const url = odkazNaZdroj(usek.dokument, usek.strana);
+    let cislo = poradi.get(url);
     if (cislo === undefined) {
-      const usek = useky[veta.usek - 1];
       cislo = zdroje.length + 1;
-      poradi.set(veta.usek, cislo);
+      poradi.set(url, cislo);
       zdroje.push({
         cislo,
-        url: odkazNaZdroj(usek.dokument, usek.strana),
+        url,
         nazev: usek.dokument.nazev,
         datum: datumZdroje(usek.dokument),
         web: usek.dokument.web,
@@ -75,7 +77,9 @@ function sestavitOdpoved(vety: { veta: string; usek: number; citace: string }[],
         uryvek: veta.citace,
       });
     } else if (!zdroje[cislo - 1].uryvek.includes(veta.citace)) {
-      zdroje[cislo - 1].uryvek = `${zdroje[cislo - 1].uryvek} … ${veta.citace}`;
+      // Citace dvou vět ze stejného úseku: když v něm jdou za sebou, spojí se bez výpustky.
+      const souvisla = `${zdroje[cislo - 1].uryvek} ${veta.citace}`;
+      zdroje[cislo - 1].uryvek = jeTextVUseku(souvisla, usek) ? souvisla : `${zdroje[cislo - 1].uryvek} … ${veta.citace}`;
     }
     return { text: veta.veta, zdroj: cislo };
   });

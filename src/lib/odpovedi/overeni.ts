@@ -106,6 +106,11 @@ function castiCitace(citace: string) {
   return citace.split(HRANICE_CASTI).map((cast) => cast.trim()).filter((cast) => normalizovat(cast).length >= 3);
 }
 
+// Je text (bez tečky na konci) doslova v úseku? Bez ohledu na mezery a velikost písmen.
+export function jeTextVUseku(text: string, usek: NalezenyUsek) {
+  return normalizovat(`${usek.hlavicka}\n${usek.text}`).includes(normalizovat(bezKoncoveInterpunkce(text)));
+}
+
 // Citace v podobě pro zobrazení: celá, když je v úseku doslova, jinak souvislé skupiny částí oddělené výpustkou.
 // Null, když v úseku není.
 function citaceVUseku(citace: string, usek: NalezenyUsek) {

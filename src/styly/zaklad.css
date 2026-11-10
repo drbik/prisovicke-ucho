@@ -105,6 +105,7 @@ form > label:not(:first-child), .dvojice { margin-top: 16px; }
 .odpoved__zdroje-titulek { margin: 16px 0 6px; font-size: .9rem; }
 .odpoved__zdroje { margin: 0 0 14px; padding-left: 22px; font-size: .9rem; }
 .odpoved__zdroje li { margin-bottom: 12px; overflow-wrap: anywhere; }
+.odpoved__zdroje a { color: var(--past); font-weight: 650; text-underline-offset: 3px; }
 .odpoved__zdroje li:target { outline: 2px solid var(--fokus); outline-offset: 4px; }
 .zdroj__oznaceni { display: block; color: var(--ink-soft); font-size: .78rem; font-weight: 700; }
 .zdroj__datum { display: block; color: var(--ink-soft); font-size: .84rem; }

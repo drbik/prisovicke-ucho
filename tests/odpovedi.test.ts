@@ -110,6 +110,21 @@ describe('POST /api/dotaz (krok 8.6)', () => {
     expect(data.odpoved.zdroje[0]).toMatchObject({ url: 'https://nezavisli-prisovice.cz/#dostupne-bydleni', datum: 'stav webu k 10. 11. 2026' });
   });
 
+  it('dva úseky téhož dokumentu ukáže jako jeden zdroj', async () => {
+    const druhy = usek(KARTA, 'karta-1', 'Úvěr splatí vybírané nájemné, obec tato stavba finančně nezatíží.');
+    const vety = JSON.stringify({ vety: [
+      { veta: 'U DPS má vzniknout 15 nájemních bytů.', usek: 1, citace: 's 15 menšími nájemními byty' },
+      { veta: 'Úvěr má splatit nájemné.', usek: 2, citace: 'Úvěr splatí vybírané nájemné' },
+    ] });
+    const overeno = JSON.stringify({ vysledky: [{ cislo: 1, plyne: true }, { cislo: 2, plyne: true }] });
+    const { api } = sestavit({ vystupyGenerovani: [vety, overeno] }, [USEK_BYTY, druhy], () => 0.7);
+    const { data } = await poslat(api, { text: 'Kolik bude nových bytů u DPS?', typ: 'dotaz' });
+    if (data.vysledek !== 'odpoved') throw new Error(`Čekal jsem odpověď, přišlo ${data.vysledek}.`);
+    expect(data.odpoved.zdroje).toHaveLength(1);
+    expect(data.odpoved.vety.map((v) => v.zdroj)).toEqual([1, 1]);
+    expect(data.odpoved.zdroje[0].uryvek).toBe('s 15 menšími nájemními byty … Úvěr splatí vybírané nájemné');
+  });
+
   it('bez úseku nad prahem podobnosti jde dotaz zastupitelům bez volání modelu (F-76)', async () => {
     const { api, generovani } = sestavit({}, [USEK_SOKOLOVNA], () => 0.2);
     const { data } = await poslat(api);

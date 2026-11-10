@@ -1,6 +1,6 @@
 # Testy na zařízeních
 
-*Stav k 9. 11. 2026. Krok 2.6 a testy 1 a 2 z [plánu MVP](plan-mvp.md#další-fáze-testování). Adresa: https://nezavisli-prisovice.cz/ucho, rám: https://nezavisli-prisovice.cz/ucho/test-ramu.*
+*Stav k 10. 11. 2026. Krok 2.6, testy 1 a 2 z [plánu MVP](plan-mvp.md#další-fáze-testování) a odpověď z webu (krok 8). Adresa: https://nezavisli-prisovice.cz/ucho, rám: https://nezavisli-prisovice.cz/ucho/test-ramu.*
 
 **Stav: Windows je ověřený, Opera na Androidu z části.** Tři vzkazy a potom jeden na 3 minuty, namluvené skutečným mikrofonem na Opeře pro Android, prošly přepisem i úpravou. Hlavní riziko plánu (nahrávka z telefonu ve Whisperu) tím odpadá a dělení nahrávky ani WAV nejsou potřeba ani na telefonu. Formát a časy těchto pokusů nejsou zapsané. Rám a zamčení telefonu zůstávají neověřené.
 
@@ -106,6 +106,21 @@ Skript prošel 24 kontrol v Edge při běžné velikosti okna a v Opeře při ve
 | Příchozí hovor | nepoužije se | nepoužije se | **Čeká** |
 | Pomalá síť | nezkoušeno | nezkoušeno | **Čeká** |
 
+## Krok 8: odpověď z webu na ostré adrese
+
+10. 11. 2026, nasazená verze `29c25376`. Edge 158 a Opera 139 (Chromium) s oknem, šířka 360 × 740, řídil je skript přes `playwright-core`. Dotaz byl napsaný, prošel AI úpravou a autor ho potvrdil. AI úprava ve všech čtyřech případech navrhla typ dotaz.
+
+| Prohlížeč | Dotaz | Výsledek | Od potvrzení |
+|---|---|---|---|
+| Edge, Windows | „do kolika má ve čtvrtek otevřeno lékárna na zdravotním středisku?“ | Odpověď z webu obce: čt 7.30–12.00 a 12.30–16.00, zdroj stránka Zdravotní středisko s datem a citací | 3,6 s |
+| Edge, Windows | „Plánuje se v Příšovicích bankomat?“ | Odpověď na webu není, dotaz převezmou zastupitelé | 0,9 s |
+| Opera, Windows | „jezdí teď vůbec vlak z příšovic? a kde staví ten náhradní autobus“ | Odpověď z webu obce: výluka 3. 10. – 27. 11., autobus na sídlišti, zdroj aktualita Vlaková výluka | 6,0 s |
+| Opera, Windows | „kolik u nás stoji kubik vody?“ | Odpověď na webu není, dotaz převezmou zastupitelé (kalkulace vodného je na webu jen jako sken) | 0,9 s |
+
+- Konzole bez chyb v obou prohlížečích, žádný vodorovný posun (šířka dokumentu 345 px při okně 360 px, panel nepřetéká).
+- U odpovědi je označení zdroje, název s odkazem, datum, citace a upozornění, že nejde o úřední vyjádření obce. Bez odpovědi stránka napíše, že dotaz převezmou zastupitelé a že se ve zkušebním provozu zatím nikam neuložil.
+- Ověřeno jen ve Windows. Opera na Androidu čeká, viz bod 8 níže.
+
 ## Co zbývá: Opera na Androidu
 
 Stačí telefon a asi 15 minut. Po každém pokusu rozbalte na stránce „Technické údaje pro test“ a opište formát, velikost a dobu přepisu i úpravy. Rozbalte i „Původní přepis“ a porovnejte ho s upraveným textem. Hlavně sledujte, jestli úprava něco nepřidala nebo nevynechala.
@@ -117,6 +132,7 @@ Stačí telefon a asi 15 minut. Po každém pokusu rozbalte na stránce „Techn
 5. Zakázat mikrofon v nastavení stránky: má se ukázat textové pole.
 6. Na upraveném vzkazu opravit text a třeba oblast a potvrdit. Potom na dalším vzkazu zkusit gesto zpět: stránka se má zeptat, jestli vzkaz zahodit.
 7. Podle chuti: Bluetooth sluchátka, příchozí hovor, pomalá síť.
+8. Krok 8: napsat nebo namluvit dotaz, třeba „Do kolika má ve čtvrtek otevřeno lékárna?“, nechat typ Dotaz a potvrdit. Má se ukázat odpověď s citací a odkaz na zdroj se má otevřít. Potom dotaz „Plánuje se v Příšovicích bankomat?“: stránka má napsat, že dotaz převezmou zastupitelé.
 
 ## Na ostré adrese ověřeno
 
