@@ -373,7 +373,7 @@ async function zacitNahravat() {
       return;
     }
     nahravani = bezici;
-    ukazat('nahravani', 'Nahrávám.');
+    ukazat('nahravani', 'Naslouchám.');
   } catch (chyba) {
     if (pokus !== cisloPokusu) return;
     ukazatText(DUVODY_BEZ_MIKROFONU[chyba instanceof ChybaMikrofonu ? chyba.druh : 'jina']);
