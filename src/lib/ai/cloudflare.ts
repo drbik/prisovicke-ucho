@@ -58,6 +58,9 @@ export function vytvorCloudflareAi(ai: VazbaAi): SluzbaAi {
         audio: naBase64(audio),
         task: 'transcribe',
         language: 'cs',
+        // Detekce řeči: bez ní Whisper v tichu napíše „Titulky vytvořil JohnyX.“ a řeč po dlouhém tichu na začátku
+        // vynechá. Na zkušebních nahrávkách (10. 11. 2026) s ní ticho a šum dají prázdný přepis a řeč zůstane celá.
+        vad_filter: true,
       })) as VystupWhisperu;
       if (typeof vystup?.text !== 'string') throw new Error('Whisper nevrátil text.');
       return {

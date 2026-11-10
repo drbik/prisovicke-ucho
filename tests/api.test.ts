@@ -185,6 +185,24 @@ describe('POST /api/vzkaz/hlas (krok 2.3)', () => {
     expect(upravy).toHaveLength(0);
   });
 
+  it('věta z titulků, kterou si Whisper vymyslel v tichu, je prázdný přepis a do úpravy nejde', async () => {
+    const { api, upravy, log } = sestavit({ vysledek: { text: 'Titulky vytvořil JohnyX.' } });
+    const odpoved = await api.fetch(nahravka(new Uint8Array([1])));
+    expect(odpoved.status).toBe(422);
+    expect(await odpoved.json()).toEqual({ chyba: 'prazdny-prepis' });
+    expect(upravy).toHaveLength(0);
+    // Do logu jde jen počet odstraněných vět, nikdy text.
+    expect(log.mock.calls[0][0]).toMatchObject({ udalost: 'prepis', odstranenoVet: 1 });
+    expect(JSON.stringify(log.mock.calls)).not.toContain('JohnyX');
+  });
+
+  it('titulky připsané za skutečnou řeč se odstraní a řeč zůstane', async () => {
+    const { api, upravy } = sestavit({ vysledek: { text: 'Navrhuji lavičky u hřiště. Titulky vytvořil JohnyX.' } });
+    const odpoved = await api.fetch(nahravka(new Uint8Array([1])));
+    expect(odpoved.status).toBe(200);
+    expect(upravy).toEqual(['Navrhuji lavičky u hřiště.']);
+  });
+
   it('po neplatném výstupu modelu uspěje druhý pokus', async () => {
     const { api } = sestavit({
       vystupyUpravy: ['nesmysl', '{"text":"Druhý pokus.","nazev":"Název","oblast":"ostatni","typ":"dotaz"}'],

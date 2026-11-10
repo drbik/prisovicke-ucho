@@ -25,6 +25,17 @@ PRD počítá s `whisper-large-v3-turbo` na Workers AI a alternativou Deepgram N
 
 **První měření `whisper-large-v3-turbo` (6. 11. 2026):** model přijal WebM/Opus z Edge a Opery ve Windows a přepsal 2:59 vcelku za 21,6 s. Šlo o syntetický hlas bez nápovědy `initial_prompt`, takže to není vyhodnocení kvality. To přinese až testovací sada z kroku 3.5. Podrobnosti jsou v [test-zarizeni.md](test-zarizeni.md).
 
+**Ticho a halucinace Whisperu (10. 11. 2026).** Tomáš namluvil 11 sekund ticha a přepis zněl „Titulky vytvořil JohnyX.“. Whisper se učil na titulcích a videích, a když nic neslyší, napíše větu, kterou tam slýchal. Ve zkoušce s generovaným tichem a šumem místnosti napsal „www.hradeckralove.org“. Horší je, že po dlouhém tichu na začátku vynechal řeč: z nahrávky 5 s ticha, věty o 14 slovech a 4 s ticha přepsal jen „Děkuji.“. Na zkušebních nahrávkách (WebM/Opus 48 kb/s, ticho, šum, tichá řeč s hlasitostí 12 %, řeč na pozadí šumu) vyšlo:
+
+| Nastavení | Ticho a šum | Ticho před řečí | Tichá řeč a řeč se šumem |
+|---|---|---|---|
+| bez nastavení | halucinace | jen „Děkuji.“ | správně |
+| `vad_filter: true` | prázdný přepis | celá věta | správně |
+| `vad_filter` a `condition_on_previous_text: false` | prázdný přepis | celá věta | správně |
+| `no_speech_threshold` 0,3 a `hallucination_silence_threshold` 1 (bez VAD) | halucinace | – | – |
+
+Ucho proto posílá `vad_filter: true`, tedy detekci řeči přímo ve Whisperu (Workers AI parametr, který je ve výchozím stavu vypnutý). Druhá ochrana je filtr v kódu (`src/lib/ai/halucinace.ts`). Věty z titulků („Titulky“, „Přeložil“, „Amara.org“, „Thanks for watching“) odstraní z přepisu kdekoli, protože je do vzkazu pro obec nikdo neřekne. Adresu webu, „Děkuji za pozornost“ a „Na shledanou“ bere za halucinaci jen tehdy, když je to celý přepis, aby zůstala skutečná zdvořilost na konci vzkazu. Přepis, který tím zůstane prázdný, skončí jako chyba „V nahrávce jsme nezachytili žádnou řeč“ a do úpravy nejde. Do logu jde jen počet odstraněných vět, nikdy text.
+
 ## Výběr modelu AI úpravy
 
 **První porovnání (6. 11. 2026).** Není to slepý test z kroku 3.6, ale rychlé srovnání, aby šla úprava zkoušet na stránce. Vzorků bylo šest: přepis 3minutové a krátké nahrávky ze syntetického hlasu, hovorový text, text s chybami, pochvala a pokus o podstrčení pokynů. Všechny modely měly stejný prompt a teplotu 0,2. Hodnotil jsem je sám a ne naslepo. Skutečné vzkazy od lidí v porovnání nebyly.

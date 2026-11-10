@@ -3,10 +3,10 @@ import { MODEL_PREPISU, MODEL_UPRAVY, vytvorCloudflareAi } from '../src/lib/ai/c
 import { VERZE_PROMPTU } from '../src/lib/ai/prompt-upravy';
 
 describe('přepis přes Workers AI (F-10)', () => {
-  it('pošle base64 do Whisperu s pevnou češtinou', async () => {
+  it('pošle base64 do Whisperu s pevnou češtinou a detekcí řeči', async () => {
     const run = vi.fn(async () => ({ text: 'Dobrý den', word_count: 2, transcription_info: { duration: 1.5 } }));
     const vysledek = await vytvorCloudflareAi({ run }).prepsat(new TextEncoder().encode('audio'));
-    expect(run).toHaveBeenCalledWith(MODEL_PREPISU, { audio: btoa('audio'), task: 'transcribe', language: 'cs' });
+    expect(run).toHaveBeenCalledWith(MODEL_PREPISU, { audio: btoa('audio'), task: 'transcribe', language: 'cs', vad_filter: true });
     expect(MODEL_PREPISU).toBe('@cf/openai/whisper-large-v3-turbo');
     expect(vysledek).toEqual({ text: 'Dobrý den', pocetSlov: 2, delkaS: 1.5 });
   });

@@ -1,3 +1,4 @@
+import { odstranitHalucinace } from '../ai/halucinace';
 import type { SluzbaAi } from '../ai/rozhrani';
 import type { UpravaVzkazu } from '../ai/uprava';
 import { ChybaPodani } from './chyby';
@@ -111,9 +112,11 @@ export async function zpracovatHlas(request: Request, z: ZavislostiPodani): Prom
   try {
     const prepis = await z.ai.prepsat(audio);
     prepisMs = ted() - poCteni;
-    surovyText = prepis.text.trim();
+    // Věty, které Whisper vymyslel v tichu (titulky, adresa webu), autor neřekl a do vzkazu nepatří.
+    const cisty = odstranitHalucinace(prepis.text.trim());
+    surovyText = cisty.text;
     delkaS = prepis.delkaS;
-    log({ udalost: 'prepis', ...zaznam, prepisMs, delkaS, pocetSlov: prepis.pocetSlov });
+    log({ udalost: 'prepis', ...zaznam, prepisMs, delkaS, pocetSlov: prepis.pocetSlov, odstranenoVet: cisty.odstraneno });
   } catch (chyba) {
     log({ udalost: 'prepis-selhal', ...zaznam, prepisMs: ted() - poCteni, hlaska: hlaskaChyby(chyba) });
     throw new ChybaPodani('prepis-selhal');

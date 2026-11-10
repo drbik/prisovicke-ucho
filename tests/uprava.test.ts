@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { odstranitHalucinace } from '../src/lib/ai/halucinace';
 import { sestavitZpravy, VERZE_PROMPTU } from '../src/lib/ai/prompt-upravy';
 import { NeplatnyVystup, precistUpravu, upravitVzkaz } from '../src/lib/ai/uprava';
 import { MAX_ZNAKU_NAZVU } from '../src/lib/podani/limity';
@@ -106,5 +107,29 @@ describe('prompt úpravy', () => {
     expect(pokyny.role).toBe('system');
     expect(pokyny.content).not.toContain('Text občana');
     expect(vzkaz).toEqual({ role: 'user', content: '<vzkaz>\nText občana\n</vzkaz>' });
+  });
+});
+
+describe('halucinace Whisperu v tichu', () => {
+  it('odstraní věty z titulků kdekoli v přepisu', () => {
+    expect(odstranitHalucinace('Titulky vytvořil JohnyX.')).toEqual({ text: '', odstraneno: 1 });
+    expect(odstranitHalucinace('Titulky: Jan Novák')).toEqual({ text: '', odstraneno: 1 });
+    expect(odstranitHalucinace('Přeložil Jan Novák. Subtitles by the Amara.org community')).toEqual({ text: '', odstraneno: 2 });
+    expect(odstranitHalucinace('Chci lavičku u hřiště. Titulky vytvořil JohnyX.')).toEqual({ text: 'Chci lavičku u hřiště.', odstraneno: 1 });
+  });
+
+  it('adresa webu nebo poděkování jsou halucinace jen jako celý přepis', () => {
+    expect(odstranitHalucinace('www.hradeckralove.org')).toEqual({ text: '', odstraneno: 1 });
+    expect(odstranitHalucinace('Děkuji za pozornost.')).toEqual({ text: '', odstraneno: 1 });
+    expect(odstranitHalucinace('Děkujeme vám za sledování!')).toEqual({ text: '', odstraneno: 1 });
+    expect(odstranitHalucinace('Děkuji, že jste se dívali.')).toEqual({ text: '', odstraneno: 1 });
+    // Skutečná zdvořilost na konci vzkazu zůstane.
+    expect(odstranitHalucinace('Chci se zeptat na cyklostezku. Děkuji za pozornost.')).toEqual({ text: 'Chci se zeptat na cyklostezku. Děkuji za pozornost.', odstraneno: 0 });
+    expect(odstranitHalucinace('Adresa je www.prisovice.cz a tam to nenajdu.')).toEqual({ text: 'Adresa je www.prisovice.cz a tam to nenajdu.', odstraneno: 0 });
+  });
+
+  it('běžný vzkaz a prázdný přepis nechá být', () => {
+    expect(odstranitHalucinace('Dobrý den, kdy bude hotová cyklostezka?')).toEqual({ text: 'Dobrý den, kdy bude hotová cyklostezka?', odstraneno: 0 });
+    expect(odstranitHalucinace('')).toEqual({ text: '', odstraneno: 0 });
   });
 });
