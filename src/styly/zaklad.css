@@ -123,6 +123,8 @@ form > label:not(:first-child), .dvojice { margin-top: 16px; }
 .odpoved__oznaceni { margin: 0 0 8px; color: var(--past); font-size: .78rem; font-weight: 760; letter-spacing: .06em; text-transform: uppercase; }
 .odpoved__text p { margin: 0 0 10px; overflow-wrap: anywhere; }
 .odpoved__text sup a { margin-left: 2px; color: var(--past); font-weight: 750; text-underline-offset: 2px; }
+.odpoved__chybi-titulek { margin: 14px 0 6px; font-size: .9rem; }
+.odpoved__chybi ul { margin: 0 0 10px; padding-left: 22px; }
 .odpoved__zdroje-titulek { margin: 16px 0 6px; font-size: .9rem; }
 .odpoved__zdroje { margin: 0 0 14px; padding-left: 22px; font-size: .9rem; }
 .odpoved__zdroje li { margin-bottom: 12px; overflow-wrap: anywhere; }

@@ -1,4 +1,4 @@
-import { MAX_VET, MAX_ZNAKU_CITACE } from './prompt-odpovedi';
+import { MAX_NEZODPOVEZENO, MAX_VET, MAX_ZNAKU_CITACE, MAX_ZNAKU_NEZODPOVEZENO } from './prompt-odpovedi';
 import type { NalezenyUsek } from './typy';
 
 export interface VetaOdpovedi {
@@ -66,6 +66,25 @@ export function precistOdpoved(vystup: string): VetaOdpovedi[] {
   }).filter((v) => v.veta);
   // Delší odpověď se zkrátí na první věty. Každá zbylá věta projde stejným ověřením.
   return vety.slice(0, MAX_VET);
+}
+
+// Části dotazu, na které model odpověď nenašel. Nejsou to tvrzení ze zdroje, jen oznámení, že odpověď chybí, takže se
+// neověřují proti úryvkům. Z ostrých stránek se ale nesmí dostat nic, co by vypadalo jako údaj nebo odkaz.
+export function precistNezodpovezeno(vystup: string): string[] {
+  let data: Record<string, unknown>;
+  try {
+    data = vyjmoutJson(vystup);
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(data.nezodpovezeno)) return [];
+  return data.nezodpovezeno
+    .filter((polozka): polozka is string => typeof polozka === 'string')
+    .map((polozka) => polozka.replace(/\s+/g, ' ').trim())
+    .filter((polozka) => polozka.length >= 3 && !/[\d@]|https?:|www\./iu.test(polozka))
+    .map((polozka) => polozka.slice(0, MAX_ZNAKU_NEZODPOVEZENO))
+    .filter((polozka, i, vse) => vse.indexOf(polozka) === i)
+    .slice(0, MAX_NEZODPOVEZENO);
 }
 
 // Porovnání bez ohledu na mezery, velikost písmen a typografické varianty uvozovek a pomlček.

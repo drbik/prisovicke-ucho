@@ -4,7 +4,8 @@ import { vytvorApi } from '../src/lib/api/aplikace';
 import { vytvorFalesnyIndex } from '../src/lib/odpovedi/falesny';
 import { dotazProFulltext, hledatUseky, type Preradit } from '../src/lib/odpovedi/hledani';
 import { odpovedetNaDotaz } from '../src/lib/odpovedi/odpoved';
-import { cislaVTextu, overitKodem, precistOdpoved, ZamitnutaOdpoved } from '../src/lib/odpovedi/overeni';
+import { oddilCitace } from '../src/lib/odpovedi/misto';
+import { cislaVTextu, overitKodem, precistNezodpovezeno, precistOdpoved, ZamitnutaOdpoved } from '../src/lib/odpovedi/overeni';
 import { VERZE_PROMPTU_ODPOVEDI } from '../src/lib/odpovedi/prompt-odpovedi';
 import type { NalezenyUsek, ZdrojovyDokument } from '../src/lib/odpovedi/typy';
 import { UPOZORNENI, datumZdroje, hlavickaUseku } from '../src/lib/odpovedi/zdroje';
@@ -95,7 +96,9 @@ describe('POST /api/dotaz (krok 8.6)', () => {
       web: 'prisovice.cz',
       oznaceni: 'Odpověď z webu obce',
       uryvek: 'upravuje výši pronájmu samotného sálu sokolovny na 4.000,--Kč + energie … vratná kauce ve výši 4.000,--Kč',
+      misto: 'strana 2',
     }]);
+    expect(data.odpoved.nezodpovezeno).toEqual([]);
     expect(data.odpoved.oznaceni).toEqual(['Odpověď z webu obce']);
     expect(data.odpoved.upozorneni).toBe(UPOZORNENI);
     expect(UPOZORNENI).toContain('Nejde o úřední vyjádření obce');
@@ -148,31 +151,71 @@ describe('POST /api/dotaz (krok 8.6)', () => {
 
   it('tvrzení s citací, která v úseku není, odpověď zastaví (F-75)', async () => {
     const vymyslena = JSON.stringify({ vety: [{ veta: 'Pronájem stojí 4 000 Kč.', usek: 1, citace: 'pronájem sálu stojí 4.000 Kč na den' }] });
-    const { api, generovani } = sestavit({ vystupyGenerovani: [vymyslena, OVERENO] });
+    // Po zamítnutí model dostane jeden opravný pokus. Když zopakuje totéž, dotaz jde zastupitelům.
+    const { api, generovani } = sestavit({ vystupyGenerovani: [vymyslena, vymyslena, OVERENO] });
     const { data } = await poslat(api);
-    expect(data).toMatchObject({ vysledek: 'zastupitelum', duvod: 'citace-neni-v-useku' });
-    // Ověření modelem se po neúspěchu kontroly kódem už nevolá.
-    expect(generovani).toHaveLength(1);
+    expect(data).toMatchObject({ vysledek: 'zastupitelum', duvod: 'citace-neni-v-useku', technicke: { pokusu: 2 } });
+    // Ověření modelem se po neúspěchu kontroly kódem nevolá, jen odpověď a její oprava.
+    expect(generovani).toHaveLength(2);
   });
 
   it('číslo, které v citaci není, odpověď zastaví (F-75)', async () => {
     const cislo = JSON.stringify({ vety: [{ veta: 'Pronájem na víkend stojí 8 000 Kč.', usek: 1, citace: 'upravuje výši pronájmu samotného sálu sokolovny na 4.000,--Kč + energie' }] });
-    const { api } = sestavit({ vystupyGenerovani: [cislo, OVERENO] });
+    const { api } = sestavit({ vystupyGenerovani: [cislo, cislo, OVERENO] });
     const { data } = await poslat(api);
     expect(data).toMatchObject({ vysledek: 'zastupitelum', duvod: 'cislo-neni-v-citaci' });
   });
 
   it('když ověření modelem řekne, že věta z citace neplyne, jde dotaz zastupitelům (F-75, F-76)', async () => {
     const neplyne = JSON.stringify({ vysledky: [{ cislo: 1, plyne: true }, { cislo: 2, plyne: false }] });
-    const { api } = sestavit({ vystupyGenerovani: [ODPOVED, neplyne] });
+    const { api } = sestavit({ vystupyGenerovani: [ODPOVED, neplyne, ODPOVED, neplyne] });
     const { data } = await poslat(api);
     expect(data).toMatchObject({ vysledek: 'zastupitelum', duvod: 'neplyne-z-citace' });
   });
 
   it('neplatný výstup modelu pošle dotaz zastupitelům', async () => {
-    const { api } = sestavit({ vystupyGenerovani: ['Pronájem stojí 4 000 Kč.'] });
+    const { api } = sestavit({ vystupyGenerovani: ['Pronájem stojí 4 000 Kč.', 'Pronájem stojí 4 000 Kč.'] });
     const { data } = await poslat(api);
     expect(data).toMatchObject({ vysledek: 'zastupitelum', duvod: 'neplatny-json' });
+  });
+
+  describe('opravný pokus po zamítnuté odpovědi', () => {
+    const CISLO = JSON.stringify({ vety: [{ veta: 'Pronájem na víkend stojí 8 000 Kč.', usek: 1, citace: 'upravuje výši pronájmu samotného sálu sokolovny na 4.000,--Kč + energie' }] });
+
+    it('model dostane svou odpověď zpět s důvodem a opravená odpověď projde stejnými kontrolami', async () => {
+      const { api, generovani } = sestavit({ vystupyGenerovani: [CISLO, ODPOVED, OVERENO] });
+      const { data } = await poslat(api);
+      if (data.vysledek !== 'odpoved') throw new Error(`Čekal jsem odpověď, přišlo ${data.vysledek}.`);
+      expect(data.technicke.pokusu).toBe(2);
+      expect(data.odpoved.vety).toHaveLength(2);
+      // Opravné volání má původní zprávy, odpověď modelu a důvod.
+      expect(generovani).toHaveLength(3);
+      const oprava = generovani[1];
+      expect(oprava.map((zprava) => zprava.role)).toEqual(['system', 'user', 'assistant', 'user']);
+      expect(oprava[2].content).toBe(CISLO);
+      expect(oprava[3].content).toContain('číslo, datum nebo částku, které není v její citaci');
+    });
+
+    it('opravená odpověď musí projít i ověřením modelem', async () => {
+      const neplyne = JSON.stringify({ vysledky: [{ cislo: 1, plyne: false }, { cislo: 2, plyne: true }] });
+      const { api } = sestavit({ vystupyGenerovani: [CISLO, ODPOVED, neplyne] });
+      const { data } = await poslat(api);
+      expect(data).toMatchObject({ vysledek: 'zastupitelum', duvod: 'neplyne-z-citace', technicke: { pokusu: 2 } });
+    });
+
+    it('když model odpověď v úryvcích nenašel, pokus nemá smysl a volá se jen jednou', async () => {
+      const { api, generovani } = sestavit({ vystupyGenerovani: [JSON.stringify({ vety: [] })] });
+      const { data } = await poslat(api);
+      expect(data).toMatchObject({ vysledek: 'zastupitelum', duvod: 'model-nevi', technicke: { pokusu: 1 } });
+      expect(generovani).toHaveLength(1);
+    });
+
+    it('správná odpověď hned napoprvé se neopravuje', async () => {
+      const { api, generovani } = sestavit({ vystupyGenerovani: [ODPOVED, OVERENO] });
+      const { data } = await poslat(api);
+      expect(data).toMatchObject({ vysledek: 'odpoved', technicke: { pokusu: 1 } });
+      expect(generovani).toHaveLength(2);
+    });
   });
 
   it('výpadek AI dotaz nechá zastupitelům a stránka se to dozví', async () => {
@@ -268,12 +311,12 @@ describe('ověření kódem (F-75)', () => {
 });
 
 describe('hledání', () => {
-  it('z jednoho dokumentu vezme nejvýš dva úseky', async () => {
+  it('z jednoho dokumentu vezme nejvýš tři úseky', async () => {
     const useky = [0, 1, 2, 3].map((i) => usek(ZAPIS, `zapis-${i}`, `Úsek ${i} o pronájmu sokolovny.`));
     const { api, generovani } = sestavit({ vystupyGenerovani: [JSON.stringify({ vety: [] })] }, [...useky, USEK_BYTY], (u) => (u.dokument.id === 'zapis' ? 0.9 : 0.5));
     await poslat(api);
     const uryvky = generovani[0][1].content;
-    expect(uryvky.match(/Úsek \d/g)).toHaveLength(2);
+    expect(uryvky.match(/Úsek \d/g)).toHaveLength(3);
     expect(uryvky).toContain('bytový dům');
   });
 
@@ -292,9 +335,9 @@ describe('hledání', () => {
     return hledatUseky(index, [1, 0, 0], 'Smí pes do vody?', 6, preradit);
   };
 
-  it('bez přeřazení vezme z dokumentu dva nejlepší úseky podle pořadí', async () => {
+  it('bez přeřazení vezme z dokumentu tři nejlepší úseky podle pořadí', async () => {
     const vysledek = await hledatPsy();
-    expect(vysledek.useky.map((u) => u.id).filter((id) => id.startsWith('rad'))).toEqual(['rad-0', 'rad-1']);
+    expect(vysledek.useky.map((u) => u.id).filter((id) => id.startsWith('rad'))).toEqual(['rad-0', 'rad-1', 'rad-2']);
     expect(vysledek.prerazeno).toBe(0);
   });
 
@@ -302,7 +345,7 @@ describe('hledání', () => {
     const preradit = vi.fn(async (_dotaz: string, texty: string[]) => texty.map((t) => (t.includes('koupat psy') ? 0.92 : t.includes('Vjezd') ? 0.86 : 0.01)));
     const vysledek = await hledatPsy(preradit);
     expect(vysledek.useky[0].id).toBe('rad-3');
-    expect(vysledek.useky.map((u) => u.id).filter((id) => id.startsWith('rad'))).toEqual(['rad-3', 'rad-0']);
+    expect(vysledek.useky.map((u) => u.id).filter((id) => id.startsWith('rad'))).toEqual(['rad-3', 'rad-0', 'rad-1']);
     expect(vysledek.useky.map((u) => u.id)).toContain('karta-0');
     expect(vysledek.prerazeno).toBe(2);
     // Přeřazení dostane hlavičku i text úseku.
@@ -311,9 +354,9 @@ describe('hledání', () => {
 
   it('nízké skóre přeřazení pořadí nemění a chyba přeřazení hledání nezastaví', async () => {
     const nizke = await hledatPsy(async (_d, texty) => texty.map(() => 0.02));
-    expect(nizke.useky.map((u) => u.id).filter((id) => id.startsWith('rad'))).toEqual(['rad-0', 'rad-1']);
+    expect(nizke.useky.map((u) => u.id).filter((id) => id.startsWith('rad'))).toEqual(['rad-0', 'rad-1', 'rad-2']);
     const chyba = await hledatPsy(async () => { throw new Error('model nedostupný'); });
-    expect(chyba.useky.map((u) => u.id).filter((id) => id.startsWith('rad'))).toEqual(['rad-0', 'rad-1']);
+    expect(chyba.useky.map((u) => u.id).filter((id) => id.startsWith('rad'))).toEqual(['rad-0', 'rad-1', 'rad-2']);
     expect(chyba.prerazeno).toBe(0);
   });
 
@@ -341,5 +384,85 @@ describe('fulltext a zdroje', () => {
     expect(datumZdroje(KARTA)).toBe('stav webu k 10. 11. 2026');
     expect(datumZdroje({ ...ZAPIS, zverejneno: null })).toBe('nahráno 9/2025');
     expect(datumZdroje({ ...ZAPIS, typ: 'stranka', zmeneno: '2026-02-17' })).toBe('aktualizováno 17. 2. 2026');
+  });
+});
+
+describe('místo citace v dokumentu a nezodpovězené části dotazu', () => {
+  const RAD: ZdrojovyDokument = { ...ZAPIS, id: 'rad', url: 'https://prisovice.cz/wp-content/uploads/2024/11/provozni-rad.pdf', nazev: 'Provozní řád rekreační oblasti Malý a Velký Písečák', zverejneno: '2024-11-12' };
+  const TEXT_RADU = [
+    'čl.7',
+    'Je zakázáno provozovat činnosti jakkoliv poškozující životní prostředí.',
+    'čl.9',
+    'V obou jezerech je zakázáno koupat psy. Zároveň upozorňujeme na přísnou kontumaci psů.',
+    'čl.10',
+    'Je zakázáno vstupovat na okolní pozemky určené k zemědělské činnosti.',
+  ].join('\n');
+  const USEK_PSI = usek(RAD, 'rad-5', TEXT_RADU, 5);
+  const USEK_PRESTUPKY = usek(RAD, 'rad-8', 'Porušení povinností stanovených tímto provozním řádem může být postiženo podle zákona č. 250/2016 Sb., o odpovědnosti za přestupky.', 6);
+
+  it('oddíl je poslední nadpis před citací, bez ohledu na mezery a velikost písmen', () => {
+    expect(oddilCitace(USEK_PSI, 'V obou jezerech je zakázáno koupat psy.')).toBe('čl. 9');
+    expect(oddilCitace(USEK_PSI, 'v obou   jezerech je zakázáno koupat psy')).toBe('čl. 9');
+    expect(oddilCitace(USEK_PSI, 'Je zakázáno provozovat činnosti jakkoliv poškozující životní prostředí.')).toBe('čl. 7');
+    // Složená citace se hledá podle první části.
+    expect(oddilCitace(USEK_PSI, 'koupat psy … přísnou kontumaci psů')).toBe('čl. 9');
+  });
+
+  it('nadpis, který je součástí citace, se počítá, a odkaz uprostřed věty nadpisem není', () => {
+    expect(oddilCitace(USEK_PSI, 'čl.10\nJe zakázáno vstupovat na okolní pozemky')).toBe('čl. 10');
+    const vyhlaska = usek(RAD, 'v-1', 'Zastupitelstvo se usneslo na základě § 59 odst. 4 zákona o odpadech vydat vyhlášku.\nČl. 1\nÚvodní ustanovení\n1) Tato vyhláška stanovuje systém.\n2) Každý je povinen odpad odkládat na určená místa.', null);
+    expect(oddilCitace(vyhlaska, 'Každý je povinen odpad odkládat na určená místa.')).toBe('čl. 1 odst. 2');
+    expect(oddilCitace(vyhlaska, 'Zastupitelstvo se usneslo na základě § 59 odst. 4 zákona o odpadech vydat vyhlášku.')).toBeNull();
+    expect(oddilCitace(usek(RAD, 'p-1', '§ 12\nPoplatek se platí do konce března.', null), 'Poplatek se platí do konce března.')).toBe('§ 12');
+  });
+
+  it('bez nadpisu v úseku, nebo s citací, která v úseku není, vrátí null', () => {
+    expect(oddilCitace(USEK_PRESTUPKY, 'Porušení povinností stanovených tímto provozním řádem může být postiženo')).toBeNull();
+    expect(oddilCitace(USEK_PSI, 'Tahle věta v úseku není.')).toBeNull();
+  });
+
+  it('nezodpovězené části: jen krátké věcné texty bez čísel a adres', () => {
+    const vystup = JSON.stringify({
+      vety: [],
+      nezodpovezeno: ['  kdo   dodržování zákazu kontroluje ', 'kdo dodržování zákazu kontroluje', 'zavolejte na 123 456 789', 'https://zlodej.example', 'ab', 7, 'x'.repeat(300), 'další věc', 'třetí věc', 'čtvrtá věc'],
+    });
+    const nezodpovezeno = precistNezodpovezeno(vystup);
+    expect(nezodpovezeno).toHaveLength(3);
+    expect(nezodpovezeno[0]).toBe('kdo dodržování zákazu kontroluje');
+    expect(nezodpovezeno.every((cast) => cast.length <= 120 && !/\d/.test(cast))).toBe(true);
+    expect(precistNezodpovezeno('{"vety": []}')).toEqual([]);
+    expect(precistNezodpovezeno('nesmysl')).toEqual([]);
+  });
+
+  it('částečná odpověď ukáže místo v dokumentu a části, na které zdroje neodpovídají', async () => {
+    const odpoved = JSON.stringify({
+      vety: [
+        { veta: 'V obou jezerech je koupání psů zakázáno.', usek: 1, citace: 'V obou jezerech je zakázáno koupat psy.' },
+        { veta: 'Porušení provozního řádu může být postiženo podle zákona o přestupcích č. 250/2016 Sb.', usek: 2, citace: 'Porušení povinností stanovených tímto provozním řádem může být postiženo podle zákona č. 250/2016 Sb.' },
+      ],
+      nezodpovezeno: ['kdo dodržování zákazu kontroluje'],
+    });
+    const { api } = sestavit(
+      { vystupyGenerovani: [odpoved, JSON.stringify({ vysledky: [{ cislo: 1, plyne: true }, { cislo: 2, plyne: true }] })] },
+      [USEK_PSI, USEK_PRESTUPKY],
+      () => 0.7,
+    );
+    const { data } = await poslat(api, { text: 'Smí se psi koupat v Písečácích? Hrozí za to pokuta? Kdo to kontroluje?', typ: 'dotaz' });
+    if (data.vysledek !== 'odpoved') throw new Error(`Čekal jsem odpověď, přišlo ${data.vysledek}.`);
+    expect(data.odpoved.nezodpovezeno).toEqual(['kdo dodržování zákazu kontroluje']);
+    expect(data.odpoved.zdroje.map((z) => ({ url: z.url.split('#')[1], misto: z.misto }))).toEqual([
+      { url: 'page=5', misto: 'strana 5, čl. 9' },
+      { url: 'page=6', misto: 'strana 6' },
+    ]);
+    expect(data.odpoved.vety.map((v) => v.zdroj)).toEqual([1, 2]);
+  });
+
+  it('karta a stránka webu místo v dokumentu nemají', async () => {
+    const vety = JSON.stringify({ vety: [{ veta: 'Obec připravuje bytový dům s 15 nájemními byty.', usek: 1, citace: 'nový bytový dům poblíž stávajícího DPS s 15 menšími nájemními byty' }] });
+    const { api } = sestavit({ vystupyGenerovani: [vety, JSON.stringify({ vysledky: [{ cislo: 1, plyne: true }] })] }, [USEK_BYTY], () => 0.7);
+    const { data } = await poslat(api, { text: 'Kolik bude nových bytů u DPS?', typ: 'dotaz' });
+    if (data.vysledek !== 'odpoved') throw new Error(`Čekal jsem odpověď, přišlo ${data.vysledek}.`);
+    expect(data.odpoved.zdroje[0].misto).toBe('');
+    expect(data.odpoved.nezodpovezeno).toEqual([]);
   });
 });

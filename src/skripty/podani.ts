@@ -97,6 +97,8 @@ const odpoved = prvek('[data-odpoved]', panel);
 const oznaceniOdpovedi = prvek('[data-odpoved-oznaceni]', panel);
 const vetyOdpovedi = prvek('[data-odpoved-vety]', panel);
 const zdrojeOdpovedi = prvek('[data-odpoved-zdroje]', panel);
+const chybiOdpovedi = prvek('[data-odpoved-chybi]', panel);
+const chybiSeznam = prvek('[data-odpoved-chybi-seznam]', panel);
 const upozorneniOdpovedi = prvek('[data-odpoved-upozorneni]', panel);
 const duvodBezOdpovedi = prvek('[data-odpoved-duvod]', panel);
 const hledatZnovu = prvek('[data-odpoved-znovu]', panel);
@@ -239,6 +241,13 @@ function ukazatOdpoved(data: ZobrazenaOdpoved) {
     odstavec.append(veta.text, index, ' ');
   }
   vetyOdpovedi.replaceChildren(odstavec);
+  // Částečná odpověď: části dotazu, na které zdroje neodpovídají.
+  chybiSeznam.replaceChildren(...data.nezodpovezeno.map((cast) => {
+    const polozka = document.createElement('li');
+    polozka.textContent = cast;
+    return polozka;
+  }));
+  chybiOdpovedi.hidden = data.nezodpovezeno.length === 0;
   zdrojeOdpovedi.replaceChildren(...data.zdroje.map((zdroj) => {
     const polozka = document.createElement('li');
     polozka.id = `odpoved-zdroj-${zdroj.cislo}`;
@@ -254,7 +263,8 @@ function ukazatOdpoved(data: ZobrazenaOdpoved) {
     }
     const datum = document.createElement('span');
     datum.className = 'zdroj__datum';
-    datum.textContent = zdroj.datum;
+    // Datum a místo v dokumentu: „zveřejněno 12. 11. 2024 · strana 5, čl. 9“.
+    datum.textContent = zdroj.misto ? `${zdroj.datum} · ${zdroj.misto}` : zdroj.datum;
     const uryvek = document.createElement('blockquote');
     uryvek.className = 'zdroj__uryvek';
     uryvek.textContent = `„${zdroj.uryvek}“`;

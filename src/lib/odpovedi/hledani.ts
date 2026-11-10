@@ -4,8 +4,10 @@ import type { NalezenyUsek } from './typy';
 // Kolik úseků jde do modelu (krok 8, architektura) a kolik kandidátů vrací každá metoda.
 export const USEKU_DO_MODELU = 6;
 const KANDIDATU = 20;
-// Z jednoho dokumentu nejvýš dva úseky. Jinak dlouhé PDF obsadí všechna místa a článek s odpovědí vypadne (8.8, Q07).
-const USEKU_Z_DOKUMENTU = 2;
+// Z jednoho dokumentu nejvýš tři úseky. Jinak dlouhé PDF obsadí všechna místa a článek s odpovědí vypadne (8.8, Q07).
+// Dva úseky nestačily na dotaz o více věcech: provozní řád Písečáků má zákaz koupání psů na straně 5 a pokuty
+// na straně 6 a druhý úsek zabral jiný odstavec téhož dokumentu (10. 11. 2026).
+const USEKU_Z_DOKUMENTU = 3;
 // Konstanta reciproční fúze pořadí (RRF). Běžná hodnota z literatury.
 const RRF_K = 60;
 // Pod touto kosinovou podobností nejlepšího úseku jde dotaz zastupitelům bez volání jazykového modelu.
