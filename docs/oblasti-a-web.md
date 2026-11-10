@@ -31,6 +31,8 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Projekt webu má vlastní prav
 
 Barvy jsou proměnné v `src/pages/index.astro`: `--ink` #18332e (text a tmavé plochy), `--ink-soft` #536861, `--past` #236b60 (zelená), `--future` #2f6ca6 (modrá budoucích plánů) a `--accent` #d35b3f (cihlový akcent). Nadpisy jsou patkové (Georgia), text bezpatkový (Inter nebo systémové písmo). Podle `DESIGN_SPEC.md` mají plochy jen mírné zaoblení 6–10 px, bez silných rámečků a stínů, a kontrast běžného textu je nejméně 4,5 : 1.
 
+**Rozdíl od webu (rozhodl Tomáš 10. 11. 2026):** text vzkazu má v uchu neproporcionální písmo Roboto Mono, které připomíná psací stroj. Týká se psaného vzkazu, upraveného textu, původního přepisu a potvrzeného vzkazu. Nadpisy, popisky, tlačítka a odpovědi zůstávají v písmech webu. Písmo je uložené u ucha ve složce `src/fonty/` i s licencí SIL OFL 1.1, protože CSP ucha povoluje písma jen z vlastní domény.
+
 ## Návrh oblastí pro MVP
 
 Podle F-30 vychází oblasti z aktuálních a budoucích projektů na webu, plus oblast Ostatní. **Rozhodnuto 1. 11. 2026:**
