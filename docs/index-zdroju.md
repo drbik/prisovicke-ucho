@@ -6,7 +6,7 @@ Index drží text webu obce prisovice.cz a karet projektů z webu Nezávislých 
 
 ## Co v indexu je
 
-**Rozšíření z 10. 11. 2026 (se souhlasem Tomáše):** do indexu jdou i dokumenty Word a ODT a text naskenovaných PDF rozpoznaný OCR. Zpracování je hotové na počítači. Do D1 a Vectorize se nahraje až po obnovení denního limitu neuronů, do té doby ucho odpovídá z indexu bez rozšíření.
+**Rozšíření z 10. 11. 2026 (se souhlasem Tomáše):** do indexu jdou i dokumenty Word a ODT a text naskenovaných PDF rozpoznaný OCR. Nahráno večer 10. 11. 2026: v D1 je 428 dokumentů a 3 003 úseků, ve Vectorize 3 003 vektorů (24 starých vektorů smazáno). Ostré ucho odpovídá z tohoto indexu.
 
 | Zdroj | Dokumentů | Úseků | Znaků |
 |---|---|---|---|
@@ -17,7 +17,7 @@ Index drží text webu obce prisovice.cz a karet projektů z webu Nezávislých 
 | **Celkem** | **428** | **3 003** | **2 714 035** |
 
 - Z příloh je 30 dokumentů Word a ODT (34 stažených, 4 duplicitní) a 48 PDF s textem z OCR (188 stran). Takový zdroj má v názvu „text rozpoznaný ze skenu“, nebo „část textu rozpoznaná ze skenu“, protože rozpoznání může obsahovat chyby. V odpovědi rozhoduje znění dokumentu.
-- Nahrání spočítá embeddingy jen pro 617 nových nebo změněných úseků, odhadem asi 320 neuronů.
+- Nahrání spočítalo embeddingy jen pro 617 nových nebo změněných úseků, odhadem asi 320 neuronů. Vectorize hlásil plný počet vektorů zhruba 3 minuty po nahrání.
 - Před rozšířením bylo v D1 357 dokumentů a 2 435 úseků, ve Vectorize 2 435 vektorů.
 - Stránky úřední desky jsou samostatně v indexu 0krát. Na webu obce jsou jen obálkou s odkazem na PDF a jejich název a datum nese PDF.
 - Okno: aktuality, úřední deska a jejich PDF zveřejněné od 9. 11. 2024. Stálé stránky se berou celé, i se staršími PDF, na která odkazují (rozhodnuto 9. 11. 2026).
