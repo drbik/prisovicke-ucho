@@ -2,7 +2,7 @@
 
 *Krok 8.8 z [plánu MVP](plan-mvp.md#krok-8-index-webu-a-odpověď-s-citací). Sada: [30 typových otázek](typove-otazky.md), schválená Tomášem 10. 11. 2026. Index: stav k 10. 11. 2026 včetně dokumentů Word a ODT a textu skenů z OCR, viz [Index zdrojů](index-zdroju.md).*
 
-**Stav k 10. 11. 2026 večer: závěrečný běh hotový.** Běžel na rozšířeném indexu (428 dokumentů, 3 003 úseků) s promptem úpravy verze 3 a promptem odpovědi verze 3. Všechny prahy platí. Účet Cloudflare přešel ten večer na Workers Paid, takže běh nemusel čekat na obnovení denního limitu neuronů. Ostré ucho čte už rozšířený index, ale do nasazení Workeru odpovídá s promptem odpovědi verze 2. Ten v běhu 5 ukázal chybu u úředních hodin (Q02).
+**Stav k 10. 11. 2026 večer: závěrečný běh hotový.** Běžel na rozšířeném indexu (428 dokumentů, 3 003 úseků) s promptem úpravy verze 3 a promptem odpovědi verze 3. Všechny prahy platí. Účet Cloudflare přešel ten večer na Workers Paid, takže běh nemusel čekat na obnovení denního limitu neuronů. Ostré ucho běží od večera 10. 11. 2026 s rozšířeným indexem a promptem odpovědi verze 3 (Worker verze b0893619). Kontrola po nasazení: dotaz na úřední hodiny skončil u zastupitelů jako v běhu 6, dotaz na lékárnu dostal správnou odpověď za 4,8 s.
 
 ## Jak se vyhodnocuje
 
