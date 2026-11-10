@@ -37,7 +37,7 @@ export interface VysledekPodani {
   technicke: TechnickeUdaje;
 }
 
-function zakladniTyp(hlavicka: string | null) {
+export function zakladniTyp(hlavicka: string | null) {
   return hlavicka?.split(';', 1)[0].trim().toLowerCase() ?? '';
 }
 
@@ -45,13 +45,13 @@ function hlaskaChyby(chyba: unknown) {
   return chyba instanceof Error ? chyba.message.slice(0, 300) : 'neznámá chyba';
 }
 
-async function zkontrolovatPozadavek(request: Request, z: ZavislostiPodani) {
+export async function zkontrolovatPozadavek(request: Request, z: Pick<ZavislostiPodani, 'limiter' | 'vyvoj'>) {
   if (!jePuvodPovolen(request, z.vyvoj)) throw new ChybaPodani('cizi-puvod');
   // Lokální vývoj limit nemá. V produkci bez limiteru požadavek neprojde.
   if (!z.vyvoj && !(await povolitPozadavek(request, z.limiter))) throw new ChybaPodani('limit-pozadavku');
 }
 
-function sLimitem<T>(slib: Promise<T>, ms: number) {
+export function sLimitem<T>(slib: Promise<T>, ms: number) {
   let casovac: ReturnType<typeof setTimeout>;
   const vyprseni = new Promise<never>((_, odmitnout) => {
     casovac = setTimeout(() => odmitnout(new Error('Model neodpověděl včas.')), ms);

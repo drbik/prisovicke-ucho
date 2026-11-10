@@ -1,7 +1,7 @@
 import { OBLASTI, TYPY_PODNETU } from '../oblasti';
 
 // Při každé změně promptu zvyš číslo, ať jdou výsledky testů přiřadit ke znění (krok 3.2).
-export const VERZE_PROMPTU = 2;
+export const VERZE_PROMPTU = 3;
 
 // Pevný seznam do doby, než přijde slovník spravovaný administrátorem (F-11).
 const MISTNI_NAZVY = [
@@ -55,7 +55,11 @@ Odpověz jen jedním objektem JSON s těmito klíči:
 - "text": upravený vzkaz, odstavce odděl prázdným řádkem,
 - "nazev": výstižný věcný název vzkazu, nejvýš 60 znaků, bez uvozovek a bez tečky na konci,
 - "oblast": přesně jeden klíč ze seznamu oblastí níže,
-- "typ": přesně jedna z hodnot ${SEZNAM_TYPU}, podle toho, co ve vzkazu převažuje.
+- "typ": přesně jedna z hodnot ${SEZNAM_TYPU}, podle toho, co ve vzkazu převažuje:
+  - dotaz: autor se ptá na informaci nebo stav věci (co, kdy, kde, kolik, kdo, jak to je),
+  - navrh: autor chce, aby obec něco udělala, změnila nebo zavedla, i když to napíše jako otázku („Nešlo by…?“, „Mohla by obec…?“, „Co takhle…?“),
+  - stiznost: autor upozorňuje na problém nebo vyjadřuje nespokojenost,
+  - pochvala: autor něco oceňuje nebo děkuje.
 
 Oblasti:
 ${SEZNAM_OBLASTI}`;

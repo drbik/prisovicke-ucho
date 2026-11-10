@@ -22,6 +22,23 @@
 		"binding": "AI",
 		"remote": true
 	},
+	// Index zdrojů pro odpovědi z webu (krok 8.5). Lokální vývoj i skripty indexu používají vzdálená data.
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "prisovicke-ucho",
+			"database_id": "d9353105-ae6e-4f08-9d53-facea130d326",
+			"migrations_dir": "migrations",
+			"remote": true
+		}
+	],
+	"vectorize": [
+		{
+			"binding": "VECTORIZE",
+			"index_name": "prisovicke-ucho-zdroje",
+			"remote": true
+		}
+	],
 	"ratelimits": [
 		{
 			"name": "PODANI_RATE_LIMITER",

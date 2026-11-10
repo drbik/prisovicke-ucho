@@ -5,6 +5,11 @@ import { upravitVzkaz } from './uprava';
 export const MODEL_PREPISU = '@cf/openai/whisper-large-v3-turbo';
 // Předběžný výběr z porovnání 6. 11. 2026, viz docs/hlasove-modely.md. Definitivně rozhodne slepý test (krok 3.6).
 export const MODEL_UPRAVY = '@cf/google/gemma-4-26b-a4b-it';
+// Vícejazyčné embeddingy, 1 024 rozměrů (krok 8.5). Index ve Vectorize musí mít stejný počet rozměrů.
+export const MODEL_VEKTORU = '@cf/baai/bge-m3';
+export const ROZMERU_VEKTORU = 1024;
+// Odpověď z webu: stejný model jako úprava, bez uvažování (rozhodnuto 9. 11. 2026).
+export const MODEL_ODPOVEDI = MODEL_UPRAVY;
 
 export interface VazbaAi {
   run(model: string, vstup: Record<string, unknown>): Promise<unknown>;
@@ -14,6 +19,10 @@ interface VystupWhisperu {
   text?: unknown;
   word_count?: unknown;
   transcription_info?: { duration?: unknown };
+}
+
+interface VystupVektoru {
+  data?: unknown;
 }
 
 interface VystupJazykovehoModelu {
@@ -68,6 +77,28 @@ export function vytvorCloudflareAi(ai: VazbaAi): SluzbaAi {
         return textOdpovedi(vystup as VystupJazykovehoModelu);
       }, text);
       return { uprava, pokusu, model: MODEL_UPRAVY, verzePromptu: VERZE_PROMPTU };
+    },
+
+    modelOdpovedi: MODEL_ODPOVEDI,
+
+    async vektory(texty) {
+      const vystup = (await ai.run(MODEL_VEKTORU, { text: texty })) as VystupVektoru;
+      const data = vystup?.data;
+      if (!Array.isArray(data) || data.length !== texty.length
+        || !data.every((v) => Array.isArray(v) && v.length === ROZMERU_VEKTORU)) {
+        throw new Error('Model embeddingů nevrátil vektory.');
+      }
+      return data as number[][];
+    },
+
+    async generovat(zpravy, { maxTokenu }) {
+      const vystup = await ai.run(MODEL_ODPOVEDI, {
+        messages: zpravy,
+        max_tokens: maxTokenu,
+        temperature: 0,
+        chat_template_kwargs: { enable_thinking: false },
+      });
+      return textOdpovedi(vystup as VystupJazykovehoModelu);
     },
   };
 }
