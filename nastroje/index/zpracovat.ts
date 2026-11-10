@@ -1,6 +1,8 @@
-// Krok 8.4: z uložených HTML a PDF vytáhne text, rozdělí ho na úseky a sestaví Zdrojové dokumenty
-// (npm run index:zpracovat). Čte jen složku dat ze stahování, nic nestahuje.
+// Krok 8.4: z uložených HTML, PDF a dokumentů Word a ODT vytáhne text, rozdělí ho na úseky a sestaví
+// Zdrojové dokumenty (npm run index:zpracovat). Čte jen složku dat ze stahování, nic nestahuje.
+// Text z Wordu a z OCR připraví předem npm run index:word a npm run index:ocr (rozšíření z 10. 11. 2026).
 import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { TypDokumentu, Usek, ZdrojovyDokument } from '../../src/lib/odpovedi/typy';
@@ -8,7 +10,18 @@ import { hlavickaUseku } from '../../src/lib/odpovedi/zdroje';
 import { precistKarty } from './karty';
 import { SLOZKA_DAT, WEB_NEZAVISLYCH } from './nastaveni';
 import { MIN_ZNAKU_STRANY, textPdf } from './pdf';
-import { mesicNahrani, nacistJson, souborStavu, ulozitJson, type StavStazeni, type ZaznamSeznamu } from './spolecne';
+import { jeCitelnyOcr, textOcr, textWordu } from './prevod';
+import {
+  formatPrilohy,
+  mesicNahrani,
+  nacistJson,
+  souborOcr,
+  souborStavu,
+  souborTextuWordu,
+  ulozitJson,
+  type StavStazeni,
+  type ZaznamSeznamu,
+} from './spolecne';
 import { rozdelitNaUseky, type CastDokumentu } from './useky';
 import { rozebratClanek, type Clanek, type ZaznamRest } from './wordpress';
 
@@ -36,6 +49,10 @@ const zprava = {
   castecneSkeny: [] as { url: string; nazev: string; stranBezTextu: number[] }[],
   duplicity: [] as { url: string; stejnyJako: string }[],
   chyby: [] as { url: string; hlaska: string }[],
+  // Rozšíření z 10. 11. 2026: dokumenty Word a ODT a strany PDF, jejichž text dodalo OCR.
+  word: [] as { url: string; nazev: string; znaku: number }[],
+  ocr: [] as { url: string; nazev: string; strany: number[] }[],
+  ocrNecitelne: [] as { url: string; strana: number }[],
 };
 const otisky = new Map<string, string>();
 const jeStazeno = (z: ZaznamSeznamu) => z.stav === 'stazeno' || z.stav === 'beze-zmeny';
@@ -63,8 +80,8 @@ function pridat(dokument: Omit<ZdrojovyDokument, 'id' | 'otisk'>, casti: CastDok
   }
 }
 
-// 1. Stránky, aktuality a úřední deska. Zároveň se sbírají stránky, které odkazují na PDF.
-interface Rodic { url: string; typ: TypDokumentu; nazev: string; datum: string | null; pocetPdf: number; textOdkazu: string }
+// 1. Stránky, aktuality a úřední deska. Zároveň se sbírají stránky, které odkazují na přílohy.
+interface Rodic { url: string; typ: TypDokumentu; nazev: string; datum: string | null; pocetPriloh: number; textOdkazu: string }
 const rodice = new Map<string, Rodic[]>();
 const PORADI_RODICU: TypDokumentu[] = ['uredni-deska', 'aktualita', 'stranka'];
 
@@ -73,10 +90,10 @@ for (const zaznam of seznam) {
   const ulozeny = stav.html[zaznam.url];
   const clanek: Clanek | null = rozebratClanek(await fs.readFile(path.join(SLOZKA_DAT, ulozeny.soubor), 'utf8'), zaznam.url);
   if (!clanek) continue;
-  const pdf = clanek.dokumenty.filter((d) => /\.pdf$/i.test(new URL(d.url).pathname));
+  const pdf = clanek.dokumenty.filter((d) => formatPrilohy(d.url));
   for (const odkaz of pdf) {
     const seznamRodicu = rodice.get(odkaz.url) ?? [];
-    seznamRodicu.push({ url: zaznam.url, typ: zaznam.typ, nazev: clanek.nazev, datum: zaznam.datum ?? null, pocetPdf: pdf.length, textOdkazu: odkaz.text });
+    seznamRodicu.push({ url: zaznam.url, typ: zaznam.typ, nazev: clanek.nazev, datum: zaznam.datum ?? null, pocetPriloh: pdf.length, textOdkazu: odkaz.text });
     rodice.set(odkaz.url, seznamRodicu);
   }
   let vlastniText = clanek.text;
@@ -102,39 +119,26 @@ for (const zaznam of seznam) {
   }, [{ strana: null, text: clanek.text }]);
 }
 
-// 2. PDF. Název a datum dává stránka, která na PDF odkazuje, přednostně položka úřední desky.
-const pdfKeZpracovani = seznam.filter((z) => z.typ === 'pdf' && jeStazeno(z));
-for (const [poradi, zaznam] of pdfKeZpracovani.entries()) {
+// 2. Přílohy: PDF, Word a ODT. Název a datum dává stránka, která na přílohu odkazuje, přednostně položka úřední desky.
+// V indexu mají typ „pdf“ (přiložený soubor), aby se nemusela měnit tabulka v D1.
+const nacistText = async (soubor: string) => (existsSync(path.join(SLOZKA_DAT, soubor)) ? fs.readFile(path.join(SLOZKA_DAT, soubor), 'utf8') : null);
+
+const prilohyKeZpracovani = seznam.filter((z) => z.typ === 'pdf' && jeStazeno(z));
+for (const [poradi, zaznam] of prilohyKeZpracovani.entries()) {
   const kandidati = (rodice.get(zaznam.url) ?? []).sort((a, b) => PORADI_RODICU.indexOf(a.typ) - PORADI_RODICU.indexOf(b.typ));
   const rodic = kandidati[0];
   if (!rodic) {
-    zprava.chyby.push({ url: zaznam.url, hlaska: 'Chybí stránka, která na PDF odkazuje.' });
+    zprava.chyby.push({ url: zaznam.url, hlaska: 'Chybí stránka, která na přílohu odkazuje.' });
     continue;
   }
-  let strany;
-  try {
-    strany = await textPdf(new Uint8Array(await fs.readFile(path.join(SLOZKA_DAT, stav.pdf[zaznam.url].soubor))));
-  } catch (chyba) {
-    zprava.chyby.push({ url: zaznam.url, hlaska: chyba instanceof Error ? chyba.message.slice(0, 200) : 'neznámá chyba' });
-    continue;
-  }
-  const sTextem = strany.filter((s) => s.text.replace(/\s+/g, '').length >= MIN_ZNAKU_STRANY);
-  const souborPdf = decodeURIComponent(new URL(zaznam.url).pathname.split('/').at(-1) ?? '');
+  const souborPrilohy = decodeURIComponent(new URL(zaznam.url).pathname.split('/').at(-1) ?? '');
   let nazev = rodic.nazev;
-  if (rodic.pocetPdf > 1 || !nazev) {
-    const popis = rodic.textOdkazu && !OBECNE_ODKAZY.test(rodic.textOdkazu) && rodic.textOdkazu !== nazev ? rodic.textOdkazu : souborPdf;
+  if (rodic.pocetPriloh > 1 || !nazev) {
+    const popis = rodic.textOdkazu && !OBECNE_ODKAZY.test(rodic.textOdkazu) && rodic.textOdkazu !== nazev ? rodic.textOdkazu : souborPrilohy;
     nazev = nazev ? `${nazev} – ${popis}` : popis;
   }
-  if (!sTextem.length) {
-    zprava.skeny.push({ url: zaznam.url, nazev, stran: strany.length });
-    continue;
-  }
-  if (sTextem.length < strany.length) {
-    zprava.castecneSkeny.push({ url: zaznam.url, nazev, stranBezTextu: strany.filter((s) => !sTextem.includes(s)).map((s) => s.strana) });
-  }
-  pridat({
+  const dokument = {
     url: zaznam.url,
-    nazev,
     web: 'prisovice.cz',
     typ: 'pdf',
     zverejneno: rodic.typ === 'stranka' ? null : rodic.datum,
@@ -142,8 +146,60 @@ for (const [poradi, zaznam] of pdfKeZpracovani.entries()) {
     mesicNahrani: mesicNahrani(zaznam.url),
     stazeno: stav.pdf[zaznam.url].stazeno,
     nadrazenyUrl: rodic.url,
-  }, sTextem.map((s) => ({ strana: s.strana, text: s.text })));
-  if ((poradi + 1) % 25 === 0) console.log(`PDF ${poradi + 1}/${pdfKeZpracovani.length}`);
+  } as const;
+
+  if (formatPrilohy(zaznam.url) === 'word') {
+    const surovy = await nacistText(souborTextuWordu(zaznam.url));
+    if (surovy === null) {
+      zprava.chyby.push({ url: zaznam.url, hlaska: 'Chybí text z Wordu. Spusťte npm run index:word.' });
+      continue;
+    }
+    const text = textWordu(surovy);
+    if (text.replace(/\s+/g, '').length < MIN_ZNAKU_STRANY) {
+      zprava.bezTextu.push(zaznam.url);
+      continue;
+    }
+    zprava.word.push({ url: zaznam.url, nazev, znaku: text.length });
+    pridat({ ...dokument, nazev }, [{ strana: null, text }]);
+    continue;
+  }
+
+  let strany;
+  try {
+    strany = await textPdf(new Uint8Array(await fs.readFile(path.join(SLOZKA_DAT, stav.pdf[zaznam.url].soubor))));
+  } catch (chyba) {
+    zprava.chyby.push({ url: zaznam.url, hlaska: chyba instanceof Error ? chyba.message.slice(0, 200) : 'neznámá chyba' });
+    continue;
+  }
+  // Strana bez textové vrstvy dostane text z OCR, když je čitelný. Výkresy a mapy zůstanou mimo index.
+  const zOcr: number[] = [];
+  for (const strana of strany) {
+    if (strana.text.replace(/\s+/g, '').length >= MIN_ZNAKU_STRANY) continue;
+    const surovy = await nacistText(souborOcr(zaznam.url, strana.strana));
+    if (surovy === null) continue;
+    const text = textOcr(surovy);
+    if (jeCitelnyOcr(text)) {
+      strana.text = text;
+      zOcr.push(strana.strana);
+    } else if (text) {
+      zprava.ocrNecitelne.push({ url: zaznam.url, strana: strana.strana });
+    }
+  }
+  const sTextem = strany.filter((s) => s.text.replace(/\s+/g, '').length >= MIN_ZNAKU_STRANY);
+  if (!sTextem.length) {
+    zprava.skeny.push({ url: zaznam.url, nazev, stran: strany.length });
+    continue;
+  }
+  if (sTextem.length < strany.length) {
+    zprava.castecneSkeny.push({ url: zaznam.url, nazev, stranBezTextu: strany.filter((s) => !sTextem.includes(s)).map((s) => s.strana) });
+  }
+  // Název řekne, že text pochází z OCR a může obsahovat chyby rozpoznání. Rozhoduje znění dokumentu.
+  if (zOcr.length) {
+    nazev += zOcr.length === sTextem.length ? ' (text rozpoznaný ze skenu)' : ' (část textu rozpoznaná ze skenu)';
+    zprava.ocr.push({ url: zaznam.url, nazev, strany: zOcr });
+  }
+  pridat({ ...dokument, nazev }, sTextem.map((s) => ({ strana: s.strana, text: s.text })));
+  if ((poradi + 1) % 25 === 0) console.log(`Přílohy ${poradi + 1}/${prilohyKeZpracovani.length}`);
 }
 
 // 3. Karty projektů z ostrého webu Nezávislých. Jedna karta je jeden dokument.
@@ -177,3 +233,4 @@ await ulozitJson(path.join(SLOZKA_DAT, 'zprava.json'), { ...zprava, souhrn, doku
 console.log(`Dokumentů ${dokumenty.length}, úseků ${useky.length}.`);
 for (const [typ, s] of Object.entries(souhrn)) console.log(`  ${typ}: ${s.dokumentu} dokumentů, ${s.useku} úseků, ${s.znaku} znaků`);
 console.log(`Obálek bez vlastního textu ${zprava.obalky}, skenů ${zprava.skeny.length}, PDF se stranami bez textu ${zprava.castecneSkeny.length}, duplicit ${zprava.duplicity.length}, chyb ${zprava.chyby.length}.`);
+console.log(`Word a ODT ${zprava.word.length}, PDF s textem z OCR ${zprava.ocr.length} (${zprava.ocr.reduce((s, o) => s + o.strany.length, 0)} stran), nečitelných stran OCR ${zprava.ocrNecitelne.length}.`);

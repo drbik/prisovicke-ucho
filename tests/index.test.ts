@@ -1,8 +1,11 @@
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { precistKarty } from '../nastroje/index/karty';
 import { jeRizeniSoukromeOsoby } from '../nastroje/index/nastaveni';
 import { odstranitOpakovane, spojitRadky } from '../nastroje/index/pdf';
+import { jeCitelnyOcr, textOcr, textWordu } from '../nastroje/index/prevod';
 import { precistRobots } from '../nastroje/index/sit';
+import { formatPrilohy, souborPrilohy } from '../nastroje/index/spolecne';
 import { DELKA_USEKU, PREKRYV, prekryv, rozdelitNaMisto, rozdelitNaUseky } from '../nastroje/index/useky';
 import { naIsoDatum, precistSitemapu, rozebratClanek, typSitemapy } from '../nastroje/index/wordpress';
 
@@ -125,5 +128,55 @@ describe('úseky (8.4)', () => {
       'Stavba čp. 145 ve výši 21.000,- Kč.',
       'Další věta je delší než místo.',
     ]);
+  });
+});
+
+describe('rozšíření indexu o Word, ODT a OCR (10. 11. 2026)', () => {
+  it('stahuje jen PDF, Word a ODT', () => {
+    expect(formatPrilohy('https://prisovice.cz/wp-content/uploads/2026/03/vyhlaska.PDF')).toBe('pdf');
+    expect(formatPrilohy('https://prisovice.cz/wp-content/uploads/2026/03/vyhlaska.docx')).toBe('word');
+    expect(formatPrilohy('https://prisovice.cz/wp-content/uploads/2026/03/zprava.doc')).toBe('word');
+    expect(formatPrilohy('https://prisovice.cz/wp-content/uploads/2026/01/opatreni.odt')).toBe('word');
+    expect(formatPrilohy('https://prisovice.cz/wp-content/uploads/2026/01/rozpocet.xlsx')).toBeNull();
+    expect(formatPrilohy('https://prisovice.cz/wp-content/uploads/2026/01/archiv.zip')).toBeNull();
+    expect(souborPrilohy('https://prisovice.cz/a/opatreni.ODT').split(path.sep)).toEqual(['word', expect.stringMatching(/^[0-9a-f]{40}\.odt$/)]);
+    expect(souborPrilohy('https://prisovice.cz/a/vyhlaska.pdf').split(path.sep)).toEqual(['pdf', expect.stringMatching(/^[0-9a-f]{40}\.pdf$/)]);
+  });
+
+  it('text z Wordu: odstavce, tabulky a Enter uprostřed věty', () => {
+    const surovy = [
+      '\ufeffObecně závazná vyhláška',
+      '(dále jen "zákon',
+      'o odpadech")',
+      '',
+      '\tOdsazený odstavec.',
+      'Druh\tCena\t\tPoznámka',
+      'Papír\t22,2\tsběrné místo',
+      'Konec\u000btextu.',
+    ].join('\r\n');
+    expect(textWordu(surovy)).toBe([
+      'Obecně závazná vyhláška',
+      '(dále jen "zákon o odpadech")',
+      'Odsazený odstavec.',
+      'Druh | Cena | Poznámka\nPapír | 22,2 | sběrné místo',
+      // Ruční zalomení řádku uprostřed věty se spojí stejně jako Enter.
+      'Konec textu.',
+    ].join('\n\n'));
+  });
+
+  it('text z OCR: řádky a slova rozdělená na konci řádku', () => {
+    expect(textOcr('Provozní řád rekre-\r\nační oblasti\n\n  Malý   Písečák  ')).toBe('Provozní řád rekreační oblasti\nMalý Písečák');
+  });
+
+  it('nečitelný text z OCR (výkres, razítko) do indexu nejde', () => {
+    const odstavec = 'Provozní řád rekreační oblasti Malý a Velký Písečák upravuje pravidla pobytu návštěvníků v areálu. '
+      + 'Koupání je na vlastní nebezpečí a psi do vody nesmějí. Parkovat se smí jen na vyhrazených místech u vstupu. '
+      + 'Stanovat lze pouze v kempu po dohodě se správcem tábořiště, oheň se rozdělává jen na určených místech.';
+    expect(jeCitelnyOcr(odstavec)).toBe(true);
+    // Úřední text s čísly parcel: slov z písmen je méně než polovina, přesto je čitelný.
+    const parcely = `${'Stavební úřad oznamuje zahájení řízení vlastníkům sousedních pozemků parcel '.repeat(4)}${'110/55, 110/63, 110/64, '.repeat(20)}`;
+    expect(jeCitelnyOcr(parcely)).toBe(true);
+    expect(jeCitelnyOcr('472/70 1:500 A3 PS-01 2,40 ±0,000 S1 S2 Ing. 12.3.2025 M 1:200 X Y')).toBe(false);
+    expect(jeCitelnyOcr('Starosta obce razítko podpis')).toBe(false);
   });
 });

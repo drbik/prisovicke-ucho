@@ -16,7 +16,16 @@ import {
 } from './nastaveni';
 import { precistRobots, vytvorStahovac } from './sit';
 import { precistSitemapu, rozebratClanek, typSitemapy, type TypPolozky, type ZaznamRest } from './wordpress';
-import { mesicNahrani, nacistJson, souborStavu, ulozitJson, type StavStazeni, type ZaznamSeznamu } from './spolecne';
+import {
+  formatPrilohy,
+  mesicNahrani,
+  nacistJson,
+  souborPrilohy,
+  souborStavu,
+  ulozitJson,
+  type StavStazeni,
+  type ZaznamSeznamu,
+} from './spolecne';
 
 const sha1 = (text: string) => createHash('sha1').update(text).digest('hex');
 const ted = () => new Date().toISOString();
@@ -29,6 +38,7 @@ const pocty = { stazeno: 0, bezeZmeny: 0 };
 
 await fs.mkdir(path.join(SLOZKA_DAT, 'html'), { recursive: true });
 await fs.mkdir(path.join(SLOZKA_DAT, 'pdf'), { recursive: true });
+await fs.mkdir(path.join(SLOZKA_DAT, 'word'), { recursive: true });
 
 async function stahnoutText(url: string) {
   const vysledek = await stahovac.stahnout(url);
@@ -126,7 +136,7 @@ for (const [poradi, polozka] of polozky.entries()) {
   if (poradi % 50 === 0) console.log(`HTML ${poradi + 1}/${polozky.length}`);
 }
 
-// 5. PDF odkázaná z obsahu v rozsahu indexu.
+// 5. PDF, Word a ODT odkázané z obsahu v rozsahu indexu.
 for (const [url, { rodice }] of odkazy) {
   const zaznam: ZaznamSeznamu = { url, typ: 'pdf', stav: 'stazeno', rodic: rodice[0].url };
   seznam.push(zaznam);
@@ -135,7 +145,7 @@ for (const [url, { rodice }] of odkazy) {
     zaznam.stav = 'cizi-domena';
     continue;
   }
-  if (!/\.pdf$/i.test(adresa.pathname)) {
+  if (!formatPrilohy(url)) {
     zaznam.stav = 'jiny-format';
     continue;
   }
@@ -156,7 +166,7 @@ for (const [url, { rodice }] of odkazy) {
     zaznam.stav = 'robots';
     continue;
   }
-  const soubor = path.join('pdf', `${sha1(url)}.pdf`);
+  const soubor = souborPrilohy(url);
   // Nahraný soubor WordPress pod stejnou adresou nemění. Co je stažené, se znovu nestahuje.
   if (stav.pdf[url] && existsSync(path.join(SLOZKA_DAT, soubor))) {
     zaznam.stav = 'beze-zmeny';

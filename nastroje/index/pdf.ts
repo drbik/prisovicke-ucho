@@ -8,8 +8,13 @@ import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 export const MIN_ZNAKU_STRANY = 50;
 
 const balicek = path.dirname(createRequire(import.meta.url).resolve('pdfjs-dist/package.json'));
-const cMapUrl = pathToFileURL(path.join(balicek, 'cmaps') + path.sep).href;
-const standardFontDataUrl = pathToFileURL(path.join(balicek, 'standard_fonts') + path.sep).href;
+export const cMapUrl = pathToFileURL(path.join(balicek, 'cmaps') + path.sep).href;
+export const standardFontDataUrl = pathToFileURL(path.join(balicek, 'standard_fonts') + path.sep).href;
+// Dekodéry obrázků JBIG2 a JPEG 2000 a barevné profily. Bez nich pdfjs v Node nevykreslí textovou vrstvu
+// skenů z kopírek, které ukládají text jako JBIG2 nad obrázkem pozadí. Potřebuje je OCR. WebAssembly
+// pdfjs v Node z adresy file:// nenačte a použije záložní dekodér v JavaScriptu ze stejné složky.
+export const wasmUrl = pathToFileURL(path.join(balicek, 'wasm') + path.sep).href;
+export const iccUrl = pathToFileURL(path.join(balicek, 'iccs') + path.sep).href;
 
 interface PolozkaTextu {
   str: string;
