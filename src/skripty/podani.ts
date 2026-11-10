@@ -11,11 +11,14 @@ import {
   type PotvrzenyVzkaz,
 } from '../lib/podani/potvrzeni';
 import type { TechnickeUdaje, VysledekPodani } from '../lib/podani/zpracovani';
+import type { DuvodPredani, ZobrazenaOdpoved } from '../lib/odpovedi/odpoved';
+import type { VysledekDotazu } from '../lib/odpovedi/zpracovani';
 import { OBLASTI, TYPY_PODNETU } from '../lib/oblasti';
 
 type Pohled = 'zadost' | 'nahravani' | 'odesilani' | 'text' | 'vysledek' | 'potvrzeno' | 'chyba';
 
 const API = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/api/vzkaz`;
+const API_DOTAZU = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/api/dotaz`;
 
 const DUVODY_BEZ_MIKROFONU: Record<DruhChybyMikrofonu, string> = {
   zakazano: 'Mikrofon je pro tuto stránku zakázaný. Povolte ho v nastavení prohlížeče, nebo vzkaz napište.',
@@ -38,6 +41,25 @@ const OBECNA_CHYBA = 'Něco se nepovedlo. Zkuste to prosím znovu.';
 const CHYBA_SITE = 'Spojení se nepodařilo. Zkontrolujte připojení a zkuste to znovu.';
 const OTAZKA_ZAHOZENI = 'Opravdu vzkaz zahodit? Nikam se neuložil, takže se k němu už nevrátíte.';
 const NAZVY_POLI: Record<PolePotvrzeni, string> = { text: 'text', nazev: 'název', typ: 'typ', oblast: 'oblast' };
+
+// Krok 8.7: proč odpověď není. Stránka nesmí tvrdit, že dotaz někam odešel (fronta správce zatím není).
+const NENALEZENO = 'Na webu obce ani na webu Nezávislých pro Příšovice jsme odpověď na tento dotaz nenašli.';
+const BEZ_OPORY = 'Na webu jsme našli související informace, ale ne takové, ze kterých by šlo spolehlivě odpovědět.';
+const DUVODY_BEZ_ODPOVEDI: Record<DuvodPredani, string> = {
+  'nic-nenalezeno': NENALEZENO,
+  'model-nevi': NENALEZENO,
+  'chyba-ai': 'Odpověď se teď nepodařilo vyhledat. Zkuste to prosím za chvíli znovu.',
+  'neplatny-json': BEZ_OPORY,
+  'chybi-citace': BEZ_OPORY,
+  'spatny-usek': BEZ_OPORY,
+  'citace-neni-v-useku': BEZ_OPORY,
+  'cislo-neni-v-citaci': BEZ_OPORY,
+  'neplyne-z-citace': BEZ_OPORY,
+};
+const ODPOVED_SITE = 'Odpověď se nepodařilo vyhledat, spojení selhalo. Zkontrolujte připojení a zkuste to znovu.';
+const ODPOVED_LIMIT = 'Během chvilky přišlo moc požadavků. Počkejte prosím minutu a zkuste to znovu.';
+// Odkaz smí vést jen na zdroje indexu, i kdyby server vrátil něco jiného.
+const POVOLENY_ZDROJ = /^https:\/\/(?:prisovice\.cz|nezavisli-prisovice\.cz)\//;
 
 function prvek<T extends HTMLElement>(selektor: string, koren: ParentNode = document) {
   const nalezeny = koren.querySelector<T>(selektor);
@@ -71,6 +93,13 @@ const potvrzenyText = prvek('[data-potvrzeny-text]', panel);
 const zmeny = prvek('[data-zmeny]', panel);
 const textChyby = prvek('[data-chyba]', panel);
 const opakovat = prvek<HTMLButtonElement>('[data-opakovat]', panel);
+const odpoved = prvek('[data-odpoved]', panel);
+const oznaceniOdpovedi = prvek('[data-odpoved-oznaceni]', panel);
+const vetyOdpovedi = prvek('[data-odpoved-vety]', panel);
+const zdrojeOdpovedi = prvek('[data-odpoved-zdroje]', panel);
+const upozorneniOdpovedi = prvek('[data-odpoved-upozorneni]', panel);
+const duvodBezOdpovedi = prvek('[data-odpoved-duvod]', panel);
+const hledatZnovu = prvek('[data-odpoved-znovu]', panel);
 
 let nahravani: Nahravani | null = null;
 let odeslani: AbortController | null = null;
@@ -80,6 +109,9 @@ let cisloPokusu = 0;
 let aktualniPohled: Pohled | null = null;
 // Návrh AI, se kterým se při potvrzení porovná, co autor změnil.
 let navrh: PotvrzenyVzkaz | null = null;
+// Potvrzený dotaz, na který se hledá odpověď. Hledat znovu ho pošle ještě jednou.
+let hledanyDotaz: PotvrzenyVzkaz | null = null;
+let hledani: AbortController | null = null;
 
 function ukazat(pohled: Pohled, hlaseni = '') {
   aktualniPohled = pohled;
@@ -182,6 +214,97 @@ function potvrdit(udalost: SubmitEvent) {
     ? `Změny oproti návrhu AI: ${zmenene.map((pole) => NAZVY_POLI[pole]).join(', ')}.`
     : 'Návrh AI zůstal beze změny.';
   ukazat('potvrzeno', 'Vzkaz je potvrzený.');
+  // F-72: návrhy, stížnosti a pochvaly se nehledají.
+  if (vzkaz.typ === 'dotaz') void hledatOdpoved(vzkaz);
+  else ukazatStavOdpovedi(null);
+}
+
+function ukazatStavOdpovedi(stav: 'hledani' | 'nalezena' | 'zastupitelum' | null) {
+  odpoved.hidden = stav === null;
+  for (const cast of odpoved.querySelectorAll<HTMLElement>('[data-odpoved-stav]')) {
+    cast.hidden = cast.dataset.odpovedStav !== stav;
+  }
+}
+
+function ukazatOdpoved(data: ZobrazenaOdpoved) {
+  oznaceniOdpovedi.textContent = data.oznaceni.join(' · ');
+  const odstavec = document.createElement('p');
+  for (const veta of data.vety) {
+    const odkaz = document.createElement('a');
+    odkaz.href = `#odpoved-zdroj-${veta.zdroj}`;
+    odkaz.textContent = String(veta.zdroj);
+    odkaz.setAttribute('aria-label', `zdroj ${veta.zdroj}`);
+    const index = document.createElement('sup');
+    index.append(odkaz);
+    odstavec.append(veta.text, index, ' ');
+  }
+  vetyOdpovedi.replaceChildren(odstavec);
+  zdrojeOdpovedi.replaceChildren(...data.zdroje.map((zdroj) => {
+    const polozka = document.createElement('li');
+    polozka.id = `odpoved-zdroj-${zdroj.cislo}`;
+    const oznaceni = document.createElement('span');
+    oznaceni.className = 'zdroj__oznaceni';
+    oznaceni.textContent = zdroj.oznaceni;
+    const nazev = document.createElement(POVOLENY_ZDROJ.test(zdroj.url) ? 'a' : 'span');
+    nazev.textContent = zdroj.nazev;
+    if (nazev instanceof HTMLAnchorElement) {
+      nazev.href = zdroj.url;
+      nazev.target = '_blank';
+      nazev.rel = 'noopener noreferrer';
+    }
+    const datum = document.createElement('span');
+    datum.className = 'zdroj__datum';
+    datum.textContent = zdroj.datum;
+    const uryvek = document.createElement('blockquote');
+    uryvek.className = 'zdroj__uryvek';
+    uryvek.textContent = `„${zdroj.uryvek}“`;
+    polozka.append(oznaceni, nazev, datum, uryvek);
+    return polozka;
+  }));
+  upozorneniOdpovedi.textContent = data.upozorneni;
+  ukazatStavOdpovedi('nalezena');
+  oznameni.textContent = 'Odpověď je připravená pod souhrnem vzkazu.';
+}
+
+function ukazatBezOdpovedi(duvod: string, muzeZnovu: boolean) {
+  duvodBezOdpovedi.textContent = duvod;
+  hledatZnovu.hidden = !muzeZnovu;
+  ukazatStavOdpovedi('zastupitelum');
+  oznameni.textContent = 'Odpověď jsme na webu nenašli. Dotaz převezmou zastupitelé.';
+}
+
+// Krok 8.7: potvrzený dotaz projde hledáním na webu obce a v kartách webu Nezávislých (F-70 až F-76).
+async function hledatOdpoved(vzkaz: PotvrzenyVzkaz) {
+  hledani?.abort();
+  const rizeni = new AbortController();
+  hledani = rizeni;
+  hledanyDotaz = vzkaz;
+  ukazatStavOdpovedi('hledani');
+  oznameni.textContent = 'Vzkaz je potvrzený. Hledáme odpověď na webu.';
+  try {
+    const vysledek = await fetch(API_DOTAZU, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ text: vzkaz.text, typ: vzkaz.typ }),
+      signal: rizeni.signal,
+    });
+    const data = await vysledek.json().catch(() => null) as VysledekDotazu | null;
+    if (rizeni.signal.aborted) return;
+    if (!vysledek.ok || !data) {
+      ukazatBezOdpovedi(vysledek.status === 429 ? ODPOVED_LIMIT : DUVODY_BEZ_ODPOVEDI['chyba-ai'], true);
+    } else if (data.vysledek === 'odpoved') {
+      ukazatOdpoved(data.odpoved);
+    } else if (data.vysledek === 'zastupitelum') {
+      ukazatBezOdpovedi(DUVODY_BEZ_ODPOVEDI[data.duvod] ?? NENALEZENO, data.duvod === 'chyba-ai');
+    } else {
+      ukazatStavOdpovedi(null);
+    }
+  } catch (chyba) {
+    if (chyba instanceof DOMException && chyba.name === 'AbortError') return;
+    ukazatBezOdpovedi(ODPOVED_SITE, true);
+  } finally {
+    if (hledani === rizeni) hledani = null;
+  }
 }
 
 // Upravený vzkaz existuje jen v prohlížeči, proto se před zahozením ptáme.
@@ -289,7 +412,14 @@ prvek('[data-hotovo]', panel).addEventListener('click', () => nahravani?.dokonci
 prvek('[data-zavrit]', panel).addEventListener('click', zavrit);
 prvek('[data-zahodit]', panel).addEventListener('click', zavrit);
 prvek('[data-novy]', panel).addEventListener('click', () => panel.close());
-prvek('[data-zpet-k-uprave]', panel).addEventListener('click', () => ukazat('vysledek'));
+prvek('[data-zpet-k-uprave]', panel).addEventListener('click', () => {
+  hledani?.abort();
+  ukazatStavOdpovedi(null);
+  ukazat('vysledek');
+});
+prvek('[data-hledat-znovu]', panel).addEventListener('click', () => {
+  if (hledanyDotaz) void hledatOdpoved(hledanyDotaz);
+});
 prvek('[data-prejit-na-text]', panel).addEventListener('click', () => ukazatText());
 opakovat.addEventListener('click', () => poOpakovani());
 for (const zrusit of panel.querySelectorAll('[data-zrusit]')) zrusit.addEventListener('click', () => panel.close());
@@ -310,4 +440,6 @@ panel.addEventListener('close', () => {
   nahravani?.zrusit();
   nahravani = null;
   odeslani?.abort();
+  hledani?.abort();
+  ukazatStavOdpovedi(null);
 });

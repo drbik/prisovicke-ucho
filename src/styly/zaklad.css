@@ -97,6 +97,19 @@ form > label:not(:first-child), .dvojice { margin-top: 16px; }
 .toceni { display: inline-block; width: 16px; height: 16px; margin-right: 6px; border: 3px solid #e0eadd; border-top-color: var(--past); border-radius: 50%; vertical-align: -2px; animation: toceni 900ms linear infinite; }
 @keyframes toceni { to { transform: rotate(360deg); } }
 
+.odpoved { margin: 22px 0 0; padding-top: 18px; border-top: 1px solid var(--linka); }
+.odpoved__titulek { margin: 0 0 10px; font-size: 1.05rem; }
+.odpoved__oznaceni { margin: 0 0 8px; color: var(--past); font-size: .78rem; font-weight: 760; letter-spacing: .06em; text-transform: uppercase; }
+.odpoved__text p { margin: 0 0 10px; overflow-wrap: anywhere; }
+.odpoved__text sup a { margin-left: 2px; color: var(--past); font-weight: 750; text-underline-offset: 2px; }
+.odpoved__zdroje-titulek { margin: 16px 0 6px; font-size: .9rem; }
+.odpoved__zdroje { margin: 0 0 14px; padding-left: 22px; font-size: .9rem; }
+.odpoved__zdroje li { margin-bottom: 12px; overflow-wrap: anywhere; }
+.odpoved__zdroje li:target { outline: 2px solid var(--fokus); outline-offset: 4px; }
+.zdroj__oznaceni { display: block; color: var(--ink-soft); font-size: .78rem; font-weight: 700; }
+.zdroj__datum { display: block; color: var(--ink-soft); font-size: .84rem; }
+.zdroj__uryvek { margin: 6px 0 0; padding: 8px 12px; border-left: 3px solid var(--past); border-radius: 0 7px 7px 0; background: #edf2e8; font-size: .86rem; white-space: pre-line; }
+
 .ram { display: block; width: 100%; height: min(720px, 80dvh); margin-top: 20px; border: 1px solid var(--linka); border-radius: 7px; background: var(--plocha); }
 
 .jen-ctecka { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

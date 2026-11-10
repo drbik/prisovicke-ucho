@@ -136,6 +136,29 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
         </dl>
         <blockquote class="prepis" data-potvrzeny-text></blockquote>
         <p class="drobne" data-zmeny></p>
+
+        <section class="odpoved" aria-labelledby="odpoved-titulek" data-odpoved hidden>
+          <h3 id="odpoved-titulek" class="odpoved__titulek" tabindex="-1" data-odpoved-titulek>Odpověď na dotaz</h3>
+          <div data-odpoved-stav="hledani" hidden>
+            <p><span class="toceni" aria-hidden="true"></span> Hledáme odpověď na webu obce a na webu Nezávislých pro Příšovice.</p>
+          </div>
+          <div data-odpoved-stav="nalezena" hidden>
+            <p class="odpoved__oznaceni" data-odpoved-oznaceni></p>
+            <div class="odpoved__text" data-odpoved-vety></div>
+            <h4 class="odpoved__zdroje-titulek">Zdroje</h4>
+            <ol class="odpoved__zdroje" data-odpoved-zdroje></ol>
+            <p class="poznamka" data-odpoved-upozorneni></p>
+          </div>
+          <div data-odpoved-stav="zastupitelum" hidden>
+            <p class="odpoved__oznaceni">Odpověď jsme na webu nenašli</p>
+            <p data-odpoved-duvod></p>
+            <p class="poznamka">Dotaz převezmou zastupitelé. Ve zkušebním provozu se ale zatím nikam neuložil a nikdo ho nedostal.</p>
+            <div class="akce" data-odpoved-znovu hidden>
+              <button class="tlacitko tlacitko--druhe" type="button" data-hledat-znovu>Hledat znovu</button>
+            </div>
+          </div>
+        </section>
+
         <div class="akce">
           <button class="tlacitko" type="button" data-novy>Nový vzkaz</button>
           <button class="tlacitko tlacitko--druhe" type="button" data-zpet-k-uprave>Zpět k úpravám</button>
