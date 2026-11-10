@@ -33,18 +33,6 @@ Pravidla:
 
 Odpověz jen jedním objektem JSON: {"vety": [{"veta": "…", "usek": 1, "citace": "…"}], "nezodpovezeno": ["…"]}. Když jsou zodpovězené všechny části dotazu, je "nezodpovezeno" prázdné: []. Když odpověď v úryvcích není: {"vety": [], "nezodpovezeno": []}.`;
 
-// Jediný opravný pokus: model dostane svou odpověď zpět a důvod, proč neprošla kontrolou. Zamítnutí kontrol jsou u
-// jazykových modelů občas náhodná (stejná otázka jednou projde, podruhé ne), takže jeden pokus zachrání
-// odpověď, aniž by se kontroly zmírnily. Důvod, který se nedá opravit (model odpověď nenašel), pokus nemá.
-export const OPRAVA_ODPOVEDI: Partial<Record<string, string>> = {
-  'neplatny-json': 'Odpověď nebyla jeden platný objekt JSON ve tvaru z pokynů. Odpověz znovu jen jedním objektem JSON.',
-  'chybi-citace': 'Některá věta neměla citaci. Odpověz znovu: každá věta má číslo úryvku a doslovnou citaci z něj.',
-  'spatny-usek': 'Některá věta uvedla číslo úryvku, které neexistuje. Odpověz znovu a použij jen čísla úryvků, které jsi dostal.',
-  'citace-neni-v-useku': 'Citace některé věty není v uvedeném úryvku doslova. Odpověz znovu a každou citaci opiš z úryvku přesně, bez úprav a výpustek.',
-  'cislo-neni-v-citaci': 'Některá věta obsahuje číslo, datum nebo částku, které není v její citaci. Odpověz znovu: každé číslo ve větě musí být v citaci té věty. Údaje z různých míst úryvku napiš ve dvou větách, každou s vlastní citací.',
-  'neplyne-z-citace': 'Kontrola zjistila, že některá věta neplyne z její citace a z názvu zdroje. Odpověz znovu: piš jen to, co v citaci stojí, bez domýšlení. Časy a termíny převeď přesně.',
-};
-
 export function textUryvku(useky: NalezenyUsek[]) {
   return useky.map((u, i) => `[${i + 1}] ${u.hlavicka}\n${u.text}`).join('\n\n');
 }

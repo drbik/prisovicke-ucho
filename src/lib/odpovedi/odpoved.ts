@@ -2,7 +2,7 @@ import type { SluzbaAi } from '../ai/rozhrani';
 import { PRAH_PODOBNOSTI, hledatUseky } from './hledani';
 import { oddilCitace } from './misto';
 import { ZamitnutaOdpoved, jeTextVUseku, overitKodem, precistNezodpovezeno, precistOdpoved, precistOvereni, type DuvodZamitnuti } from './overeni';
-import { OPRAVA_ODPOVEDI, VERZE_PROMPTU_ODPOVEDI, zpravyOdpovedi, zpravyOvereni } from './prompt-odpovedi';
+import { VERZE_PROMPTU_ODPOVEDI, zpravyOdpovedi, zpravyOvereni } from './prompt-odpovedi';
 import type { IndexZdroju } from './rozhrani';
 import type { NalezenyUsek, WebZdroje } from './typy';
 import { OZNACENI_ZDROJE, UPOZORNENI, datumZdroje, odkazNaZdroj } from './zdroje';
@@ -42,8 +42,6 @@ export interface TechnickeOdpovedi {
   hledaniMs: number;
   odpovedMs?: number;
   overeniMs?: number;
-  // 2, když první odpověď neprošla kontrolou a model dostal jednu příležitost ji opravit.
-  pokusu: number;
   model: string;
   verzePromptu: number;
 }
@@ -62,7 +60,6 @@ export interface ZavislostiOdpovedi {
 }
 
 const MAX_TOKENU_ODPOVEDI = 900;
-const MAX_POKUSU = 2;
 const MAX_TOKENU_OVERENI = 200;
 
 // Odpověď ukáže citace v pořadí prvního použití. Jeden odkaz (dokument, u PDF strana) je jeden zdroj,
@@ -126,7 +123,6 @@ export async function odpovedetNaDotaz(dotaz: string, z: ZavislostiOdpovedi): Pr
     nejlepsiPodobnost: Math.round(hledani.nejlepsiPodobnost * 1000) / 1000,
     prerazeno: hledani.prerazeno,
     hledaniMs: ted() - zacatek,
-    pokusu: 1,
     model: z.ai.modelOdpovedi,
     verzePromptu: VERZE_PROMPTU_ODPOVEDI,
   };
@@ -134,33 +130,21 @@ export async function odpovedetNaDotaz(dotaz: string, z: ZavislostiOdpovedi): Pr
     return { vysledek: 'zastupitelum', duvod: 'nic-nenalezeno', technicke };
   }
 
-  const zpravy = zpravyOdpovedi(dotaz, hledani.useky);
   const predOdpovedi = ted();
-  let vystup = await z.ai.generovat(zpravy, { maxTokenu: MAX_TOKENU_ODPOVEDI });
+  const vystup = await z.ai.generovat(zpravyOdpovedi(dotaz, hledani.useky), { maxTokenu: MAX_TOKENU_ODPOVEDI });
   technicke.odpovedMs = ted() - predOdpovedi;
-  for (let pokus = 1; ; pokus += 1) {
-    try {
-      const navrzene = precistOdpoved(vystup);
-      if (!navrzene.length) return { vysledek: 'zastupitelum', duvod: 'model-nevi', technicke };
-      const vety = overitKodem(navrzene, hledani.useky);
-      const predOverenim = ted();
-      const kOvereni = vety.map((v) => ({ ...v, zdroj: hledani.useky[v.usek - 1].hlavicka }));
-      const overeni = await z.ai.generovat(zpravyOvereni(dotaz, kOvereni), { maxTokenu: MAX_TOKENU_OVERENI });
-      technicke.overeniMs = (technicke.overeniMs ?? 0) + ted() - predOverenim;
-      precistOvereni(overeni, vety.length);
-      return { vysledek: 'odpoved', odpoved: sestavitOdpoved(vety, hledani.useky, precistNezodpovezeno(vystup)), technicke };
-    } catch (chyba) {
-      if (!(chyba instanceof ZamitnutaOdpoved)) throw chyba;
-      const oprava = OPRAVA_ODPOVEDI[chyba.duvod];
-      if (pokus >= MAX_POKUSU || !oprava) return { vysledek: 'zastupitelum', duvod: chyba.duvod, technicke };
-      // Jedna příležitost k opravě. Nová odpověď projde stejnými kontrolami a poslední důvod zamítnutí rozhodne.
-      const predOpravou = ted();
-      vystup = await z.ai.generovat(
-        [...zpravy, { role: 'assistant', content: vystup }, { role: 'user', content: oprava }],
-        { maxTokenu: MAX_TOKENU_ODPOVEDI },
-      );
-      technicke.odpovedMs = (technicke.odpovedMs ?? 0) + ted() - predOpravou;
-      technicke.pokusu = pokus + 1;
-    }
+  try {
+    const navrzene = precistOdpoved(vystup);
+    if (!navrzene.length) return { vysledek: 'zastupitelum', duvod: 'model-nevi', technicke };
+    const vety = overitKodem(navrzene, hledani.useky);
+    const predOverenim = ted();
+    const kOvereni = vety.map((v) => ({ ...v, zdroj: hledani.useky[v.usek - 1].hlavicka }));
+    const overeni = await z.ai.generovat(zpravyOvereni(dotaz, kOvereni), { maxTokenu: MAX_TOKENU_OVERENI });
+    technicke.overeniMs = ted() - predOverenim;
+    precistOvereni(overeni, vety.length);
+    return { vysledek: 'odpoved', odpoved: sestavitOdpoved(vety, hledani.useky, precistNezodpovezeno(vystup)), technicke };
+  } catch (chyba) {
+    if (chyba instanceof ZamitnutaOdpoved) return { vysledek: 'zastupitelum', duvod: chyba.duvod, technicke };
+    throw chyba;
   }
 }

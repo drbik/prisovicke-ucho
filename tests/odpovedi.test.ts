@@ -151,71 +151,31 @@ describe('POST /api/dotaz (krok 8.6)', () => {
 
   it('tvrzení s citací, která v úseku není, odpověď zastaví (F-75)', async () => {
     const vymyslena = JSON.stringify({ vety: [{ veta: 'Pronájem stojí 4 000 Kč.', usek: 1, citace: 'pronájem sálu stojí 4.000 Kč na den' }] });
-    // Po zamítnutí model dostane jeden opravný pokus. Když zopakuje totéž, dotaz jde zastupitelům.
-    const { api, generovani } = sestavit({ vystupyGenerovani: [vymyslena, vymyslena, OVERENO] });
+    const { api, generovani } = sestavit({ vystupyGenerovani: [vymyslena, OVERENO] });
     const { data } = await poslat(api);
-    expect(data).toMatchObject({ vysledek: 'zastupitelum', duvod: 'citace-neni-v-useku', technicke: { pokusu: 2 } });
-    // Ověření modelem se po neúspěchu kontroly kódem nevolá, jen odpověď a její oprava.
-    expect(generovani).toHaveLength(2);
+    expect(data).toMatchObject({ vysledek: 'zastupitelum', duvod: 'citace-neni-v-useku' });
+    // Ověření modelem se po neúspěchu kontroly kódem už nevolá.
+    expect(generovani).toHaveLength(1);
   });
 
   it('číslo, které v citaci není, odpověď zastaví (F-75)', async () => {
     const cislo = JSON.stringify({ vety: [{ veta: 'Pronájem na víkend stojí 8 000 Kč.', usek: 1, citace: 'upravuje výši pronájmu samotného sálu sokolovny na 4.000,--Kč + energie' }] });
-    const { api } = sestavit({ vystupyGenerovani: [cislo, cislo, OVERENO] });
+    const { api } = sestavit({ vystupyGenerovani: [cislo, OVERENO] });
     const { data } = await poslat(api);
     expect(data).toMatchObject({ vysledek: 'zastupitelum', duvod: 'cislo-neni-v-citaci' });
   });
 
   it('když ověření modelem řekne, že věta z citace neplyne, jde dotaz zastupitelům (F-75, F-76)', async () => {
     const neplyne = JSON.stringify({ vysledky: [{ cislo: 1, plyne: true }, { cislo: 2, plyne: false }] });
-    const { api } = sestavit({ vystupyGenerovani: [ODPOVED, neplyne, ODPOVED, neplyne] });
+    const { api } = sestavit({ vystupyGenerovani: [ODPOVED, neplyne] });
     const { data } = await poslat(api);
     expect(data).toMatchObject({ vysledek: 'zastupitelum', duvod: 'neplyne-z-citace' });
   });
 
   it('neplatný výstup modelu pošle dotaz zastupitelům', async () => {
-    const { api } = sestavit({ vystupyGenerovani: ['Pronájem stojí 4 000 Kč.', 'Pronájem stojí 4 000 Kč.'] });
+    const { api } = sestavit({ vystupyGenerovani: ['Pronájem stojí 4 000 Kč.'] });
     const { data } = await poslat(api);
     expect(data).toMatchObject({ vysledek: 'zastupitelum', duvod: 'neplatny-json' });
-  });
-
-  describe('opravný pokus po zamítnuté odpovědi', () => {
-    const CISLO = JSON.stringify({ vety: [{ veta: 'Pronájem na víkend stojí 8 000 Kč.', usek: 1, citace: 'upravuje výši pronájmu samotného sálu sokolovny na 4.000,--Kč + energie' }] });
-
-    it('model dostane svou odpověď zpět s důvodem a opravená odpověď projde stejnými kontrolami', async () => {
-      const { api, generovani } = sestavit({ vystupyGenerovani: [CISLO, ODPOVED, OVERENO] });
-      const { data } = await poslat(api);
-      if (data.vysledek !== 'odpoved') throw new Error(`Čekal jsem odpověď, přišlo ${data.vysledek}.`);
-      expect(data.technicke.pokusu).toBe(2);
-      expect(data.odpoved.vety).toHaveLength(2);
-      // Opravné volání má původní zprávy, odpověď modelu a důvod.
-      expect(generovani).toHaveLength(3);
-      const oprava = generovani[1];
-      expect(oprava.map((zprava) => zprava.role)).toEqual(['system', 'user', 'assistant', 'user']);
-      expect(oprava[2].content).toBe(CISLO);
-      expect(oprava[3].content).toContain('číslo, datum nebo částku, které není v její citaci');
-    });
-
-    it('opravená odpověď musí projít i ověřením modelem', async () => {
-      const neplyne = JSON.stringify({ vysledky: [{ cislo: 1, plyne: false }, { cislo: 2, plyne: true }] });
-      const { api } = sestavit({ vystupyGenerovani: [CISLO, ODPOVED, neplyne] });
-      const { data } = await poslat(api);
-      expect(data).toMatchObject({ vysledek: 'zastupitelum', duvod: 'neplyne-z-citace', technicke: { pokusu: 2 } });
-    });
-
-    it('když model odpověď v úryvcích nenašel, pokus nemá smysl a volá se jen jednou', async () => {
-      const { api, generovani } = sestavit({ vystupyGenerovani: [JSON.stringify({ vety: [] })] });
-      const { data } = await poslat(api);
-      expect(data).toMatchObject({ vysledek: 'zastupitelum', duvod: 'model-nevi', technicke: { pokusu: 1 } });
-      expect(generovani).toHaveLength(1);
-    });
-
-    it('správná odpověď hned napoprvé se neopravuje', async () => {
-      const { api, generovani } = sestavit({ vystupyGenerovani: [ODPOVED, OVERENO] });
-      const { data } = await poslat(api);
-      expect(data).toMatchObject({ vysledek: 'odpoved', technicke: { pokusu: 1 } });
-      expect(generovani).toHaveLength(2);
-    });
   });
 
   it('výpadek AI dotaz nechá zastupitelům a stránka se to dozví', async () => {

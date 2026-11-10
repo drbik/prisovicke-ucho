@@ -65,7 +65,7 @@ Oblasti:
 ${SEZNAM_OBLASTI}`;
 
 export interface ZpravaModelu {
-  role: 'system' | 'user' | 'assistant';
+  role: 'system' | 'user';
   content: string;
 }
 
