@@ -7,6 +7,8 @@ export const MODEL_PREPISU = '@cf/openai/whisper-large-v3-turbo';
 export const MODEL_UPRAVY = '@cf/google/gemma-4-26b-a4b-it';
 // Vícejazyčné embeddingy, 1 024 rozměrů (krok 8.5). Index ve Vectorize musí mít stejný počet rozměrů.
 export const MODEL_VEKTORU = '@cf/baai/bge-m3';
+// Jediný přeřazovací model na Workers AI. Česky si je jistý jen zřídka, proto ho hledání bere jen při vysokém skóre.
+export const MODEL_PRERAZENI = '@cf/baai/bge-reranker-base';
 export const ROZMERU_VEKTORU = 1024;
 // Odpověď z webu: stejný model jako úprava, bez uvažování (rozhodnuto 9. 11. 2026).
 export const MODEL_ODPOVEDI = MODEL_UPRAVY;
@@ -89,6 +91,21 @@ export function vytvorCloudflareAi(ai: VazbaAi): SluzbaAi {
         throw new Error('Model embeddingů nevrátil vektory.');
       }
       return data as number[][];
+    },
+
+    async preradit(dotaz, texty) {
+      const vystup = (await ai.run(MODEL_PRERAZENI, {
+        query: dotaz,
+        contexts: texty.map((text) => ({ text })),
+        top_k: texty.length,
+      })) as { response?: { id?: unknown; score?: unknown }[] };
+      if (!Array.isArray(vystup?.response)) throw new Error('Přeřazovací model nevrátil skóre.');
+      // Model vrací seřazený seznam s pořadím vstupu v poli id. Text bez skóre dostane 0.
+      const skore = texty.map(() => 0);
+      for (const { id, score } of vystup.response) {
+        if (Number.isInteger(id) && (id as number) >= 0 && (id as number) < texty.length && typeof score === 'number') skore[id as number] = score;
+      }
+      return skore;
     },
 
     async generovat(zpravy, { maxTokenu }) {

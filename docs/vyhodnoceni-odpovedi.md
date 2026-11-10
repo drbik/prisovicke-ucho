@@ -35,6 +35,8 @@
 | 4 | 357 dokumentů | 3, 2 | Q02, Q07 | Q07 | – | – | 2 ze 2 | 8,2 s |
 | 5 | 428 dokumentů | 3, 2 | 30 | 14 ze 16, z toho Q02 chybně | 10 z 10 | 4 ze 4 | 14 ze 14 | 9,7 s |
 | 6 | 428 dokumentů | 3, 3 | 30 | **14 ze 16** | **10 z 10** | **4 ze 4** | 13 ze 14 | 69,8 s |
+| 7 | 428 dokumentů, s přeřazením | 3, 3 | 30 | 14 ze 16 | 10 z 10 | 4 ze 4 | 12 ze 14 | 12,3 s |
+| 8 | 428 dokumentů, s přeřazením | 3, 3 | 30 | 14 ze 16 | 10 z 10 | 4 ze 4 | 12 ze 14 | 40,5 s |
 
 Co se mezi běhy změnilo a proč:
 
@@ -48,6 +50,7 @@ Co se mezi běhy změnilo a proč:
 - **Rychlost:** citace jsou zkrácené na nejvýš 150 znaků a odpověď na nejvýš 3 věty.
 - **Rozšířený index (běh 5):** do indexu přibyly dokumenty Word a ODT a text skenů z OCR. Opory všech otázek sady zůstaly ve svých úsecích, žádná otázka bez odpovědi nezačala dostávat odpověď.
 - **Úřední hodiny (běh 5 → prompt odpovědi verze 3):** zdroj píše „Po a St: 7.00 – 11.00 oběd 12.00 – 17.00“. Model z toho v běhu 5 udělal „v době oběda od 12.00 do 17.00“ a obě kontroly větu pustily. Prompt odpovědi teď říká, že slovo mezi dvěma časovými úseky znamená přestávku, a druhá kontrola zamítá věty, které časy nebo jejich pořadí popisují jinak než citace. V běhu 6 model napsal časy správně, ale druhá kontrola větu zamítla, takže Q02 skončila u zastupitelů. Nepravdivá věta se tak už neukáže, cenou je jedna nezodpovězená otázka.
+- **Přeřazení úseků (běhy 7 a 8, po závěrečném běhu):** Tomáš se zeptal, jestli se psi smějí koupat v Písečácích, a dotaz skončil u zastupitelů. Odpověď v provozním řádu je, ale úsek s pravidlem byl v dokumentu až čtvrtý a z jednoho dokumentu jdou do modelu nejvýš dva. Hledání teď nechá kandidáty ohodnotit přeřazovacím modelem `@cf/baai/bge-reranker-base`. Česky si je jistý jen zřídka (u soudu, úředních hodin a Sokolovny dával skóre kolem nuly a správné úseky odsouval dolů), proto dopředu jdou jen úseky se skóre aspoň 0,5. Ostatní drží dosavadní pořadí a když přeřazení selže, hledání pokračuje bez něj. Pravidlu o psech dal model 0,92 a dotaz dostal odpověď „Koupání psů v obou jezerech je zakázáno.“. Ve dvou bězích sady se přeřazení uplatnilo u 0 až 1 otázky z 26. Výsledky jsou stejné jako v běhu 6, jen Q02 a Q14 se mezi běhy střídají mezi správnou odpovědí a předáním zastupitelům. Hledání trvá průměrně o 0,4 až 0,55 s déle (1,2 až 1,3 s místo 0,75 s). Práh rychlosti vyšel v obou bězích 12 ze 14 (86 %), hlavně kvůli výkyvům Workers AI: psaní odpovědi 10,1 s a 21,6 s, celé odpovědi 12,4 s a 40,5 s. Jen u Q03 (10,3 s) rozhodlo přeřazení.
 
 ## Ruční kontrola odpovědí v závěrečném běhu
 

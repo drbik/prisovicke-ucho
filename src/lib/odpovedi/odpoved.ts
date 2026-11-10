@@ -32,6 +32,8 @@ export type DuvodPredani =
 export interface TechnickeOdpovedi {
   useku: number;
   nejlepsiPodobnost: number;
+  // Kolik úseků šlo do modelu díky přeřazení.
+  prerazeno: number;
   hledaniMs: number;
   odpovedMs?: number;
   overeniMs?: number;
@@ -96,11 +98,13 @@ export async function odpovedetNaDotaz(dotaz: string, z: ZavislostiOdpovedi): Pr
   const ted = z.ted ?? Date.now;
   const zacatek = ted();
   const [vektor] = await z.ai.vektory([dotaz]);
-  const hledani = await hledatUseky(z.index, vektor, dotaz);
+  const preradit = z.ai.preradit ? (text: string, texty: string[]) => z.ai.preradit!(text, texty) : undefined;
+  const hledani = await hledatUseky(z.index, vektor, dotaz, undefined, preradit);
   z.naHledani?.(hledani.useky, hledani.nejlepsiPodobnost);
   const technicke: TechnickeOdpovedi = {
     useku: hledani.useky.length,
     nejlepsiPodobnost: Math.round(hledani.nejlepsiPodobnost * 1000) / 1000,
+    prerazeno: hledani.prerazeno,
     hledaniMs: ted() - zacatek,
     model: z.ai.modelOdpovedi,
     verzePromptu: VERZE_PROMPTU_ODPOVEDI,

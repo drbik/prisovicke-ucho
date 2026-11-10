@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { vytvorFalesneAi } from '../src/lib/ai/falesna';
 import { vytvorApi } from '../src/lib/api/aplikace';
 import { vytvorFalesnyIndex } from '../src/lib/odpovedi/falesny';
-import { dotazProFulltext } from '../src/lib/odpovedi/hledani';
+import { dotazProFulltext, hledatUseky, type Preradit } from '../src/lib/odpovedi/hledani';
+import { odpovedetNaDotaz } from '../src/lib/odpovedi/odpoved';
 import { cislaVTextu, overitKodem, precistOdpoved, ZamitnutaOdpoved } from '../src/lib/odpovedi/overeni';
 import { VERZE_PROMPTU_ODPOVEDI } from '../src/lib/odpovedi/prompt-odpovedi';
 import type { NalezenyUsek, ZdrojovyDokument } from '../src/lib/odpovedi/typy';
@@ -274,6 +275,56 @@ describe('hledání', () => {
     const uryvky = generovani[0][1].content;
     expect(uryvky.match(/Úsek \d/g)).toHaveLength(2);
     expect(uryvky).toContain('bytový dům');
+  });
+
+  // Provozní řád Písečáků: pravidlo o psech bylo v dokumentu až čtvrté a do modelu se nedostalo.
+  // Dotaz nemá shodu ve fulltextu, takže pořadí dávají jen vektory.
+  const RAD: ZdrojovyDokument = { ...ZAPIS, id: 'rad', url: 'https://prisovice.cz/wp-content/uploads/2024/11/provozni-rad.pdf', nazev: 'Provozní řád rekreační oblasti Malý a Velký Písečák' };
+  const USEKY_RADU = [
+    usek(RAD, 'rad-0', 'Vjezd vozidel do prostoru Písečáků je zakázán.', 4),
+    usek(RAD, 'rad-1', 'Poplatek je 100 Kč za místo a den.', 6),
+    usek(RAD, 'rad-2', 'Upozornění pro provoz malých plavidel.', 6),
+    usek(RAD, 'rad-3', 'V obou jezerech je zakázáno koupat psy.', 5),
+  ];
+  const podobnostRadu = (u: NalezenyUsek) => ({ 'rad-0': 0.63, 'rad-1': 0.62, 'rad-2': 0.61, 'rad-3': 0.6 } as Record<string, number>)[u.id] ?? 0.5;
+  const hledatPsy = async (preradit?: Preradit) => {
+    const index = vytvorFalesnyIndex([...USEKY_RADU, USEK_BYTY], podobnostRadu);
+    return hledatUseky(index, [1, 0, 0], 'Smí pes do vody?', 6, preradit);
+  };
+
+  it('bez přeřazení vezme z dokumentu dva nejlepší úseky podle pořadí', async () => {
+    const vysledek = await hledatPsy();
+    expect(vysledek.useky.map((u) => u.id).filter((id) => id.startsWith('rad'))).toEqual(['rad-0', 'rad-1']);
+    expect(vysledek.prerazeno).toBe(0);
+  });
+
+  it('úsek, u kterého si je přeřazení jisté, jde dopředu i přes limit dokumentu', async () => {
+    const preradit = vi.fn(async (_dotaz: string, texty: string[]) => texty.map((t) => (t.includes('koupat psy') ? 0.92 : t.includes('Vjezd') ? 0.86 : 0.01)));
+    const vysledek = await hledatPsy(preradit);
+    expect(vysledek.useky[0].id).toBe('rad-3');
+    expect(vysledek.useky.map((u) => u.id).filter((id) => id.startsWith('rad'))).toEqual(['rad-3', 'rad-0']);
+    expect(vysledek.useky.map((u) => u.id)).toContain('karta-0');
+    expect(vysledek.prerazeno).toBe(2);
+    // Přeřazení dostane hlavičku i text úseku.
+    expect(preradit.mock.calls[0][1].some((t) => t.startsWith('Provozní řád') && t.includes('koupat psy'))).toBe(true);
+  });
+
+  it('nízké skóre přeřazení pořadí nemění a chyba přeřazení hledání nezastaví', async () => {
+    const nizke = await hledatPsy(async (_d, texty) => texty.map(() => 0.02));
+    expect(nizke.useky.map((u) => u.id).filter((id) => id.startsWith('rad'))).toEqual(['rad-0', 'rad-1']);
+    const chyba = await hledatPsy(async () => { throw new Error('model nedostupný'); });
+    expect(chyba.useky.map((u) => u.id).filter((id) => id.startsWith('rad'))).toEqual(['rad-0', 'rad-1']);
+    expect(chyba.prerazeno).toBe(0);
+  });
+
+  it('odpověď použije přeřazení z AI a počet zapíše do technických údajů', async () => {
+    const { ai } = vytvorFalesneAi({ vystupyGenerovani: [JSON.stringify({ vety: [] })] });
+    const index = vytvorFalesnyIndex([...USEKY_RADU, USEK_BYTY], podobnostRadu);
+    const vysledek = await odpovedetNaDotaz('Smí pes do vody?', {
+      ai: { ...ai, preradit: async (_d, texty) => texty.map((t) => (t.includes('koupat psy') ? 0.92 : 0)) },
+      index,
+    });
+    expect(vysledek.technicke.prerazeno).toBe(1);
   });
 });
 

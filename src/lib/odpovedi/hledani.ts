@@ -12,6 +12,13 @@ const RRF_K = 60;
 // Nastaveno na typových otázkách (8.8): otázky s odpovědí i bez ní mají 0,48 až 0,74, rozliší je až model.
 // Práh proto odřízne jen zjevně cizí dotazy.
 export const PRAH_PODOBNOSTI = 0.45;
+// Přeřazovací model (bge-reranker-base) česky většinou vrací skóre kolem nuly a pořadí by zhoršil. Když si je
+// ale jistý (skóre aspoň 0,5), úsek opravdu odpovídá: u dotazu na psy v Písečácích dal pravidlu 0,92, i když
+// bylo v dokumentu až čtvrté a do modelu se nedostalo. Jisté úseky proto jdou dopředu, zbytek drží pořadí.
+export const PRAH_PRERAZENI = 0.5;
+const MAX_ZNAKU_K_PRERAZENI = 2000;
+
+export type Preradit = (dotaz: string, texty: string[]) => Promise<number[]>;
 
 // Slova, která nic nehledají. Bez diakritiky, protože fulltext diakritiku ignoruje.
 const BEZVYZNAMNA = new Set(`
@@ -59,10 +66,19 @@ export interface VysledekHledani {
   nejlepsiPodobnost: number;
   shodVektoru: number;
   shodSlov: number;
+  // Kolik vybraných úseků šlo dopředu díky přeřazení.
+  prerazeno: number;
 }
 
 // Vektory najdou úsek podle významu, fulltext přesné výrazy. Spojí je reciproční fúze pořadí.
-export async function hledatUseky(index: IndexZdroju, vektor: number[], text: string, pocet = USEKU_DO_MODELU): Promise<VysledekHledani> {
+// Přeřazení (když je k dispozici) posune dopředu úseky, u kterých si je přeřazovací model jistý.
+export async function hledatUseky(
+  index: IndexZdroju,
+  vektor: number[],
+  text: string,
+  pocet = USEKU_DO_MODELU,
+  preradit?: Preradit,
+): Promise<VysledekHledani> {
   const fts = dotazProFulltext(text);
   const [podleVektoru, podleSlov] = await Promise.all([
     index.hledatVektorem(vektor, KANDIDATU),
@@ -75,20 +91,38 @@ export async function hledatUseky(index: IndexZdroju, vektor: number[], text: st
   }
   const poradi = [...skore].sort((a, b) => b[1] - a[1]).slice(0, pocet * 3).map(([id]) => id);
   const nactene = new Map((await index.nacistUseky(poradi)).map((u) => [u.id, u]));
+  const kandidati = poradi.flatMap((id) => nactene.get(id) ?? []);
+
+  let jiste: NalezenyUsek[] = [];
+  if (preradit && kandidati.length) {
+    try {
+      const skore = await preradit(text, kandidati.map((u) => `${u.hlavicka}\n${u.text}`.slice(0, MAX_ZNAKU_K_PRERAZENI)));
+      jiste = kandidati
+        .map((usek, i) => ({ usek, skore: skore[i] ?? 0 }))
+        .filter((k) => k.skore >= PRAH_PRERAZENI)
+        .sort((a, b) => b.skore - a.skore)
+        .map((k) => k.usek);
+    } catch {
+      // Přeřazení je jen vylepšení. Když selže, platí pořadí z vektorů a fulltextu.
+    }
+  }
+
   const zDokumentu = new Map<string, number>();
   const vybrane: NalezenyUsek[] = [];
-  for (const id of poradi) {
-    const usek = nactene.get(id);
-    if (!usek || vybrane.length >= pocet) continue;
+  const vybrat = (usek: NalezenyUsek) => {
     const pocetZDokumentu = zDokumentu.get(usek.dokumentId) ?? 0;
-    if (pocetZDokumentu >= USEKU_Z_DOKUMENTU) continue;
+    if (vybrane.length >= pocet || vybrane.includes(usek) || pocetZDokumentu >= USEKU_Z_DOKUMENTU) return false;
     zDokumentu.set(usek.dokumentId, pocetZDokumentu + 1);
     vybrane.push(usek);
-  }
+    return true;
+  };
+  const prerazeno = jiste.filter(vybrat).length;
+  for (const usek of kandidati) vybrat(usek);
   return {
     useky: vybrane,
     nejlepsiPodobnost,
     shodVektoru: podleVektoru.length,
     shodSlov: podleSlov.length,
+    prerazeno,
   };
 }
