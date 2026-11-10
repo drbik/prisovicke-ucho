@@ -14,6 +14,7 @@ import {
   WEB_OBCE,
   jeRizeniSoukromeOsoby,
 } from './nastaveni';
+import { odkazyPodkladu } from './nezavisli';
 import { precistRobots, vytvorStahovac } from './sit';
 import { precistSitemapu, rozebratClanek, typSitemapy, type TypPolozky, type ZaznamRest } from './wordpress';
 import {
@@ -226,6 +227,48 @@ for (const [url, { rodice }] of odkazy) {
     const navic = karty.map((k) => k.slug).filter((s) => !soubory.includes(s));
     if (chybi.length || navic.length) console.warn(`Karty se liší od projektu webu. Chybí na webu: ${chybi.join(', ') || 'nic'}. Navíc na webu: ${navic.join(', ') || 'nic'}.`);
     else console.log(`Všech ${karty.length} karet souhlasí se soubory projektu webu.`);
+  }
+}
+
+// 7. Tlampač a podklady webu Nezávislých (rozšíření z 10. 11. 2026). Podklady jsou veřejné soubory Markdown,
+// které web zveřejňuje pro čtení strojem. Timeline z projektu webu se nečte vůbec.
+{
+  const jePovolenoNezavisli = precistRobots(await stahnoutText(`${WEB_NEZAVISLYCH}/robots.txt`));
+  stav.nezavisli ??= { soubory: {} };
+  await fs.mkdir(path.join(SLOZKA_DAT, 'nezavisli'), { recursive: true });
+
+  // Stáhne soubor a uloží ho, když se od minule změnil. Vrací jeho text, nebo null, když ho nejde použít.
+  const stahnoutNezavisli = async (url: string, soubor: string): Promise<string | null> => {
+    const zaznam: ZaznamSeznamu = { url, typ: 'nezavisli', stav: 'stazeno' };
+    seznam.push(zaznam);
+    if (!jePovolenoNezavisli(url)) {
+      zaznam.stav = 'robots';
+      return null;
+    }
+    const vysledek = await stahovac.stahnout(url);
+    if (vysledek.status !== 200) {
+      zaznam.stav = 'chyba';
+      zaznam.duvod = `HTTP ${vysledek.status}`;
+      return null;
+    }
+    const text = dekodovat(vysledek.bajty);
+    const otisk = sha1(text);
+    const ulozeny = stav.nezavisli!.soubory[url];
+    if (ulozeny && ulozeny.otisk === otisk && existsSync(path.join(SLOZKA_DAT, soubor))) {
+      zaznam.stav = 'beze-zmeny';
+      pocty.bezeZmeny += 1;
+    } else {
+      await fs.writeFile(path.join(SLOZKA_DAT, soubor), text, 'utf8');
+      stav.nezavisli!.soubory[url] = { soubor, stazeno: ted(), otisk };
+      pocty.stazeno += 1;
+    }
+    return text;
+  };
+
+  await stahnoutNezavisli(`${WEB_NEZAVISLYCH}/tlampac`, path.join('nezavisli', 'tlampac.html'));
+  const rozcestnik = await stahnoutNezavisli(`${WEB_NEZAVISLYCH}/podklady/`, path.join('nezavisli', 'podklady.html'));
+  for (const url of rozcestnik ? odkazyPodkladu(rozcestnik, `${WEB_NEZAVISLYCH}/podklady/`) : []) {
+    await stahnoutNezavisli(url, path.join('nezavisli', `podklady-${path.basename(new URL(url).pathname)}`));
   }
 }
 

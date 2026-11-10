@@ -1,8 +1,8 @@
 # Index zdrojů pro odpovědi z webu
 
-*Krok 8 z [plánu MVP](plan-mvp.md#krok-8-index-webu-a-odpověď-s-citací). Stav indexu k 10. 11. 2026, stahováno 10. 11. 2026 ráno, Word, ODT a OCR doplněné večer.*
+*Krok 8 z [plánu MVP](plan-mvp.md#krok-8-index-webu-a-odpověď-s-citací). Stav indexu k 10. 11. 2026, stahováno 10. 11. 2026 ráno, Word, ODT, OCR, Tlampač a podklady webu Nezávislých doplněné večer.*
 
-Index drží text webu obce prisovice.cz a karet projektů z webu Nezávislých pro Příšovice. Z něj ucho hledá odpověď na potvrzený dotaz (F-70 až F-76). Index se aktualizuje jen ručně (F-71). Pravidelný běh do MVP nepatří.
+Index drží text webu obce prisovice.cz a veřejný obsah webu Nezávislých pro Příšovice (karty projektů, Tlampač a podklady). Z něj ucho hledá odpověď na potvrzený dotaz (F-70 až F-76). Index se aktualizuje jen ručně (F-71). Pravidelný běh do MVP nepatří.
 
 ## Co v indexu je
 
@@ -14,11 +14,18 @@ Index drží text webu obce prisovice.cz a karet projektů z webu Nezávislých 
 | Aktuality | 33 | 48 | 33 739 |
 | Přílohy: PDF, Word a ODT (úřední deska, aktuality, stálé stránky) | 320 | 2 829 | 2 585 037 |
 | Karty projektů z webu Nezávislých | 24 | 25 | 12 945 |
-| **Celkem** | **428** | **3 003** | **2 714 035** |
+| Tlampač a podklady webu Nezávislých | 7 | 18 | 15 602 |
+| **Celkem** | **435** | **3 021** | **2 729 637** |
 
 - Z příloh je 30 dokumentů Word a ODT (34 stažených, 4 duplicitní) a 48 PDF s textem z OCR (188 stran). Takový zdroj má v názvu „text rozpoznaný ze skenu“, nebo „část textu rozpoznaná ze skenu“, protože rozpoznání může obsahovat chyby. V odpovědi rozhoduje znění dokumentu.
 - Nahrání spočítalo embeddingy jen pro 617 nových nebo změněných úseků, odhadem asi 320 neuronů. Vectorize hlásil plný počet vektorů zhruba 3 minuty po nahrání.
 - Před rozšířením bylo v D1 357 dokumentů a 2 435 úseků, ve Vectorize 2 435 vektorů.
+- Tlampač a podklady (rozšíření z 10. 11. 2026 večer, nahráno: D1 435 dokumentů a 3 021 úseků, Vectorize 3 021 vektorů, embeddingy jen pro 18 nových úseků):
+  - **Tlampač:** tři příspěvky ze stránky nezavisli-prisovice.cz/tlampac. Každý je samostatný dokument s adresou své kotvy a s datem zveřejnění, takže odpověď odkáže přímo na příspěvek.
+  - **Podklady:** čtyři soubory Markdown, které web zveřejňuje pro čtení strojem na nezavisli-prisovice.cz/podklady/ (projekty, hospodaření obce, komunální volby 2026, zdroje a ověřování). Mají označení „Podklady: …“ a datum „stav webu k“ datu stažení. Markdown se převede na prostý text, tabulky zůstanou po řádcích s buňkami oddělenými svislou čárou.
+  - **Co se nebere:** rozcestník podkladů (`index.md`) a `vse.md`, ve kterých jsou pokyny pro chatboty a které jen opakují ostatní soubory, a `novinky.md`, které opakuje Tlampač. Soubory se hledají podle odkazů na stránce /podklady/, nový tematický soubor se tedy při dalším stahování přidá sám.
+  - **Co se nečte nikdy:** `akce-prisovice-timeline.md` z projektu webu s neveřejnými záměry a neověřenými údaji, a vůbec žádný soubor ze složky projektu webu. Všechno se stahuje z veřejného webu stejně jako karty. Stránka Archiv voleb se neindexuje, protože uvádí profese soukromých osob.
+  - **robots.txt:** web Nezávislých povoluje všem robotům vyhledávání a čtení (`Content-Signal: search=yes, ai-train=no`) a skript ho respektuje. Obsah slouží jen k hledání odpovědí, k žádnému učení modelů.
 - Stránky úřední desky jsou samostatně v indexu 0krát. Na webu obce jsou jen obálkou s odkazem na PDF a jejich název a datum nese PDF.
 - Okno: aktuality, úřední deska a jejich PDF zveřejněné od 9. 11. 2024. Stálé stránky se berou celé, i se staršími PDF, na která odkazují (rozhodnuto 9. 11. 2026).
 - Karty: všech 24 karet z titulní stránky nezavisli-prisovice.cz. Text se bere z ostrého webu. Skript kontroluje, že slugy karet souhlasí se soubory `src/content/projects/` v projektu webu, a ten projekt jen čte. `akce-prisovice-timeline.md` se nečte vůbec.

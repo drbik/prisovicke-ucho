@@ -40,6 +40,15 @@
 | 9–11 | s přeřazením, 8 úseků, 3 z dokumentu | 3, 4 (první znění) | 30 | 14, 13 a 12 ze 16 | 10 z 10 | 4 ze 4 | 9 z 15, 9 z 13, 11 z 13 | 64,7 s |
 | 12 | s přeřazením, 6 úseků, 3 z dokumentu, s opravným pokusem | 3, 4 | 30 | 13 ze 16 | 10 z 10 | 4 ze 4 | 7 ze 14 | 71,2 s |
 | 13 (nasazeno) | s přeřazením, 6 úseků, 3 z dokumentu, bez opravného pokusu | 3, 4 | 30 | 13 ze 16 | 10 z 10 | 4 ze 4 | 11 ze 14 (79 %) | 59,8 s |
+| 14 (Tlampač a podklady) | 435 dokumentů, 3 021 úseků, jinak jako běh 13 | 3, 4 | 30 | 13 ze 16 | 10 z 10 | 4 ze 4 | 10 ze 13 (77 %) | 11,3 s |
+
+**Běh 14: Tlampač a podklady webu Nezávislých (10. 11. 2026 večer).** Do indexu přibylo 7 dokumentů a 18 úseků ze stránky Tlampač a ze souborů Markdown na nezavisli-prisovice.cz/podklady/ (viz [Index zdrojů](index-zdroju.md)). Výsledky sady zůstaly na úrovni běhu 13: odpověď dostalo 13 ze 16 otázek, zastupitelům skončilo 10 z 10 a 4 návrhy se nehledaly. Rozdíly proti běhu 13:
+
+- **Q07 (soudy) a Q16 (sdílená elektřina)** skončily u zastupitelů, i když hledání našlo úplně stejné zdroje jako předtím. Druhá kontrola zamítla jednu větu. Takhle kolísaly už dřív Q02, Q06 a Q14, nesouvisí to tedy s novými zdroji.
+- **Q14 (byty u DPS)** má mezi nalezenými úryvky nově i `podklady/projekty.md`. Model z něj napsal třetí větu o roce 2027, kterou druhá kontrola zamítla, a odpověď šla zastupitelům. Q14 kolísala mezi odpovědí a předáním i v dřívějších bězích.
+- **Q11 (starosta)** se odpověď opírá o „Podklady: Komunální volby v Příšovicích 2026“ místo oznámení obce. Fakta souhlasí, ale odpověď je označená „Podle webu Nezávislých“ a ne „Odpověď z webu obce“.
+- **Rychlost:** 10 ze 13 odpovědí do 10 s (77 %), nejdéle 11,3 s. Nové zdroje hledání nezpomalily, o úrovni času rozhoduje hlavně volání Workers AI.
+- **Dotazy na nové zdroje (živé volání, mimo sadu):** volební účast, finanční výbor a Záhumení dostaly odpověď a citují Tlampač nebo podklady. Dotaz na investice v roce 2024 a na cenu stezky k Písečákům skončil u zastupitelů, protože kontrola zamítla věty (u investic hledání tabulku v podkladech `finance.md` vůbec nenašlo). Dotaz „Jaká je kandidátka č. 2 na hlasovacím lístku?“ model špatně pochopil jako číslo kandidáta a kontrola ho zachytila.
 
 Co se mezi běhy změnilo a proč:
 

@@ -10,6 +10,7 @@ import { hlavickaUseku } from '../../src/lib/odpovedi/zdroje';
 import { precistKarty } from './karty';
 import { SLOZKA_DAT, WEB_NEZAVISLYCH } from './nastaveni';
 import { MIN_ZNAKU_STRANY, textPdf } from './pdf';
+import { precistPodklad, precistTlampac } from './nezavisli';
 import { jeCitelnyOcr, textOcr, textWordu } from './prevod';
 import {
   formatPrilohy,
@@ -53,6 +54,8 @@ const zprava = {
   word: [] as { url: string; nazev: string; znaku: number }[],
   ocr: [] as { url: string; nazev: string; strany: number[] }[],
   ocrNecitelne: [] as { url: string; strana: number }[],
+  // Příspěvky Tlampače a soubory podkladů webu Nezávislých.
+  nezavisli: [] as { url: string; nazev: string; znaku: number }[],
 };
 const otisky = new Map<string, string>();
 const jeStazeno = (z: ZaznamSeznamu) => z.stav === 'stazeno' || z.stav === 'beze-zmeny';
@@ -86,7 +89,7 @@ const rodice = new Map<string, Rodic[]>();
 const PORADI_RODICU: TypDokumentu[] = ['uredni-deska', 'aktualita', 'stranka'];
 
 for (const zaznam of seznam) {
-  if (zaznam.typ === 'pdf' || zaznam.typ === 'karty' || !jeStazeno(zaznam)) continue;
+  if (zaznam.typ === 'pdf' || zaznam.typ === 'karty' || zaznam.typ === 'nezavisli' || !jeStazeno(zaznam)) continue;
   const ulozeny = stav.html[zaznam.url];
   const clanek: Clanek | null = rozebratClanek(await fs.readFile(path.join(SLOZKA_DAT, ulozeny.soubor), 'utf8'), zaznam.url);
   if (!clanek) continue;
@@ -219,6 +222,29 @@ if (stav.karty) {
   }
 }
 
+// 4. Tlampač a podklady webu Nezávislých (rozšíření z 10. 11. 2026). Příspěvek Tlampače je jeden dokument s adresou
+// své kotvy a datem zveřejnění. Soubor podkladů je jeden dokument s adresou souboru Markdown.
+for (const zaznam of seznam.filter((z) => z.typ === 'nezavisli' && jeStazeno(z))) {
+  const ulozeny = stav.nezavisli?.soubory[zaznam.url];
+  if (!ulozeny) continue;
+  const obsah = await fs.readFile(path.join(SLOZKA_DAT, ulozeny.soubor), 'utf8');
+  const spolecne = { web: 'nezavisli-prisovice.cz', zmeneno: null, mesicNahrani: null, stazeno: ulozeny.stazeno, nadrazenyUrl: null } as const;
+  if (zaznam.url === `${WEB_NEZAVISLYCH}/tlampac`) {
+    for (const p of precistTlampac(obsah)) {
+      pridat({ ...spolecne, url: `${WEB_NEZAVISLYCH}/tlampac/#${p.id}`, nazev: `Tlampač: ${p.nazev}`, typ: 'aktualita', zverejneno: p.datum }, [{ strana: null, text: p.text }]);
+      zprava.nezavisli.push({ url: `${WEB_NEZAVISLYCH}/tlampac/#${p.id}`, nazev: `Tlampač: ${p.nazev}`, znaku: p.text.length });
+    }
+  } else if (/\.md$/i.test(zaznam.url)) {
+    const podklad = precistPodklad(obsah);
+    if (!podklad) {
+      zprava.chyby.push({ url: zaznam.url, hlaska: 'Podklad nemá nadpis nebo text.' });
+      continue;
+    }
+    pridat({ ...spolecne, url: zaznam.url, nazev: `Podklady: ${podklad.nazev}`, typ: 'stranka', zverejneno: null }, [{ strana: null, text: podklad.text }]);
+    zprava.nezavisli.push({ url: zaznam.url, nazev: `Podklady: ${podklad.nazev}`, znaku: podklad.text.length });
+  }
+}
+
 await ulozitJson(path.join(SLOZKA_DAT, 'dokumenty.json'), dokumenty);
 await ulozitJson(path.join(SLOZKA_DAT, 'useky.json'), useky);
 
@@ -233,4 +259,5 @@ await ulozitJson(path.join(SLOZKA_DAT, 'zprava.json'), { ...zprava, souhrn, doku
 console.log(`Dokumentů ${dokumenty.length}, úseků ${useky.length}.`);
 for (const [typ, s] of Object.entries(souhrn)) console.log(`  ${typ}: ${s.dokumentu} dokumentů, ${s.useku} úseků, ${s.znaku} znaků`);
 console.log(`Obálek bez vlastního textu ${zprava.obalky}, skenů ${zprava.skeny.length}, PDF se stranami bez textu ${zprava.castecneSkeny.length}, duplicit ${zprava.duplicity.length}, chyb ${zprava.chyby.length}.`);
+console.log(`Web Nezávislých: Tlampač a podklady ${zprava.nezavisli.length} dokumentů.`);
 console.log(`Word a ODT ${zprava.word.length}, PDF s textem z OCR ${zprava.ocr.length} (${zprava.ocr.reduce((s, o) => s + o.strany.length, 0)} stran), nečitelných stran OCR ${zprava.ocrNecitelne.length}.`);

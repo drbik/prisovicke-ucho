@@ -17,7 +17,9 @@ export function ceskeDatum(iso: string) {
 export function datumZdroje(dokument: ZdrojovyDokument) {
   if (dokument.typ === 'karta') return `stav webu k ${ceskeDatum(dokument.stazeno)}`;
   if (dokument.typ === 'stranka') {
-    return dokument.zmeneno ? `aktualizováno ${ceskeDatum(dokument.zmeneno)}` : `staženo ${ceskeDatum(dokument.stazeno)}`;
+    if (dokument.zmeneno) return `aktualizováno ${ceskeDatum(dokument.zmeneno)}`;
+    // Podklady webu Nezávislých datum zveřejnění nemají, jako karty ukazují stav webu k datu stažení.
+    return dokument.web === 'nezavisli-prisovice.cz' ? `stav webu k ${ceskeDatum(dokument.stazeno)}` : `staženo ${ceskeDatum(dokument.stazeno)}`;
   }
   if (dokument.zverejneno) return `zveřejněno ${ceskeDatum(dokument.zverejneno)}`;
   if (dokument.mesicNahrani) {

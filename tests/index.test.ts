@@ -3,10 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { precistKarty } from '../nastroje/index/karty';
 import { jeRizeniSoukromeOsoby } from '../nastroje/index/nastaveni';
 import { odstranitOpakovane, spojitRadky } from '../nastroje/index/pdf';
+import { odkazyPodkladu, precistPodklad, precistTlampac } from '../nastroje/index/nezavisli';
 import { jeCitelnyOcr, textOcr, textWordu } from '../nastroje/index/prevod';
 import { precistRobots } from '../nastroje/index/sit';
 import { formatPrilohy, souborPrilohy } from '../nastroje/index/spolecne';
 import { DELKA_USEKU, PREKRYV, prekryv, rozdelitNaMisto, rozdelitNaUseky } from '../nastroje/index/useky';
+import { datumZdroje } from '../src/lib/odpovedi/zdroje';
 import { naIsoDatum, precistSitemapu, rozebratClanek, typSitemapy } from '../nastroje/index/wordpress';
 
 const CLANEK = `<html><body><nav>Menu Úvod Kontakty</nav>
@@ -178,5 +180,70 @@ describe('rozšíření indexu o Word, ODT a OCR (10. 11. 2026)', () => {
     expect(jeCitelnyOcr(parcely)).toBe(true);
     expect(jeCitelnyOcr('472/70 1:500 A3 PS-01 2,40 ±0,000 S1 S2 Ing. 12.3.2025 M 1:200 X Y')).toBe(false);
     expect(jeCitelnyOcr('Starosta obce razítko podpis')).toBe(false);
+  });
+});
+
+describe('Tlampač a podklady webu Nezávislých (10. 11. 2026)', () => {
+  const TLAMPAC = `<main><section><h2 id="rok-2026">2026</h2>
+    <article id="prispevek-ustavujici-zasedani-2026" data-tlampac-post><time datetime="2026-11-06">6. listopadu 2026</time>
+      <h3>Kdo vede Příšovice po ustavujícím zasedání</h3>
+      <div class="tlampac__text"><p>Starostou zvolili Františka Drbohlava.</p> <p>Zastupitelstvo má 15 členů.</p></div></article>
+    <article id="prispevek-bez-data" data-tlampac-post><h3>Bez data</h3><div class="tlampac__text"><p>Text.</p></div></article>
+  </section></main>`;
+
+  it('příspěvek Tlampače má kotvu, datum, název a odstavce, příspěvek bez data se vynechá', () => {
+    expect(precistTlampac(TLAMPAC)).toEqual([{
+      id: 'prispevek-ustavujici-zasedani-2026',
+      nazev: 'Kdo vede Příšovice po ustavujícím zasedání',
+      datum: '2026-11-06',
+      text: 'Starostou zvolili Františka Drbohlava.\n\nZastupitelstvo má 15 členů.',
+    }]);
+  });
+
+  it('z rozcestníku bere jen tematické soubory, ne rozcestník, vse.md, novinky ani cizí weby', () => {
+    const rozcestnik = `<a href="/podklady/index.md">Rozcestník</a><a href="/podklady/novinky.md">Novinky</a>
+      <a href="/podklady/finance.md">Hospodaření</a><a href="https://nezavisli-prisovice.cz/podklady/volby-2026.md#vysledky">Volby</a>
+      <a href="/podklady/vse.md">Vše</a><a href="https://example.com/podklady/cizi.md">Cizí</a><a href="/tlampac">Tlampač</a><a href="/podklady/finance.md">Znovu</a>`;
+    expect(odkazyPodkladu(rozcestnik, 'https://nezavisli-prisovice.cz/podklady/')).toEqual([
+      'https://nezavisli-prisovice.cz/podklady/finance.md',
+      'https://nezavisli-prisovice.cz/podklady/volby-2026.md',
+    ]);
+  });
+
+  it('Markdown podkladu převede na prostý text s tabulkami po řádcích', () => {
+    const md = [
+      '\ufeff# Hospodaření obce Příšovice',
+      '',
+      'Obec má **IČO 00263125**. Zdroj: [Monitor Státní pokladny](https://monitor.statnipokladna.gov.cz/).',
+      '',
+      '## Investice po letech',
+      '',
+      '| Rok | Kapitálové výdaje | Výdaje celkem |',
+      '| --- | ---: | ---: |',
+      '| 2024 | 39 653 600 | 70 690 368 |',
+      '',
+      '- [Úřední deska](https://prisovice.cz/obecni-urad-prisovice/uredni-deska/)',
+    ].join('\r\n');
+    expect(precistPodklad(md)).toEqual({
+      nazev: 'Hospodaření obce Příšovice',
+      text: [
+        'Obec má IČO 00263125. Zdroj: Monitor Státní pokladny.',
+        '',
+        'Investice po letech',
+        '',
+        'Rok | Kapitálové výdaje | Výdaje celkem',
+        '2024 | 39 653 600 | 70 690 368',
+        '',
+        '- Úřední deska',
+      ].join('\n'),
+    });
+    expect(precistPodklad('Text bez nadpisu')).toBeNull();
+  });
+
+  it('podklady ukazují stav webu k datu stažení, příspěvek Tlampače datum zveřejnění', () => {
+    const zaklad = { id: 'a', url: 'https://nezavisli-prisovice.cz/podklady/finance.md', nazev: 'Podklady: Hospodaření obce', web: 'nezavisli-prisovice.cz', typ: 'stranka', zverejneno: null, zmeneno: null, mesicNahrani: null, otisk: 'x', stazeno: '2026-11-10T21:00:00.000Z', nadrazenyUrl: null } as const;
+    expect(datumZdroje(zaklad)).toBe('stav webu k 10. 11. 2026');
+    expect(datumZdroje({ ...zaklad, typ: 'aktualita', zverejneno: '2026-11-06' })).toBe('zveřejněno 6. 11. 2026');
+    expect(datumZdroje({ ...zaklad, web: 'prisovice.cz' })).toBe('staženo 10. 11. 2026');
   });
 });

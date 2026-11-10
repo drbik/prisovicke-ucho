@@ -89,6 +89,7 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 - Převod Wordu i OCR běží jen na počítači (Microsoft Word s vypnutými makry, OCR ve Windows v češtině). Neurony Workers AI stojí až embeddingy při nahrání indexu.
 - Zdroj, jehož text pochází z OCR, má v názvu „text rozpoznaný ze skenu“, protože rozpoznání může obsahovat chyby.
 - Text vzkazu má písmo Roboto Mono. Je to rozdíl od webu Nezávislých, zapsaný v `docs/oblasti-a-web.md`.
+- Index se rozšiřuje o veřejný obsah webu Nezávislých: Tlampač a podklady (soubory Markdown na nezavisli-prisovice.cz/podklady/, které web zveřejňuje pro čtení strojem). Tomáš to schválil 10. 11. 2026 večer s podmínkou „ověřené Markdown soubory“. Berou se z veřejného webu, nikdy ze složky projektu webu. `akce-prisovice-timeline.md` zůstává mimo index, stejně jako rozcestník podkladů a vse.md s pokyny pro chatboty a stránka Archiv voleb.
 - Účet Cloudflare přešel na Workers Paid (5 USD měsíčně, platí pro celý účet včetně webu). Denních 10 000 neuronů zůstává zdarma, nad ně se platí 0,011 USD za tisíc. Ucho se tak při vyčerpání limitu nezastaví. Limit už nefunguje jako strop výdajů, proti zneužití chrání omezení počtu požadavků.
 
 ## MVP (prezentační verze)

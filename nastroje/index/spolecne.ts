@@ -10,6 +10,8 @@ export interface StavStazeni {
   // Přiložené soubory: PDF a od 10. 11. 2026 i Word a ODT. Klíč „pdf“ zůstal kvůli uloženým datům.
   pdf: Record<string, { soubor: string; stazeno: string; velikostB: number }>;
   karty: { stazeno: string; etag?: string | null } | null;
+  // Tlampač a podklady webu Nezávislých (rozšíření z 10. 11. 2026). Otisk je sha1 stažené podoby.
+  nezavisli?: { soubory: Record<string, { soubor: string; stazeno: string; otisk: string }> };
   posledniBeh?: string;
 }
 
@@ -19,8 +21,8 @@ export type StavPolozky =
 
 export interface ZaznamSeznamu {
   url: string;
-  // „pdf“ je přiložený soubor, tedy PDF, Word nebo ODT.
-  typ: TypPolozky | 'pdf' | 'karty';
+  // „pdf“ je přiložený soubor, tedy PDF, Word nebo ODT. „nezavisli“ je Tlampač nebo soubor podkladů webu Nezávislých.
+  typ: TypPolozky | 'pdf' | 'karty' | 'nezavisli';
   stav: StavPolozky;
   duvod?: string;
   nazev?: string;
