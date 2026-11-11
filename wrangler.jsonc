@@ -1,0 +1,54 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"compatibility_date": "2026-11-01",
+	"compatibility_flags": ["global_fetch_strictly_public"],
+	// Vlastní Worker ucha. Do Workeru webu prisovice-nezavisli se nikdy nenasazuje.
+	"name": "prisovicke-ucho",
+	"main": "@astrojs/cloudflare/entrypoints/server",
+	// Testuje se na ostré adrese, bez neveřejných náhledů (rozhodnuto 6. 11. 2026).
+	"workers_dev": false,
+	"preview_urls": false,
+	// Route má na stejném hostname přednost před Custom Domain webu.
+	// Dva přesné vzory místo /ucho*, aby Worker ucha nezachytil cizí cesty, třeba /uchopit.
+	"routes": [
+		{ "pattern": "nezavisli-prisovice.cz/ucho", "zone_name": "nezavisli-prisovice.cz" },
+		{ "pattern": "nezavisli-prisovice.cz/ucho/*", "zone_name": "nezavisli-prisovice.cz" }
+	],
+	"assets": {
+		"directory": "./dist",
+		"binding": "ASSETS"
+	},
+	"ai": {
+		"binding": "AI",
+		"remote": true
+	},
+	// Index zdrojů pro odpovědi z webu (krok 8.5). Lokální vývoj i skripty indexu používají vzdálená data.
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "prisovicke-ucho",
+			"database_id": "d9353105-ae6e-4f08-9d53-facea130d326",
+			"migrations_dir": "migrations",
+			"remote": true
+		}
+	],
+	"vectorize": [
+		{
+			"binding": "VECTORIZE",
+			"index_name": "prisovicke-ucho-zdroje",
+			"remote": true
+		}
+	],
+	"ratelimits": [
+		{
+			"name": "PODANI_RATE_LIMITER",
+			"namespace_id": "2026110601",
+			"simple": { "limit": 6, "period": 60 }
+		}
+	],
+	"observability": {
+		"enabled": true,
+		// Časy fází jdou do Workers Logs. Metadata požadavků (IP, hlavičky) nepotřebujeme.
+		"logs": { "invocation_logs": false }
+	}
+}

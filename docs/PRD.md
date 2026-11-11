@@ -1,6 +1,6 @@
 # PRD: Příšovické ucho
 
-24. 10. 2026 · verze 0.8 (návrh k revizi)
+6. 11. 2026 · verze 0.9 (návrh k revizi)
 
 > Export z Claude Docs. Živá verze, ve které se PRD dál upravuje: https://claude.ai/artifact/1uqzdxoYxj8jR45McMdo3Z. Diagramy jsou tady přepsané do Mermaid.
 
@@ -32,7 +32,7 @@ Podněty dnes přicházejí roztroštěně, nečlánkově a bez zpětné vazby. 
 - **Podněty nejsou seřazené.** Není vidět, co trápí nejvíc lidí.
 - **Autor se nedozví výsledek.** Chybí spolehlivý kanál, kterým by správce odpověděl přímo autorovi.
 
-**Provozovatel:** uskupení Nezávislí Příšovice, které má 9 z 15 zastupitelů obce (potvrzeno 24. 10. 2026). Aplikace bude součástí jeho webu nezavisli-prisovice.cz a není úředním kanálem obce. Uživatelé jsou hlavně občané obce (**Předpoklad**). Zdrojem pravdy pro odpovědi jsou oficiální stránky obce [prisovice.cz](https://www.prisovice.cz), celý jejich obsah včetně zveřejněných dokumentů (potvrzeno 24. 10. 2026). Informace o aktuálních a budoucích projektech doplní web nezavisli-prisovice.cz (Předpoklad).
+**Provozovatel:** tým Nezávislí pro Příšovice. Na hlasovacím lístku voleb 2026 kandidoval jako Rozumná cesta (kandidátka č. 2) a získal 9 z 15 mandátů. Aplikace je nadstavbou jeho webu nezavisli-prisovice.cz a není úředním kanálem obce. Uživatelé jsou hlavně občané obce (**Předpoklad**). Zdrojem pravdy pro odpovědi jsou oficiální stránky obce [prisovice.cz](https://www.prisovice.cz), celý jejich obsah včetně zveřejněných dokumentů (potvrzeno 24. 10. 2026). Informace o aktuálních a budoucích projektech doplní web nezavisli-prisovice.cz (Předpoklad).
 
 Hotový produkt, který by uměl celý tok, na GitHubu neexistuje. Aplikace se postaví na Cloudflare a převezme vzory z existujících projektů (viz Zdroje).
 
@@ -47,7 +47,7 @@ Aplikace má šest rolí. Každá vyšší role umí vše, co nižší.
 | Ověřený občan | Ověřený uživatel s ověřeným trvalým pobytem v Příšovicích | Navíc hlasovat palcem nahoru a dolů (potvrzeno 24. 10. 2026). V MVP se pobyt neověřuje a hlasuje každý přihlášený. |
 | Správce oblasti | Zastupitel nebo člen týmu odpovědný za jednu nebo více oblastí (**Předpoklad**) | Vyřizovat témata své oblasti, odpovídat, měnit stav, slučovat duplicity |
 | Moderátor | Může být totéž co správce | Skrýt nevhodný podnět, zablokovat uživatele |
-| Administrátor | Tým Nezávislí Příšovice | Vše výše, navíc správa oblastí, správců, slovníku pro přepis, ověřování občanů a nastavení |
+| Administrátor | Tým Nezávislí pro Příšovice | Vše výše, navíc správa oblastí, správců, slovníku pro přepis, ověřování občanů a nastavení |
 
 ## Rozsah
 
@@ -147,12 +147,12 @@ Návrh má 68 požadavků v sedmi oblastech, 37 z nich je v MVP. Prioritu může
 
 | ID | Požadavek | Priorita |
 | --- | --- | --- |
-| F-09 | Vstupem je grafika ucha na webu nezavisli-prisovice.cz. Kliknutí otevře rozhraní aplikace, aniž by člověk opustil web. Aplikace jde do webu vložit jedním skriptem nebo odkazem, aby úprava webu byla minimální. | MVP |
+| F-09 | Vstupem je grafika ucha na webu nezavisli-prisovice.cz. Kliknutí otevře rozhraní aplikace, aniž by člověk opustil web. Aplikace jde do webu vložit jedním skriptem nebo odkazem, aby úprava webu byla minimální. Ucho poběží na doméně webu pod cestou /ucho (rozhodnuto 6. 11. 2026). | MVP |
 | F-01 | Tlačítko mikrofonu spustí a ukončí nahrávání. Ukazuje uplynulý čas a úroveň hlasitosti. | MVP |
 | F-02 | Nahrávka trvá nejvýš 3 minuty, 30 s před koncem přijde upozornění (**Předpoklad**). | MVP |
 | F-03 | Autor si nahrávku může přehrát, zahodit a nahrát znovu. | Později |
 | F-04 | Záložní textové pole místo mikrofonu. | MVP |
-| F-05 | Funguje v aktuálním Chrome na Androidu, Safari na iOS a v prohlížečích na počítači. | MVP |
+| F-05 | Funguje v aktuálním Chrome na Androidu, Safari na iOS a v prohlížečích na počítači. V MVP se testuje jen Opera na Androidu a Edge a Opera ve Windows, ověřené jsou tedy jen prohlížeče na Chromiu (rozhodnuto 2. 11. 2026). | MVP |
 | F-06 | Nahrávat jde i bez přihlášení. Přihlášení se vyžádá až při odeslání a nahrávka se neztratí. | Později |
 | F-07 | Hlasová zpráva poslaná přímo Telegram botovi se zpracuje stejně jako nahrávka z webu. | Později |
 | F-08 | Text se zobrazuje živě už během mluvení. | Zvážit |
@@ -165,7 +165,7 @@ Návrh má 68 požadavků v sedmi oblastech, 37 z nich je v MVP. Prioritu může
 | F-11 | Administrátor spravuje slovník místních názvů, institucí a zkratek, který zpřesní přepis. | Později |
 | F-12 | AI přepíše text do spisovné češtiny a srozumitelného vzkazu. Nesmí přidat nic, co autor neřekl. | MVP |
 | F-13 | AI navrhne název podnětu (nejvýš 80 znaků), oblast a typ: návrh, stížnost, dotaz, pochvala. | MVP |
-| F-14 | Autor vidí upravený text, může ho opravit a odeslání potvrdí. Bez potvrzení se podnět neuloží. | MVP |
+| F-14 | Autor vidí upravený text, může ho opravit a odeslání potvrdí. Bez potvrzení se podnět neuloží. Do potvrzení se nic neukládá: server výsledek přepisu a úpravy podepíše a uloží ho až po potvrzení (rozhodnuto 6. 11. 2026). | MVP |
 | F-15 | Uloží se surový přepis i upravený text. Správce vidí obojí. | MVP |
 | F-16 | AI označí podezřelý obsah (spam, vulgarity, osobní údaje jiných lidí) k moderaci před zveřejněním. | Později |
 | F-17 | AI ve veřejné verzi zakryje osobní údaje, například jména, telefony a adresy. Témata jsou veřejná, proto je to nutné před ostrým spuštěním. | Později |
@@ -190,7 +190,7 @@ Návrh má 68 požadavků v sedmi oblastech, 37 z nich je v MVP. Prioritu může
 
 | ID | Požadavek | Priorita |
 | --- | --- | --- |
-| F-30 | Oblasti spravuje administrátor podle aktuálních a budoucích projektů uvedených na nezavisli-prisovice.cz, plus oblast Ostatní. Po skončení projektu se oblast archivuje a její témata zůstanou dohledatelná. | MVP |
+| F-30 | Oblasti spravuje administrátor podle aktuálních a budoucích projektů uvedených na nezavisli-prisovice.cz, plus oblast Ostatní. Po skončení projektu se oblast archivuje a její témata zůstanou dohledatelná. V MVP je to pět budoucích projektů a Ostatní (rozhodnuto 1. 11. 2026). Oblast se s kartou projektu na webu páruje jejím stálým identifikátorem (slug), protože název karty se může změnit. | MVP |
 | F-31 | Každá oblast má přiřazeného správce, kterému se její témata směrují. | Později |
 | F-32 | Správce může zařazení navržené AI ručně změnit. | Později |
 | F-33 | Podobné dotazy se sdružují do jednoho tématu. Téma má hlavní dotaz, poddotazy a odpovědi. | MVP |
@@ -235,7 +235,7 @@ Návrh má 68 požadavků v sedmi oblastech, 37 z nich je v MVP. Prioritu může
 | ID | Požadavek | Priorita |
 | --- | --- | --- |
 | F-50 | Fronta témat bez odpovědi ze zdroje, seřazená podle skóre, s filtrem podle oblasti, typu a stavu. | MVP |
-| F-51 | Detail tématu: hlavní dotaz, poddotazy, upravené texty i surové přepisy, nahrávky, hlasy, odpovědi se zdroji a historie změn. | MVP |
+| F-51 | Detail tématu: hlavní dotaz, poddotazy, upravené texty i surové přepisy, hlasy, odpovědi se zdroji a historie změn. | MVP |
 | F-52 | Stavy tématu: Nové, Zodpovězeno z webu, Čeká na správce, V řešení, Zodpovězeno, Vyřešeno, Zamítnuto, Sloučeno. | MVP |
 | F-53 | Odpověď se pošle všem autorům tématu, každému jeho preferovaným kanálem. Když selže, použije se jiný ověřený kanál. | MVP |
 | F-54 | Správce vidí, jestli byla odpověď doručena. | Později |
@@ -258,9 +258,9 @@ Pro prezentační verzi (MVP) platí jen rychlost a věrohodnost odpovědí. GDP
 | Aktuálnost zdrojů | Změna na webu obce se v indexu projeví nejpozději do jednoho intervalu aktualizace: 24 hodin při výchozím nastavení, 7 dní při týdenním. Citovaný zdroj se před zobrazením odpovědi cíleně ověří. |
 | Rychlost | Stránka se na mobilu se sítí 4G načte do 2 s. Upravený text 1minutové nahrávky uvidí autor do 20 s, podobná témata a odpověď z webu do dalších 10 s. |
 | Objem | Do 1 000 podnětů, 10 000 hlasů a 5 000 zdrojových dokumentů bez změny architektury. |
-| Dostupnost | 99,5 % měsíčně. Při výpadku AI se nahrávka uloží do fronty a zpracuje později, autor dostane zprávu. |
+| Dostupnost | 99,5 % měsíčně. Při výpadku AI zůstane nahrávka jen v prohlížeči a autor ji pošle znovu, nebo vzkaz napíše (rozhodnuto 6. 11. 2026). |
 | Bezpečnost | Ochrana proti robotům (Cloudflare Turnstile), nejvýš 5 podnětů za hodinu na uživatele, administrace za Cloudflare Access, klíče jen v šifrovaných proměnných. |
-| GDPR | Souhlas se zpracováním včetně AI, nahrávky se mažou po 30 dnech, export a smazání osobních údajů na žádost, data uložená v EU. U ověření pobytu se ukládá jen příznak, způsob a datum ověření, ne celá adresa. Veřejně se ukazuje jen text tématu bez jména autora a osobní údaje se zakrývají (**Předpoklad**). |
+| GDPR | Souhlas se zpracováním včetně AI, nahrávky se neukládají (v MVP rozhodnuto 1. 11. 2026), export a smazání osobních údajů na žádost, data uložená v EU. U ověření pobytu se ukládá jen příznak, způsob a datum ověření, ne celá adresa. Veřejně se ukazuje jen text tématu bez jména autora a osobní údaje se zakrývají (**Předpoklad**). |
 | Přístupnost | WCAG 2.1 úroveň AA, ovládání klávesnicí, textová alternativa k mikrofonu. |
 | Jazyk | Rozhraní i zpracování jen v češtině. |
 | Náklady | Provoz MVP v řádu jednotek až desítek USD měsíčně: Workers Paid za 5 USD plus AI, vyhledávání a stahování webu podle objemu. SMS a WhatsApp se platí za zprávu. |
@@ -271,28 +271,28 @@ Kde přesně běží výpočet AI na Cloudflare (EU, nebo mimo), je potřeba ov�
 
 ## Datový model
 
-Aplikace potřebuje dvanáct entit. Jádrem je téma, ke kterému patří podněty, hlasy a odpovědi se zdroji. Podrobné SQL schéma z rešerše je potřeba podle toho upravit.
+Aplikace potřebuje dvanáct entit, MVP jich má jedenáct bez Slovníku (rozhodnuto 1. 11. 2026). Jádrem je téma, ke kterému patří podněty, hlasy a odpovědi se zdroji. Podrobné SQL schéma z rešerše je potřeba podle toho upravit.
 
 | Entita | Hlavní údaje | Pravidla |
 | --- | --- | --- |
 | Uživatel | Jméno pro zobrazení, datum registrace, role, ověřený občan ano/ne se způsobem a datem ověření | Jeden člověk = jeden účet, i když má víc kanálů |
 | Kontakt | Kanál (Telegram, e-mail, SMS, WhatsApp), adresa, datum ověření, preferovaný ano/ne | Adresa je v rámci kanálu unikátní |
-| Oblast | Název, navázaný projekt obce, aktivní ano/ne, přiřazený správce | Po skončení projektu se archivuje i s tématy |
+| Oblast | Název, navázaný projekt z webu nezavisli-prisovice.cz (slug karty), aktivní ano/ne, přiřazený správce | Po skončení projektu se archivuje i s tématy |
 | Téma | Hlavní dotaz ve spisovné češtině, oblast, typ, stav, skóre | Jedno téma = jeden obsah. Sloučené téma odkazuje na hlavní. |
-| Podnět | Autor, téma, surový přepis, upravený text, vztah k tématu (zakladatel, totéž, poddotaz, doplnění), odkaz na nahrávku | Patří právě k jednomu tématu |
+| Podnět | Autor, téma, surový přepis, upravený text, vztah k tématu (zakladatel, totéž, poddotaz, doplnění), vstup (hlas, nebo text) | Patří právě k jednomu tématu |
 | Hlas | Téma, uživatel, hodnota +1 nebo −1, datum | Nejvýš jeden hlas od uživatele na téma |
 | Odpověď | Téma nebo poddotaz, text, původ (web obce, správce), stav (platná, ke kontrole, stažená), kdo ji schválil, potvrzení autorů (stačí, doptání) | Odpověď z webu má aspoň jednu citaci |
 | Zdrojový dokument | URL, název, web (prisovice.cz, nezavisli-prisovice.cz), typ (stránka, aktualita, PDF), datum zveřejnění a změny, otisk obsahu, datum stažení | Změna otisku spustí kontrolu navázaných odpovědí |
 | Citace | Odpověď, zdrojový dokument, citovaný úryvek | Ke každému tvrzení odpovědi |
 | Odeslání | Odpověď, příjemce, kanál, stav doručení | Jedna odpověď jde všem autorům tématu |
 | Historie | Téma, kdo, co změnil, kdy | Jen přidávání, nikdy úprava |
-| Slovník | Výraz, správný zápis, poznámka | Použije se při přepisu i AI úpravě |
+| Slovník | Výraz, správný zápis, poznámka | Použije se při přepisu i AI úpravě. V MVP chybí, přijde s F-11. |
 
-Nahrávky se ukládají mimo databázi (Cloudflare R2) a mažou se po 30 dnech (**Předpoklad**).
+V MVP se nahrávky neukládají: audio se po přepisu zahodí a datový model na ně nemá odkaz (rozhodnuto 1. 11. 2026). Úložiště R2 drží jen dokumenty obce.
 
 ## Technické řešení
 
-Aplikace poběží celá na Cloudflare v jednom Workeru. Mimo Cloudflare je jen web obce jako zdroj odpovědí a služby pro doručení odpovědí.
+Aplikace poběží celá na Cloudflare v jednom Workeru, na stejné platformě jako web nezavisli-prisovice.cz (rozhodnuto 1. 11. 2026). Stránky vykresluje Astro 7 s adaptérem pro Cloudflare, API pod /api obsluhuje Hono (rozhodnuto 6. 11. 2026). Mimo Cloudflare je jen web obce jako zdroj odpovědí a služby pro doručení odpovědí.
 
 ```mermaid
 flowchart LR
@@ -302,7 +302,7 @@ flowchart LR
     S[Správce za Cloudflare Access]
   end
   WEB[(Web obce prisovice.cz)]
-  subgraph Worker[Cloudflare Worker - Hono]
+  subgraph Worker[Cloudflare Worker - Astro a Hono]
     API[API a přihlášení]
     P[Zpracování podnětu]
     C[Stahování zdrojů]
@@ -320,24 +320,39 @@ flowchart LR
   O --> TG[Telegram Bot API]
 ```
 
-Hosting zatím není rozhodnutý (Cloudflare, nebo Zerops + Mistral). Diagram ukazuje variantu s Cloudflare.
-
-Nahrávka jde z webu do Workeru, ten ji přepíše a upraví přes Workers AI. Podobná témata hledá ve Vectorize, odpověď v dokumentech obce přes AI Search. Web obce se jednou stáhne celý do R2 a pak se denně doplňují jen změny.
+Nahrávka jde z webu do Workeru, ten ji přepíše a upraví přes Workers AI a audio pak zahodí. Podobná témata hledá ve Vectorize, odpověď v dokumentech obce přes AI Search. Web obce se jednou stáhne celý do R2 a pak se denně doplňují jen změny.
 
 | Vrstva | Volba | Poznámka |
 | --- | --- | --- |
-| Běh aplikace | Cloudflare Workers + Hono | Web i API v jednom projektu |
+| Běh aplikace | Cloudflare Workers, Astro 7 a Hono | Astro vykresluje stránky stejně jako web Nezávislých, Hono obsluhuje API pod /api. Logika je v modulech mimo oba frameworky. |
 | Databáze | Cloudflare D1 | Zálohy s obnovou za 30 dní |
-| Nahrávky a dokumenty obce | Cloudflare R2 | Nahrávky se mažou po 30 dnech, dokumenty se drží aktuální |
-| Přepis řeči | Workers AI, model `whisper-large-v3-turbo` | Alternativa Deepgram Nova-3, vybrat po testu na českých nahrávkách |
-| AI úprava a zařazení | Jazykový model na Workers AI přes AI Gateway | Model vybrat podle kvality češtiny |
+| Dokumenty obce | Cloudflare R2 | Dokumenty se drží aktuální. Nahrávky se v MVP neukládají. |
+| Přepis řeči | Workers AI, model `whisper-large-v3-turbo` | Jazyk pevně čeština, nápověda s místními názvy. Deepgram Nova-3 jen tehdy, když Whisper v testu neobstojí. |
+| AI úprava a zařazení | Jazykový model na Workers AI, bez AI Gateway | Kandidáti: Gemma 4 26B, Mistral Small 3.1 24B, DeepSeek V4.1 Flash a Nemotron 3 Super. Vybere slepý test (plán MVP, krok 3). AI Gateway by mohla logovat vstupy včetně audia, proto se nepoužije (rozhodnuto 6. 11. 2026). |
 | Podobná témata | Vectorize + vícejazyčné embeddingy (`bge-m3`) | Index nad hlavními dotazy a poddotazy témat |
 | Stahování webu obce | Browser Rendering `/crawl` (beta od 10. 3. 2026). Jednou celý web, pak jen změny (výchozí denně, lze týdně). WordPress REST API jen jako záloha | Web obce zřejmě běží na WordPressu (dokumenty leží v `/wp-content/uploads/`). Vestavěné procházení webu v AI Search funguje jen pro doménu ve vlastním Cloudflare účtu. |
 | Vyhledání odpovědi | AI Search nad R2 s dokumenty obce | Vrací úryvky se zdrojem. Odpověď skládá jazykový model jen z nich a druhý krok ji ověří proti citacím. |
-| Asynchronní zpracování | Cloudflare Workflows nebo Queues | Opakování při výpadku AI |
-| Přihlášení | Better Auth + ověření Telegramu | E-mailový kód v MVP, SMS později |
+| Asynchronní zpracování | V MVP žádné | Nahrávka se zpracuje v jednom požadavku. Při výpadku ji autor pošle znovu z prohlížeče (rozhodnuto 6. 11. 2026). |
+| Přihlášení | Better Auth + ověření Telegramu | V MVP jen Telegram, e-mailový kód před ostrým spuštěním, SMS později |
 | Ochrana | Turnstile, Rate Limiting, Cloudflare Access | Access chrání administraci |
-| E-mail | Cloudflare Email Service nebo Resend | Ověřit, jestli je Email Service mimo betu |
+| E-mail | Cloudflare Email Service nebo Resend | Ověřit, jestli je Email Service mimo betu. Doména nezavisli-prisovice.cz dnes poštu odmítá (SPF a DMARC), DNS se před prvním e-mailem upraví podle SECURITY_MAINTENANCE.md webu. |
+
+### Vazba na web Nezávislých
+
+Ucho je nadstavba webu nezavisli-prisovice.cz, proto v tom, co patří webu, platí zdroje jeho projektu. Projekt webu leží v lokální složce `WEB_Prisovice`, ze které se smí jen číst. Cloudová session k ní nemá přístup.
+
+| Téma | Kde v projektu webu | Co z toho plyne pro ucho |
+| --- | --- | --- |
+| Pravidla práce | `AGENTS.md` (závazná), `README.md` (rozcestník) | Úpravy webu, i grafika ucha a hlavičky pro F-09, se dělají v projektu webu podle jeho pravidel |
+| Název provozovatele | `src/content/akce-prisovice-timeline.md`, upřesnění z 1. 10. 2026 | Na webu Nezávislí pro Příšovice, na hlasovacím lístku Rozumná cesta, kandidátka č. 2. Ucho nikdy netvrdí, že se kandidátka jmenuje Nezávislí pro Příšovice. |
+| Fakta o projektech | `src/content/akce-prisovice-timeline.md` | Faktický master včetně neveřejných záměrů a neověřených údajů. Ucho z něj nebere nic, co není v publikované kartě. |
+| Oblasti | `src/content/projects/` | Pět karet budoucích projektů dává oblasti MVP. Oblast se páruje se slugem karty. |
+| Vzhled | `DESIGN_SPEC.md`, barvy v `src/pages/index.astro` | Stejné barvy a písma: tmavě zelená, cihlový akcent, patkové nadpisy. Kontrast textu nejméně 4,5 : 1. |
+| Hlas textů | `SIMPLE_COPY_PROMPT.md` | Platí jen pro karty webu. Odpovědi ucha jsou věcné, s citací a upozorněním, že nejde o úřední vyjádření obce. |
+| Hlavičky | `src/lib/security-headers.ts`, `public/_headers` | Dnes zakazují mikrofon i cizí skripty a rámy. Varianty vložení jsou v `docs/oblasti-a-web.md`. |
+| Nasazení | Worker `prisovice-nezavisli`, `npm run deploy` | Ucho má vlastní Worker pro cestu /ucho a do Workeru webu se nenasazuje. |
+
+Podrobná mapa souborů webu je v repozitáři ucha v `docs/oblasti-a-web.md`.
 
 ### Procházení webu: index místo hledání až při dotazu
 
@@ -361,7 +376,7 @@ Prezentační verze poběží celá na jednom Cloudflare účtu. Odhad provozu j
 | Položka | Pro MVP | Cena |
 | --- | --- | --- |
 | Hosting a databáze | Cloudflare účet s plánem Workers Paid: Workers, D1, R2, Vectorize, AI Search, Workers AI, Browser Rendering | 5 USD měsíčně, AI a vyhledávání podle objemu |
-| Adresa aplikace | Bezplatná adresa `*.workers.dev`, vlastní doména až pro ostrý provoz | Zdarma |
+| Adresa aplikace | nezavisli-prisovice.cz/ucho na doméně webu. Testuje se rovnou tam, bez neveřejných náhledů (rozhodnuto 6. 11. 2026). | Zdarma |
 | Telegram | Bot založený přes @BotFather | Zdarma |
 | Data z webu obce | Jednorázově stažený web prisovice.cz, stránky a PDF v R2 | V ceně R2 |
 | Kód a nasazení | Repozitář na GitHubu (už existuje), nasazení příkazem `wrangler deploy` | Zdarma |
@@ -399,6 +414,8 @@ Vývoj má čtyři fáze. Už MVP pokryje celý tok od namluvení po odpověď, 
 
 Termíny doplním, až bude jasný cílový termín MVP a velikost pilotu (viz Otevřené otázky). Pořadí fází 2 a 3 jde prohodit, pokud jsou hlasovky v Telegramu důležitější než nástroje pro správce.
 
+Plánování MVP je uzavřené (6. 11. 2026). MVP je rozdělené na 12 kroků a další fází je testování od největšího rizika, nejdřív Whisper na nahrávkách z telefonu. Kroky a pořadí testů jsou v repozitáři v `docs/plan-mvp.md`.
+
 ## Rizika
 
 Největší riziko je, že AI odpoví jménem obce něčím, co ve zdroji není. Proto každá automatická odpověď stojí na citaci a bez ní jde dotaz ke správci.
@@ -414,7 +431,7 @@ Největší riziko je, že AI odpoví jménem obce něčím, co ve zdroji není.
 | Špatný přepis místních názvů | Nesrozumitelné nebo chybně zařazené podněty | Slovník domény, test modelu na 20 až 30 reálných nahrávkách před spuštěním |
 | Manipulace s hlasováním | Pořadí neodpovídá skutečnému zájmu | Hlasuje jen ověřený občan, jeden hlas na téma, rate-limit, Turnstile |
 | Spam a vulgarity | Veřejný seznam ztratí důvěryhodnost | AI označí podezřelé podněty, moderace před zveřejněním |
-| GDPR a osobní údaje | Pokuta, ztráta důvěry | Souhlas, krátká retence nahrávek, data v EU, dalším tazatelům jen text dotazu bez jména |
+| GDPR a osobní údaje | Pokuta, ztráta důvěry | Souhlas, nahrávky se neukládají, data v EU, dalším tazatelům jen text dotazu bez jména |
 | Telegram bot nemůže napsat první | Odpověď se nedoručí | Povolení zpráv získat už při přihlášení, záložní kanál |
 | Ceny WhatsAppu a SMS | Nečekané náklady | Spustit až po ověření poptávky, měsíční limit výdajů |
 | Palec dolů odrazuje autory | Méně podnětů | Zvážit jen kladnou podporu, nebo palec dolů bez zobrazení jména |
@@ -428,9 +445,9 @@ Největší riziko je, že AI odpoví jménem obce něčím, co ve zdroji není.
 
 ## Otevřené otázky
 
-Rozhodnuté otázky jsou zaškrtnuté. Pro start prezentační verze jsou potřeba odpovědi na prvních šest otevřených otázek, ostatní počkají na ostrý provoz.
+Rozhodnuté otázky jsou zaškrtnuté. Testování MVP žádná z otevřených otázek neblokuje. Před prezentací je potřeba rozhodnout zdroj pro projekty, jméno autora, palec dolů a termín, ostatní počkají na ostrý provoz.
 
-- [x] **Provozovatel:** uskupení Nezávislí Příšovice (9 z 15 zastupitelů), aplikace bude součástí webu nezavisli-prisovice.cz (upřesněno 24. 10. 2026). To, že uživatelé jsou občané obce, je zatím **Předpoklad**.
+- [x] **Provozovatel:** tým Nezávislí pro Příšovice, na hlasovacím lístku Rozumná cesta (9 z 15 mandátů), aplikace je nadstavbou webu nezavisli-prisovice.cz (upřesněno 24. 10. 2026). To, že uživatelé jsou občané obce, je zatím **Předpoklad**.
 - [x] **Schvalování automatických odpovědí:** odpověď z webu se autorovi ukáže hned a autor potvrdí, že mu stačí, nebo se doptá (potvrzeno 24. 10. 2026).
 - [x] **Zdroje pravdy:** celý obsah webu prisovice.cz (potvrzeno 24. 10. 2026).
 - [x] **Úřední deska:** nesleduje se, obsah na prisovice.e-obec.cz je zastaralý (rozhodnuto 24. 10. 2026).
@@ -441,13 +458,14 @@ Rozhodnuté otázky jsou zaškrtnuté. Pro start prezentační verze jsou potře
 - [x] **Způsob ověření pobytu:** v MVP se neřeší, přijde před ostrým spuštěním (rozhodnuto 24. 10. 2026).
 - [x] **Věková hranice:** podněty smějí podávat lidé od 15 let (rozhodnuto 24. 10. 2026). Stejná hranice pro hlasování je zatím **Předpoklad**.
 - [x] **Oblasti:** podle aktuálních a budoucích projektů na nezavisli-prisovice.cz (rozhodnuto 24. 10. 2026).
-- [ ] **Hosting:** Cloudflare, nebo český či evropský hosting? Katalog cloud computingu se netýká, provozovatel není obec. Rozhodne hlavně to, na čem běží web nezavisli-prisovice.cz. Srovnání je v rešerši (viz Zdroje).
+- [x] **Hosting:** Cloudflare, stejná platforma jako web nezavisli-prisovice.cz (rozhodnuto 1. 11. 2026). Srovnání je v rešerši (viz Zdroje).
+- [x] **Hlasové modely a TTS:** zjištění z projektu Podcast Language Learning App jsou v repozitáři v `docs/hlasove-modely.md` a promítla se do výběru modelu přepisu. Čtení odpovědí nahlas zůstává mimo rozsah.
+- [x] **Kanál v MVP:** jen Telegram, e-mail přijde před ostrým spuštěním.
+- [x] **Hlasování v MVP:** bez ověření pobytu hlasuje každý přihlášený (rozhodnuto 24. 10. 2026).
+- [x] **Seznam projektů:** načetla ho lokální session 1. 11. 2026 ze složky webu `WEB_Prisovice`, jen ke čtení. Projekty, oblasti a mapa znalostí webu jsou v repozitáři v `docs/oblasti-a-web.md`.
+- [x] **Doména a vzhled:** ucho poběží na nezavisli-prisovice.cz/ucho a testuje se rovnou na této ostré adrese (rozhodnuto 6. 11. 2026). Vzhled převezme z webu Nezávislých, grafika ucha vznikne v projektu webu.
 - [ ] **Správce osobních údajů:** kdo bude podle GDPR správcem? Sdružení nezávislých kandidátů není právnická osoba, takže spolek, nebo konkrétní člověk?
-- [ ] **Hlasové modely a TTS:** zjištění z projektu Podcast Language Learning App (lessons-learned.md) zatím nemám k dispozici. A mají se odpovědi i přečíst nahlas? Zatím je to mimo rozsah.
-- [ ] **Kanál v MVP:** stačí pro prezentaci jen Telegram? E-mail by přišel před ostrým spuštěním.
-- [ ] **Hlasování v MVP:** bez ověření pobytu by hlasoval každý přihlášený. Je to pro prezentaci v pořádku?
-- [ ] **Seznam projektů:** zdrojem je lokální složka webu WEB\_Prisovice, jen ke čtení. Cloudová session k ní nemá přístup, projekty načte lokální session na vašem počítači.
-- [ ] **Zdroj pro projekty:** mají se odpovědi o projektech brát i z nezavisli-prisovice.cz, nebo jen z prisovice.cz?
+- [ ] **Zdroj pro projekty:** mají se odpovědi o projektech brát i z nezavisli-prisovice.cz, nebo jen z prisovice.cz? Pokud ano, tak jen z publikovaných karet webu. Jeho faktický podklad (timeline) obsahuje neveřejné a neověřené údaje.
 - [ ] **Podněty od neobčanů:** smějí po ostrém spuštění podávat podněty i lidé bez trvalého pobytu v Příšovicích?
 - [ ] **Ověření pobytu bez úřadu:** jak ověřit občany, když provozovatel není obec? Možnosti jsou ruční potvrzení týmem, nebo elektronická identita.
 - [ ] **Jméno autora:** zobrazuje se u tématu, nebo je veřejně vidět jen text dotazu?
@@ -457,14 +475,13 @@ Rozhodnuté otázky jsou zaškrtnuté. Pro start prezentační verze jsou potře
 - [ ] **Odpověď správce na webu:** má se odpověď, kterou napsal správce, následně zveřejnit i na webu obce, aby se stala zdrojem pro další dotazy?
 - [ ] **Objem:** kolik podnětů a uživatelů měsíčně čekáte?
 - [ ] **Rozpočet:** kolik může stát provoz měsíčně, včetně SMS a WhatsAppu?
-- [ ] **Nahrávky:** uchovávat audio? Pokud ano, jak dlouho?
+- [ ] **Nahrávky:** v MVP se neukládají (rozhodnuto 1. 11. 2026). Mají se uchovávat v ostrém provozu, a pokud ano, jak dlouho?
 - [ ] **Termín a pilot:** kdy chcete MVP spustit a s jakou skupinou lidí ho otestovat?
-- [ ] **Doména a vzhled:** na jaké adrese aplikace poběží a máte logo a barvy?
-
 ## Historie verzí
 
 | Verze | Datum | Změny |
 | --- | --- | --- |
+| 0.9 | 6. 11. 2026 | Hosting Cloudflare, kostra Astro 7 a Hono; nahrávky se v MVP neukládají, bez AI Gateway a serverové fronty; uložení až po potvrzení autorem; 11 entit v MVP; testované prohlížeče a kandidáti modelů; název provozovatele podle webu a vazba na web Nezávislých; plánování MVP uzavřené; adresa nezavisli-prisovice.cz/ucho a testování přímo na ní |
 | 0.8 | 1. 11. 2026 | Název Příšovické ucho (repozitář prisovicke-ucho); vstupem je grafika ucha na webu nezavisli-prisovice.cz (F-09); lokální zdroje jen ke čtení; otázka hlasových modelů a TTS |
 | 0.7 | 24. 10. 2026 | Provozovatelem je uskupení Nezávislí Příšovice (9 z 15 zastupitelů), aplikace bude součástí webu nezavisli-prisovice.cz; katalog cloud computingu se netýká; upozornění, že odpovědi nejsou úředním vyjádřením obce; nová rizika a otázka správce osobních údajů |
 | 0.6 | 24. 10. 2026 | MVP zeštíhleno na prezentační verzi (36 požadavků, jen Telegram), ověření pobytu a GDPR až před ostrým spuštěním, věková hranice 15 let, oblasti podle projektů na nezavisli-prisovice.cz, nároky na provoz |
@@ -476,7 +493,7 @@ Rozhodnuté otázky jsou zaškrtnuté. Pro start prezentační verze jsou potře
 
 ## Zdroje
 
-Kompletní seznam zdrojů je v [rešerši hotových řešení](https://github.com/drbik/text-summarizer/blob/ccr-0bd17529-03aszn/docs/research-hlasove-podnety.md) z 17. 10. 2026. Tento PRD vychází hlavně z těchto:
+Kompletní seznam zdrojů je v [rešerši hotových řešení](https://github.com/drbik/prisovicke-ucho/blob/ccr-0bd17529-03aszn/docs/research-hlasove-podnety.md) z 17. 10. 2026. Tento PRD vychází hlavně z těchto:
 
 | Zdroj | K čemu poslouží |
 | --- | --- |
@@ -497,5 +514,6 @@ Kompletní seznam zdrojů je v [rešerši hotových řešení](https://github.co
 | [respond.io: ceník WhatsApp 2026](https://respond.io/blog/whatsapp-pricing-change-2026.md) | Náklady WhatsAppu od 1. 10. 2026 |
 | [Identita občana: příručka pro poskytovatele služeb](https://info.identita.gov.cz/download/SeP_PriruckaKvalifikovanehoPoskytovatele.pdf) | Možné automatické ověření trvalého pobytu, neověřeno |
 | [Bank iD: přehled pro poskytovatele služeb](https://developer.bankid.cz/docs/high_level_overview_sep) | Alternativa ověření adresy, neověřeno |
+| Projekt webu nezavisli-prisovice.cz, lokální složka WEB_Prisovice (jen ke čtení) | Projekty pro oblasti, název provozovatele, výsledek voleb 2026, vzhled, hlavičky a nasazení webu (viz Vazba na web Nezávislých) |
 
 Web obce ani dokumentaci Cloudflare jsem z tohoto prostředí nemohl otevřít, přístup je blokovaný. Údaje o nich pocházejí z výsledků vyhledávání a před implementací je potřeba je ověřit.

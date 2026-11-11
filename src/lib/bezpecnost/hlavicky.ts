@@ -1,0 +1,10 @@
+// Drž v souladu s public/_headers: statické soubory middleware obchází. Hlídá to tests/hlavicky.test.ts.
+// Worker ucha posílá vlastní hlavičky, hlavičky webu platí jen pro odpovědi webu.
+export const bezpecnostniHlavicky = {
+  'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; frame-src 'self'; frame-ancestors 'self'; base-uri 'none'; form-action 'self'",
+  'X-Frame-Options': 'SAMEORIGIN',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(), microphone=(self), geolocation=(), payment=(), usb=()',
+  'Strict-Transport-Security': 'max-age=2592000',
+};

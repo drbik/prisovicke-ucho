@@ -1,0 +1,186 @@
+---
+import { MAX_DELKA_NAHRAVKY_S, MAX_ZNAKU_NAZVU, MAX_ZNAKU_TEXTU, MAX_ZNAKU_UPRAVY, MIN_ZNAKU_TEXTU } from '../lib/podani/limity';
+import { formatovatCas } from '../lib/nahravani/casovac';
+import { OBLASTI, TYPY_PODNETU } from '../lib/oblasti';
+
+const formatZnaku = new Intl.NumberFormat('cs-CZ');
+---
+
+<div class="podani">
+  <button class="mikrofon" type="button" data-nahrat>
+    <svg viewBox="0 0 24 24" width="44" height="44" aria-hidden="true">
+      <path fill="currentColor" d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-6a3.5 3.5 0 0 0-7 0v6A3.5 3.5 0 0 0 12 15Z" />
+      <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3.2M8.6 21.2h6.8" />
+    </svg>
+    <span>Namluvit vzkaz</span>
+  </button>
+  <button class="odkaz" type="button" data-napsat>Raději napíšu</button>
+  <noscript><p class="drobne">Nahrávání i odeslání potřebuje JavaScript. Zapněte ho prosím v prohlížeči.</p></noscript>
+</div>
+
+<dialog id="podani-panel" class="panel" aria-labelledby="panel-titulek">
+  <div class="panel__plocha">
+    <header class="panel__lista">
+      <span id="panel-titulek">Váš vzkaz</span>
+      <button type="button" class="panel__zavrit" data-zavrit>Zavřít <span aria-hidden="true">×</span></button>
+    </header>
+
+    <div class="panel__obsah">
+      <p class="jen-ctecka" role="status" data-oznameni></p>
+
+      <section data-pohled="zadost" hidden>
+        <h2 tabindex="-1" data-fokus>Povolte mikrofon</h2>
+        <p>Prohlížeč se teď zeptá, jestli stránka smí použít mikrofon.</p>
+      </section>
+
+      <section data-pohled="nahravani" hidden>
+        <h2 tabindex="-1">Naslouchám</h2>
+        <p>Teď můžete namluvit svůj vzkaz, dotaz nebo připomínku.</p>
+        <p class="cas" role="timer"><span data-cas>0:00</span> <small>z {formatovatCas(MAX_DELKA_NAHRAVKY_S)}</small></p>
+        <div class="hladina" aria-hidden="true"><span data-hladina></span></div>
+        <p class="poznamka poznamka--nalehava" data-upozorneni hidden>Zbývá 30 sekund. Potom se nahrávání samo ukončí a odešle.</p>
+        <div class="akce">
+          <button class="tlacitko" type="button" data-hotovo data-fokus>Hotovo</button>
+          <button class="tlacitko tlacitko--druhe" type="button" data-zrusit>Zrušit</button>
+        </div>
+      </section>
+
+      <section data-pohled="odesilani" hidden>
+        <h2 tabindex="-1">Zpracovávám vzkaz</h2>
+        <p><span class="toceni" aria-hidden="true"></span> Chvilku to potrvá, u dlouhé nahrávky i několik desítek sekund.</p>
+        <div class="akce">
+          <button class="tlacitko tlacitko--druhe" type="button" data-zrusit data-fokus>Zrušit</button>
+        </div>
+      </section>
+
+      <section data-pohled="text" hidden>
+        <h2 tabindex="-1">Napište vzkaz</h2>
+        <p class="poznamka" data-vysvetleni hidden></p>
+        <form data-formular novalidate>
+          <label for="vzkaz-text">Váš návrh nebo dotaz</label>
+          <textarea
+            id="vzkaz-text"
+            rows="7"
+            maxlength={MAX_ZNAKU_TEXTU}
+            aria-describedby="vzkaz-pocet vzkaz-chyba"
+            data-pole
+            data-fokus
+          ></textarea>
+          <p class="pocitadlo" id="vzkaz-pocet">
+            <span data-pocet>0</span> z {formatZnaku.format(MAX_ZNAKU_TEXTU)} znaků, nejméně {MIN_ZNAKU_TEXTU}
+          </p>
+          <p class="chyba" id="vzkaz-chyba" role="alert" data-chyba-textu hidden></p>
+          <div class="akce">
+            <button class="tlacitko" type="submit" data-odeslat>Odeslat</button>
+          </div>
+        </form>
+      </section>
+
+      <section data-pohled="vysledek" hidden>
+        <h2 tabindex="-1" data-fokus>Zkontrolujte vzkaz</h2>
+        <p>AI vzkaz převedla do spisovné češtiny a navrhla název a zařazení. Zkontrolujte, jestli všechno sedí, a cokoli opravte.</p>
+        <form data-formular-potvrzeni novalidate>
+          <label for="vzkaz-upraveny">Text vzkazu</label>
+          <textarea
+            id="vzkaz-upraveny"
+            class="upraveny"
+            rows="10"
+            maxlength={MAX_ZNAKU_UPRAVY}
+            aria-describedby="chyba-text"
+            data-upraveny
+          ></textarea>
+          <p class="chyba" id="chyba-text" role="alert" data-chyba-pole="text" hidden></p>
+
+          <label for="vzkaz-nazev">Název</label>
+          <input id="vzkaz-nazev" type="text" maxlength={MAX_ZNAKU_NAZVU} autocomplete="off" aria-describedby="chyba-nazev" data-nazev />
+          <p class="chyba" id="chyba-nazev" role="alert" data-chyba-pole="nazev" hidden></p>
+
+          <div class="dvojice">
+            <div>
+              <label for="vzkaz-typ">Typ</label>
+              <select id="vzkaz-typ" aria-describedby="chyba-typ" data-typ>
+                {Object.entries(TYPY_PODNETU).map(([klic, nazev]) => <option value={klic}>{nazev}</option>)}
+              </select>
+              <p class="chyba" id="chyba-typ" role="alert" data-chyba-pole="typ" hidden></p>
+            </div>
+            <div>
+              <label for="vzkaz-oblast">Oblast</label>
+              <select id="vzkaz-oblast" aria-describedby="chyba-oblast" data-oblast>
+                {OBLASTI.map((oblast) => <option value={oblast.slug}>{oblast.nazev}</option>)}
+              </select>
+              <p class="chyba" id="chyba-oblast" role="alert" data-chyba-pole="oblast" hidden></p>
+            </div>
+          </div>
+
+          <div class="akce">
+            <button class="tlacitko" type="submit" data-potvrdit>Potvrdit</button>
+            <button class="tlacitko tlacitko--druhe" type="button" data-zahodit>Zahodit</button>
+          </div>
+        </form>
+        <details class="technicke">
+          <summary data-popis-puvodniho>Původní přepis</summary>
+          <p class="puvodni" data-puvodni></p>
+        </details>
+        <details class="technicke">
+          <summary>Technické údaje pro test</summary>
+          <dl data-technicke-seznam></dl>
+        </details>
+      </section>
+
+      <section data-pohled="potvrzeno" hidden>
+        <h2 tabindex="-1" data-fokus>Vzkaz je potvrzený</h2>
+        <p class="poznamka">Zkušební provoz: vzkaz se nikam neuložil a nikdo ho nedostane. Ukládání přibude spolu s přihlášením.</p>
+        <dl class="zarazeni">
+          <dt>Název</dt><dd data-potvrzeny-nazev></dd>
+          <dt>Typ</dt><dd data-potvrzeny-typ></dd>
+          <dt>Oblast</dt><dd data-potvrzena-oblast></dd>
+        </dl>
+        <blockquote class="prepis" data-potvrzeny-text></blockquote>
+        <p class="drobne" data-zmeny></p>
+
+        <section class="odpoved" aria-labelledby="odpoved-titulek" data-odpoved hidden>
+          <h3 id="odpoved-titulek" class="odpoved__titulek" tabindex="-1" data-odpoved-titulek>Odpověď na dotaz</h3>
+          <div data-odpoved-stav="hledani" hidden>
+            <p><span class="toceni" aria-hidden="true"></span> Hledáme odpověď na webu obce a na webu Nezávislých pro Příšovice.</p>
+          </div>
+          <div data-odpoved-stav="nalezena" hidden>
+            <p class="odpoved__oznaceni" data-odpoved-oznaceni></p>
+            <div class="odpoved__text" data-odpoved-vety></div>
+            <div class="odpoved__chybi" data-odpoved-chybi hidden>
+              <h4 class="odpoved__chybi-titulek">Tohle jsme ve zdrojích nenašli</h4>
+              <ul data-odpoved-chybi-seznam></ul>
+              <p class="poznamka">Zbytek dotazu převezmou zastupitelé. Ve zkušebním provozu se ale zatím nikam neuložil a nikdo ho nedostal.</p>
+            </div>
+            <h4 class="odpoved__zdroje-titulek">Zdroje</h4>
+            <ol class="odpoved__zdroje" data-odpoved-zdroje></ol>
+            <p class="poznamka" data-odpoved-upozorneni></p>
+          </div>
+          <div data-odpoved-stav="zastupitelum" hidden>
+            <p class="odpoved__oznaceni">Odpověď jsme na webu nenašli</p>
+            <p data-odpoved-duvod></p>
+            <p class="poznamka">Dotaz převezmou zastupitelé. Ve zkušebním provozu se ale zatím nikam neuložil a nikdo ho nedostal.</p>
+            <div class="akce" data-odpoved-znovu hidden>
+              <button class="tlacitko tlacitko--druhe" type="button" data-hledat-znovu>Hledat znovu</button>
+            </div>
+          </div>
+        </section>
+
+        <div class="akce">
+          <button class="tlacitko" type="button" data-novy>Nový vzkaz</button>
+          <button class="tlacitko tlacitko--druhe" type="button" data-zpet-k-uprave>Zpět k úpravám</button>
+        </div>
+      </section>
+
+      <section data-pohled="chyba" hidden>
+        <h2 tabindex="-1" data-fokus>Nepodařilo se to</h2>
+        <p data-chyba></p>
+        <div class="akce">
+          <button class="tlacitko" type="button" data-opakovat>Zkusit znovu</button>
+          <button class="tlacitko tlacitko--druhe" type="button" data-prejit-na-text>Napsat vzkaz</button>
+        </div>
+      </section>
+    </div>
+  </div>
+</dialog>
+
+<script src="../skripty/podani.ts"></script>

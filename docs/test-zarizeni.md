@@ -1,0 +1,148 @@
+# Testy na zařízeních
+
+*Stav k 10. 11. 2026. Krok 2.6, testy 1 a 2 z [plánu MVP](plan-mvp.md#další-fáze-testování) a odpověď z webu (krok 8). Adresa: https://nezavisli-prisovice.cz/ucho, rám: https://nezavisli-prisovice.cz/ucho/test-ramu.*
+
+**Stav: Windows je ověřený, Opera na Androidu z části.** Tři vzkazy a potom jeden na 3 minuty, namluvené skutečným mikrofonem na Opeře pro Android, prošly přepisem i úpravou. Hlavní riziko plánu (nahrávka z telefonu ve Whisperu) tím odpadá a dělení nahrávky ani WAV nejsou potřeba ani na telefonu. Formát a časy těchto pokusů nejsou zapsané. Rám a zamčení telefonu zůstávají neověřené.
+
+## Jak se ve Windows testovalo
+
+Edge 158 a Opera 138 (Chromium 154) běžely bez okna a řídil je skript. Místo skutečného mikrofonu dostaly umělé zařízení, které přehrávalo českou řeč z převodu textu na hlas (16 s a 174 s). Prohlížeč přitom nahrával přes MediaRecorder, přes CSP a hlavičky ostré stránky a posílal nahrávku do skutečného Whisperu.
+
+Co to neověří: skutečný mikrofon, dialog povolení mikrofonu, čtečku obrazovky a mluvčího v reálném prostředí. Syntetický hlas je čistší než člověk na ulici, takže kvalita přepisu níže je horní odhad.
+
+## Test 1: Whisper a nahrávky
+
+| Prohlížeč | Délka | Velikost | Formát | Přepis trval | Výsledek |
+|---|---|---|---|---|---|
+| Edge, Windows | 0:18 | 90 kB | `audio/webm;codecs=opus` | 2,3 s | Přepsáno celé |
+| Opera, Windows | 0:20 | 95 kB | `audio/webm;codecs=opus` | 1,8 s | Přepsáno celé |
+| Edge, Windows | 2:59 | 920 kB | `audio/webm;codecs=opus` | 21,6 s | Přepsáno celé, až do poslední věty |
+| Opera, Windows | 2:59 | 922 kB | `audio/webm;codecs=opus` | 15,1 s | Přepsáno celé, až do poslední věty |
+| Opera, Android | tři vzkazy, délka neuvedena | neuvedeno | neuvedeno | neuvedeno | Přepsáno, skutečný mikrofon |
+| Opera, Android | asi 3 minuty | neuvedeno | neuvedeno | neuvedeno | Přepsáno celé |
+
+Zjištění:
+
+- **Whisper přijímá WebM z Chromia.** `ffprobe` u nahrávky hlásí `duration=N/A`, hlavička tedy délku opravdu nemá, a modelu to nevadí. Délku určil správně (2:59). Přechod na WAV (krok 2.4) není potřeba.
+- **Tři minuty zvládne vcelku.** Dělení nahrávky (krok 3.1) není potřeba.
+- **Velikost:** tři minuty při 48 kb/s mají méně než 1 MB, limit serveru je 8 MB.
+- **Rychlost:** obvykle zhruba desetina délky nahrávky. Jeden pokus s 18 s trval 5,6 s, doba tedy kolísá.
+- **Čeština a místní názvy:** bez nápovědy `initial_prompt` je text velmi dobrý, chyby jsou hlavně u názvů a malých slov. Vlastní jména často ztrácejí velké písmeno.
+
+| Řečeno | Přepsáno |
+|---|---|
+| Záhumení | záhumení, jednou „záhu mení“ |
+| Příšovka | příšovka |
+| Písečákům | písečákům |
+| Sokolovna, Svijany, Příšovice | správně |
+| u návsi | u návsy |
+| kdo koryto pravidelně kontroluje | kdokoliv to pravidelně kontroluje |
+| pro ni | pro ní |
+| vyjíždět | výjíždět |
+
+Záměna „kdo koryto“ za „kdokoliv to“ mění smysl věty. Přesně to má odhalit autor při kontrole textu v kroku 4. Stejná nahrávka se přitom přepisuje pokaždé trochu jinak, při pozdějším běhu Whisper „kdo koryto“ trefil. Otázky často zakončí tečkou, to opravuje AI úprava.
+
+## AI úprava na ostré adrese
+
+Od 6. 11. 2026 jde každý přepis i napsaný text do jazykového modelu (krok 3.2 a 3.3). Stránka nabídne upravený text, navržený název, typ a oblast k opravě a pod rozbalením ukáže původní přepis. Model je předběžně Gemma 4 26B, porovnání je v [hlasove-modely.md](hlasove-modely.md#výběr-modelu-ai-úpravy).
+
+| Prohlížeč | Vstup | Prompt | Přepis | Úprava | Celkem | Pokusů |
+|---|---|---|---|---|---|---|
+| Edge, Windows | nahrávka 0:18 | 1 | 2,6 s | 2,7 s | 5,3 s | 1 |
+| Opera, Windows | nahrávka 2:59 | 1 | 9,8 s | 13,4 s | 23,2 s | 1 |
+| Opera, Windows (360 × 740) | napsaný text, 445 znaků | 1 | – | 4,1 s | 4,1 s | 1 |
+| Opera, Windows (360 × 740) | napsaný text, 445 znaků | 2 | – | 1,7 s | 1,7 s | 1 |
+
+**První vzkazy od člověka (6. 11. 2026, prompt verze 1).** Tomáš namluvil tři vzkazy. Přepis i úpravu vyhodnotil jako v pořádku, chtěl ale uhladit jazyk. To řeší prompt verze 2. Ve třetím vzkazu se jedno slovo zaměnilo. Které to bylo, se už nepamatuje, a text se neukládá, takže nejde zjistit ani to, jestli ho zaměnil Whisper, nebo úprava. Vzkazy šly z Opery na Androidu.
+
+**Tříminutový vzkaz z Androidu (prompt verze 2).** Přepsal se celý a AI navrhla upravenou verzi. Tomáš na výsledku hledal, kde upravený text opravit, a nenašel. Úprava textu autorem patří do kroku 4 (F-14). Od 9. 11. 2026 je na stránce formulář, ve kterém jde text, název, typ i oblast opravit a potvrdit (4.1). Jak vypadá uhlazený jazyk na skutečné řeči, zatím zapsané není.
+
+Body níže platí pro verzi 1, pokud není uvedeno jinak.
+
+- **Rychlost:** přímo 1minutová nahrávka změřená není, 0:18 a 2:59 ale limit 20 s z plánu naznačují s rezervou.
+- **Opraveno ve 2:59:** „záhumení“, „příšovka“, „k písečákům“, „u návsy“, „pro ní“, „Přísálí“ a tři otázky s tečkou.
+- **Neopraveno:** „výjíždět“ a „vyjde jednu domácnost“.
+- **Přidaná chyba:** „auta ježdí“, přepis měl „jezdí“ správně. Model tedy umí chybu i vyrobit, autor musí text číst.
+- **Přidaná slova v hovorovém textu:** „zpomalovací zařízení, například retardér“ a „rozbitých částí“. Práh z plánu „nepřidá nic, co autor neřekl“ model zatím nesplňuje.
+- **Bez obsahu v logu:** do Workers Logs jde jen doba, model, verze promptu, počet pokusů a počet znaků. Testy to hlídají.
+
+## Test 2: mikrofon v rámu
+
+| Prohlížeč | Výsledek |
+|---|---|
+| Edge, Windows | Funguje, nahrávka se přepsala |
+| Opera, Windows | Funguje, nahrávka se přepsala |
+| Opera, Android | **Čeká na test** |
+
+Testovací stránku obsluhuje Worker ucha, má tedy `microphone=(self)`. Na stránkách webu by to neplatilo, dokud web posílá `microphone=()` (viz [Oblasti a web](oblasti-a-web.md#rozhodnuto-6-11-2026-ucho-na-nezavisli-prisovicecz-ucho)).
+
+## Scénáře v prohlížeči
+
+Skript prošel 24 kontrol v Edge při běžné velikosti okna a v Opeře při velikosti telefonu (360 × 740). Odpovědi serveru byly podvržené, Whisper ani jazykový model se nevolaly. Vše prošlo, naposledy 9. 11. 2026 s formulářem k potvrzení, na lokálním sestavení. Na ostré adrese prošla v Opeře 360 × 740 oprava a potvrzení se skutečným modelem: po úpravě odešel jediný požadavek, potvrzení nic neodeslalo.
+
+| Scénář | Edge, Windows | Opera, Windows | Opera, Android |
+|---|---|---|---|
+| Jen klávesnice: Tab, Enter, Escape zruší, fokus se vrátí | OK | OK | nepoužije se |
+| Povolení mikrofonu | OK (umělé) | OK (umělé) | OK |
+| Zákaz mikrofonu ukáže textové pole s vysvětlením | OK | OK | **Čeká** |
+| Upozornění ve 2:30 a konec ve 3:00 | OK | OK | **Čeká**, 3minutová nahrávka prošla, upozornění a konec nezapsané |
+| Nahrávka kratší než 2 s se neodešle | OK | OK | **Čeká** |
+| Zrušit při nahrávání nic neodešle | OK | OK | **Čeká** |
+| Zrušit při čekání na přepis | OK | OK | **Čeká** |
+| Výpadek AI: Zkusit znovu pošle stejnou nahrávku | OK | OK | **Čeká** |
+| Výpadek AI: přechod na text | OK | OK | **Čeká** |
+| Výpadek sítě nechá napsaný text v poli | OK | OK | **Čeká** |
+| Výsledek ukáže název, typ, oblast a původní text | OK | OK | OK (podle autora, bez podrobností) |
+| Oprava textu, názvu, typu a oblasti, potvrzení ukáže změny | OK | OK | **Čeká** |
+| Prázdný název nepustí dál, řekne proč a vrátí fokus | OK | OK | **Čeká** |
+| Zpět k úpravám nechá opravy v polích | OK | OK | **Čeká** |
+| Zahodit, Zavřít a Escape se zeptají, po potvrzení už ne | OK | OK | **Čeká**, gesto zpět |
+| Celý upravený text je vidět bez posuvníku v poli | OK | OK (360 × 740) | **Čeká** |
+| Selhání úpravy u textu nechá vzkaz v poli | OK | OK | **Čeká** |
+| Selhání úpravy u nahrávky: Zkusit znovu i Napsat vzkaz | OK | OK | **Čeká** |
+| Skrytí stránky ukončí nahrávání a kus se odešle | OK (simulováno) | OK (simulováno) | **Čeká**, skutečné zamčení telefonu |
+| Bez vodorovného posuvníku | OK | OK (360 × 740) | **Čeká** |
+| Bluetooth sluchátka | nezkoušeno | nezkoušeno | **Čeká** |
+| Příchozí hovor | nepoužije se | nepoužije se | **Čeká** |
+| Pomalá síť | nezkoušeno | nezkoušeno | **Čeká** |
+
+## Krok 8: odpověď z webu na ostré adrese
+
+10. 11. 2026, nasazená verze `29c25376`. Edge 158 a Opera 139 (Chromium) s oknem, šířka 360 × 740, řídil je skript přes `playwright-core`. Dotaz byl napsaný, prošel AI úpravou a autor ho potvrdil. AI úprava ve všech čtyřech případech navrhla typ dotaz.
+
+| Prohlížeč | Dotaz | Výsledek | Od potvrzení |
+|---|---|---|---|
+| Edge, Windows | „do kolika má ve čtvrtek otevřeno lékárna na zdravotním středisku?“ | Odpověď z webu obce: čt 7.30–12.00 a 12.30–16.00, zdroj stránka Zdravotní středisko s datem a citací | 3,6 s |
+| Edge, Windows | „Plánuje se v Příšovicích bankomat?“ | Odpověď na webu není, dotaz převezmou zastupitelé | 0,9 s |
+| Opera, Windows | „jezdí teď vůbec vlak z příšovic? a kde staví ten náhradní autobus“ | Odpověď z webu obce: výluka 3. 10. – 27. 11., autobus na sídlišti, zdroj aktualita Vlaková výluka | 6,0 s |
+| Opera, Windows | „kolik u nás stoji kubik vody?“ | Odpověď na webu není, dotaz převezmou zastupitelé (kalkulace vodného je na webu jen jako sken) | 0,9 s |
+
+- Konzole bez chyb v obou prohlížečích, žádný vodorovný posun (šířka dokumentu 345 px při okně 360 px, panel nepřetéká).
+- U odpovědi je označení zdroje, název s odkazem, datum, citace a upozornění, že nejde o úřední vyjádření obce. Bez odpovědi stránka napíše, že dotaz převezmou zastupitelé a že se ve zkušebním provozu zatím nikam neuložil.
+- Ověřeno jen ve Windows. Opera na Androidu čeká, viz bod 8 níže.
+
+## Co zbývá: Opera na Androidu
+
+Stačí telefon a asi 15 minut. Po každém pokusu rozbalte na stránce „Technické údaje pro test“ a opište formát, velikost a dobu přepisu i úpravy. Rozbalte i „Původní přepis“ a porovnejte ho s upraveným textem. Hlavně sledujte, jestli úprava něco nepřidala nebo nevynechala.
+
+1. Na https://nezavisli-prisovice.cz/ucho namluvit krátký vzkaz s místními názvy a opsat údaje. Tři vzkazy prošly, údaje z nich ale chybí.
+2. Namluvit vzkaz na celé 3 minuty: upozornění ve 2:30, samo skončí ve 3:00. Přepis i úprava prošly, upozornění a konec zapsané nejsou.
+3. Na https://nezavisli-prisovice.cz/ucho/test-ramu namluvit vzkaz v rámu. Na výsledku závisí krok 12.
+4. Během nahrávání zamknout telefon. Po odemčení se má ukázat přepis nahraného kusu.
+5. Zakázat mikrofon v nastavení stránky: má se ukázat textové pole.
+6. Na upraveném vzkazu opravit text a třeba oblast a potvrdit. Potom na dalším vzkazu zkusit gesto zpět: stránka se má zeptat, jestli vzkaz zahodit.
+7. Podle chuti: Bluetooth sluchátka, příchozí hovor, pomalá síť.
+8. Krok 8: napsat nebo namluvit dotaz, třeba „Do kolika má ve čtvrtek otevřeno lékárna?“, nechat typ Dotaz a potvrdit. Má se ukázat odpověď s citací a odkaz na zdroj se má otevřít. Potom dotaz „Plánuje se v Příšovicích bankomat?“: stránka má napsat, že dotaz převezmou zastupitelé.
+
+## Na ostré adrese ověřeno
+
+- Route `nezavisli-prisovice.cz/ucho` a `/ucho/*` dostaly přednost před Custom Domain webu. Hlavní stránka webu, `/favicon.svg` a `/uchopit` se po nasazení nezměnily.
+- `/ucho` posílá vlastní CSP a `microphone=(self)`, web dál `microphone=()`. HTML neobsahuje vložené skripty ani styly a prohlížeč nehlásí porušení CSP.
+- Požadavek z cizího původu nebo bez hlavičky `Origin` server odmítne (403).
+- Do Workers Logs jdou časy a velikosti, ne audio ani text vzkazu (viz níže).
+- Limit požadavků je jen přibližný, viz [Otevřené body](#otevřené-body).
+
+## Otevřené body
+
+- **Limit požadavků nestačí jako tvrdá ochrana.** Nastavený limit je 6 požadavků za minutu na IP. Ve skutečnosti z 52 rychlých požadavků za sebou prošlo 49, protože Rate Limiting binding je podle dokumentace Cloudflare přibližný a čítače synchronizuje na pozadí. Přepis 3 minut stojí 0,15 centu, škoda je tedy malá, ale endpoint je do kroku 5 veřejný bez přihlášení. Pevnější ochranu dá až přihlášení, případně pravidlo WAF na zóně, to ale patří do nastavení domény.
+- **F-05 pro Safari a Firefox** se v MVP neověřuje, viz rozhodnutí z 2. 11. 2026.

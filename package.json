@@ -1,0 +1,39 @@
+{
+  "name": "prisovicke-ucho",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "check": "astro check",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "deploy": "astro build && wrangler deploy",
+    "astro": "astro",
+    "index:stahnout": "tsx nastroje/index/stahnout.ts",
+    "index:word": "tsx nastroje/index/word.ts",
+    "index:ocr": "tsx nastroje/index/ocr.ts",
+    "index:zpracovat": "tsx nastroje/index/zpracovat.ts",
+    "index:nahrat": "tsx nastroje/index/nahrat.ts",
+    "eval:odpovedi": "tsx nastroje/index/vyhodnotit.ts"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^14.4.6",
+    "astro": "^7.4.7",
+    "hono": "^4.13.16"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@types/node": "^24.19.2",
+    "node-html-parser": "^9.0.7",
+    "pdfjs-dist": "^6.5.438",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "vitest": "^5.1.0",
+    "wrangler": "^4.158.0"
+  }
+}
