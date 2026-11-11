@@ -110,6 +110,23 @@ Do MVP nepatří e-mail, GDPR souhlasy a moderace, zakrytí osobních údajů, o
 - Vložení do webu (F-09): ucho běží na nezavisli-prisovice.cz/ucho, vlastní route má přednost před Custom Domain webu (ověřeno 6. 11. 2026). Zbývá rozhodnout, jak ucho otevře grafika na webu. Závisí to na testu mikrofonu v rámu na Opeře pro Android. Rozbor je v `docs/oblasti-a-web.md`.
 - Kdo bude správce osobních údajů podle GDPR.
 
+## Pravidlo: zkouška z telefonu přes domácí síť
+
+Když Tomáš chce ucho zkoušet na telefonu nebo na jiném zařízení v domácí síti, postupuj takhle. Platí jen pro lokální vývoj. Ostrý Worker se tím nemění a nic z toho se nenasazuje.
+
+1. **Proč https:** mikrofon prohlížeč povolí jen na https nebo na localhost. Po http přes IP adresu stránka sama nabídne psaní. Lokální server proto běží přes https s vlastním certifikátem.
+2. **Adresa počítače:** `Get-NetIPAddress -AddressFamily IPv4`, vezmi adresu rozhraní Wi-Fi (10.20.30.44 dne 10. 11. 2026). Adaptéry VPN (NordLynx, OpenVPN) ignoruj. Síť Wi-Fi musí mít profil Private (`Get-NetConnectionProfile`). Příchozí provoz pro Node.js je ve firewallu povolený.
+3. **Certifikát:** `klic.pem` a `certifikat.pem` ve `%USERPROFILE%\.prisovicke-ucho\https`, mimo repozitář. Platí do 10. 12. 2026 a jen pro adresy 10.20.30.44, localhost a 127.0.0.1. Když chybí, vypršel, nebo se změnila adresa počítače, vytvoř nový v Git Bash:
+   ```bash
+   mkdir -p "$USERPROFILE/.prisovicke-ucho/https" && cd "$USERPROFILE/.prisovicke-ucho/https" && MSYS_NO_PATHCONV=1 openssl req -x509 -newkey rsa:2048 -nodes -days 30 -keyout klic.pem -out certifikat.pem -subj "/CN=prisovicke-ucho-dev" -addext "subjectAltName=IP:<adresa>,DNS:localhost,IP:127.0.0.1"
+   ```
+4. **Server:** `UCHO_HTTPS=1 npm run dev -- --host 0.0.0.0 --port 4321`. V aplikaci Claude přes `preview_start` s konfigurací `ucho-wifi` z `.claude/launch.json`. Ten git ignoruje, takže když chybí, vytvoř ho s položkou `runtimeExecutable: npm`, `runtimeArgs: ["run", "dev", "--", "--host", "0.0.0.0", "--port", "4321"]`, `env: {"UCHO_HTTPS": "1"}`, `url: "https://localhost:4321"` a `port: 4321`. Když je port 4321 obsazený jinou session, vyber jiný.
+5. **AI:** lokální server používá falešnou AI (`.dev.vars` s `FALESNE_AI=1`, git ho ignoruje). Napsaný text vrací beze změny, nahrávka dá pevnou větu a dotaz skončí u zastupitelů. Nestojí to žádné neurony. Skutečná AI v lokálním serveru není nastavená, skutečné odpovědi se zkoušejí na ostré adrese.
+6. **Ověření před předáním adresy:** server se rozjíždí asi 15 s. `curl -sk -o /dev/null -w "%{http_code}" https://<adresa>:4321/ucho/` musí vrátit 200. Prohlížeč v aplikaci vlastní certifikát odmítne (`ERR_CERT_AUTHORITY_INVALID`). Kontrolu certifikátu nevypínej a API zkoušej přes `curl -k` s hlavičkami `Origin: https://<adresa>:4321` a `Sec-Fetch-Site: same-origin`.
+7. **Co říct Tomášovi:** adresa `https://<adresa>:4321/ucho/` (s „s“, přes http to nepůjde), telefon musí být ve stejné Wi-Fi, Opera ukáže varování o certifikátu (Rozšířené, Pokračovat), potom povolit mikrofon. Server běží, dokud je session otevřená. Po zkoušení ho zastav přes `preview_stop`.
+8. **Kde to je v kódu:** `astro.config.mjs` spustí https jen při `UCHO_HTTPS`, `src/lib/podani/ochrana.ts` pustí adresy 10.x, 192.168.x a 172.16 až 31.x jen při `import.meta.env.DEV` a falešná AI vrací napsaný text (`ozvena` v `src/lib/ai/falesna.ts`).
+9. **Co neměnit:** firewall, nastavení sítě ani certifikáty v systému. Když telefon na server nedosáhne, řekni to Tomášovi a popiš, co jsi ověřila.
+
 ## Zásady pro kód
 
 - Piš v TypeScriptu pro Cloudflare Workers: Astro 7 na stránky, Hono na API pod `/api`. Logiku drž v modulech, které neznají ani jeden z frameworků. Přístup k databázi, úložišti a AI schovej za vlastní rozhraní, aby šel hosting později vyměnit.
