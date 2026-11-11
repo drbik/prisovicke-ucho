@@ -14,6 +14,7 @@ interface MoznostiFalesneAi {
   vystupyGenerovani?: string[];
   chybaGenerovani?: Error;
   vektor?: (text: string) => number[];
+  ozvena?: boolean;
 }
 
 const PLATNY_VYSTUP = JSON.stringify({
@@ -35,6 +36,7 @@ export function vytvorFalesneAi({
   vystupyGenerovani,
   chybaGenerovani,
   vektor,
+  ozvena,
 }: MoznostiFalesneAi = {}) {
   const volani: Uint8Array[] = [];
   const upravy: string[] = [];
@@ -51,7 +53,11 @@ export function vytvorFalesneAi({
       upravy.push(text);
       if (chybaUpravy) throw chybaUpravy;
       if (zpozdeniUpravyMs) await new Promise((hotovo) => setTimeout(hotovo, zpozdeniUpravyMs));
-      const vystupy = [...(vystupyUpravy ?? [PLATNY_VYSTUP])];
+      // Zkouška vzhledu z telefonu: s ozvěnou vrátí lokální vývoj napsaný text beze změny.
+      const vychozi = ozvena
+        ? JSON.stringify({ text, nazev: 'Zkušební název vzkazu', oblast: 'ostatni', typ: text.includes('?') ? 'dotaz' : 'navrh' })
+        : PLATNY_VYSTUP;
+      const vystupy = [...(vystupyUpravy ?? [vychozi])];
       const { uprava, pokusu } = await upravitVzkaz(async () => vystupy.shift() ?? '', text);
       return { uprava, pokusu, model: 'falesny-model', verzePromptu: VERZE_PROMPTU };
     },

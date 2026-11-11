@@ -4,7 +4,9 @@ import { ChybaPodani } from './chyby';
 export function jePuvodPovolen(request: Request, vyvoj = false) {
   const url = new URL(request.url);
   const hostitele = vyvoj ? ['localhost', '127.0.0.1'] : ['nezavisli-prisovice.cz'];
-  return hostitele.includes(url.hostname)
+  // Zkouška z telefonu přes Wi-Fi: při vývoji i adresa počítače v místní síti.
+  const mistniSit = vyvoj && /^(?:10\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)/.test(url.hostname);
+  return (hostitele.includes(url.hostname) || mistniSit)
     && (vyvoj || url.protocol === 'https:')
     && request.headers.get('origin') === url.origin
     && !['cross-site', 'same-site'].includes(request.headers.get('sec-fetch-site') ?? '');
