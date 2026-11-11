@@ -70,6 +70,7 @@ Všechno běží ručně na počítači, ne ve Workeru. K Cloudflare se skripty 
 4. `npm run index:zpracovat`: vytáhne text z HTML a PDF (`pdfjs-dist`), přidá text z Wordu a z OCR, rozdělí ho na úseky (asi 1 200 znaků, překryv 150) a zapíše dokumenty, úseky a zprávu o vynechaném. Trvá asi 5 minut.
 5. `npx tsx nastroje/index/kontrola-sady.ts`: ověří, že doslovné opory typových otázek jsou v úsecích svých zdrojů. Při posledním zpracování prošly všechny.
 6. `npm run index:nahrat`: spočítá embeddingy (`@cf/baai/bge-m3`) jen pro nové nebo změněné úseky a nahraje index do D1 a Vectorize. Index na chvíli zmizí a hned se nahraje znovu, smazané úseky odstraní i z Vectorize. První nahrání stálo asi 1 000 neuronů.
+7. `npx tsx nastroje/index/kontrola-ukazek.ts`: ověří ukázková témata z přehledu na stránce ucha proti novému indexu. Citace zodpovězených ukázek musí být ve zdrojích doslova a k čekajícím dotazům index nesmí nic mít (rozhodnutí z 11. 11. 2026). Když kontrola selže, ukázku oprav nebo vyřaď dřív, než se stránka nasadí.
 
 Stažené soubory, vytažený text a vektory leží mimo repozitář ve složce `%USERPROFILE%\.prisovicke-ucho\index` (lze změnit proměnnou `UCHO_DATA`).
 

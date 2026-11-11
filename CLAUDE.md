@@ -92,6 +92,11 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 - Index se rozšiřuje o veřejný obsah webu Nezávislých: Tlampač a podklady (soubory Markdown na nezavisli-prisovice.cz/podklady/, které web zveřejňuje pro čtení strojem). Tomáš to schválil 10. 11. 2026 večer s podmínkou „ověřené Markdown soubory“. Berou se z veřejného webu, nikdy ze složky projektu webu. `akce-prisovice-timeline.md` zůstává mimo index, stejně jako rozcestník podkladů a vse.md s pokyny pro chatboty a stránka Archiv voleb.
 - Účet Cloudflare přešel na Workers Paid (5 USD měsíčně, platí pro celý účet včetně webu). Denních 10 000 neuronů zůstává zdarma, nad ně se platí 0,011 USD za tisíc. Ucho se tak při vyčerpání limitu nezastaví. Limit už nefunguje jako strop výdajů, proti zneužití chrání omezení počtu požadavků.
 
+## Rozhodnutí (11. 11. 2026)
+
+- Stránka ucha ukazuje na jedné obrazovce ucho, zodpovězené dotazy a témata čekající na zastupitele. Dokud se vzkazy neukládají, jsou to ukázky od týmu podle rozhodnutí z 9. 11. 2026: každá má štítek „Ukázka“, bez vymyšlených autorů, hlasů a dat podání, odpovědi jsou skutečný výstup ucha se zdroji. Data jsou v `src/lib/temata/ukazky.json`.
+- Mezi čekající ukázky smí jen dotaz, ke kterému index zdrojů opravdu nic nemá. Dotaz, ke kterému index má aspoň související údaj (cena vody za loňský rok, nájem ve stávajících bytech, minulý termín akce), mezi čekající nepatří. Každý čekající dotaz má v datech hlídané vzory a `npx tsx nastroje/index/kontrola-ukazek.ts` selže, když některý v indexu něco najde. Spouští se po každé změně ukázek a po každé obnově indexu.
+
 ## MVP (prezentační verze)
 
 1. Grafika ucha na webu nezavisli-prisovice.cz. Po kliknutí rozhraní s mikrofonem a záložním textovým polem.

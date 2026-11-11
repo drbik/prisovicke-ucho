@@ -138,6 +138,85 @@ form > label:not(:first-child), .dvojice { margin-top: 16px; }
 
 .jen-ctecka { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
+/* Přehled: ucho a témata na jedné obrazovce (ukázky od týmu, předstupeň kroku 11). Na úzkém displeji jsou pod sebou
+   a seznamy se přepínají záložkami, od 700 px jsou seznamy vedle sebe, od 1000 px je ucho vlevo a témata vpravo. */
+.stranka--prehled { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; width: min(1280px, 100%); }
+.stranka--prehled > .zpet { justify-self: start; margin-bottom: 0; }
+.prehled__ucho .podani { margin-bottom: 0; }
+.prehled__paticka .poznamka { margin-bottom: 10px; }
+
+.temata { padding: 20px 20px 16px; border-radius: 7px; background: var(--paper); }
+.temata__hlavicka { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 10px 16px; margin-bottom: 10px; }
+.temata__hlavicka h2 { margin-bottom: 4px; }
+.temata__souhrn { margin: 0; color: var(--ink-soft); font-size: .9rem; }
+.temata__souhrn strong { color: var(--ink); }
+.temata__hledani { flex: 1 1 200px; max-width: 280px; }
+.temata__hledat { min-height: 44px; padding-block: 8px; }
+.temata__ukazka { margin: 0 0 12px; padding: 8px 12px; border: 1px dashed #18332e73; border-radius: 7px; color: var(--ink-soft); font-size: .84rem; line-height: 1.45; }
+.temata__ukazka strong { color: var(--ink); }
+.temata__prepinac { min-height: 0; border: 0; }
+.temata__zalozky { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+.temata__zalozky label { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; margin: 0; border: 1px solid var(--past); border-radius: 10px; color: var(--past); font-weight: 750; cursor: pointer; }
+.temata__zalozky .temata__pocet { color: inherit; }
+#temata-ukazat-zodpovezena:checked ~ .temata__zalozky label[for="temata-ukazat-zodpovezena"],
+#temata-ukazat-cekajici:checked ~ .temata__zalozky label[for="temata-ukazat-cekajici"] { color: #fff; background: var(--past); }
+#temata-ukazat-zodpovezena:focus-visible ~ .temata__zalozky label[for="temata-ukazat-zodpovezena"],
+#temata-ukazat-cekajici:focus-visible ~ .temata__zalozky label[for="temata-ukazat-cekajici"] { outline: 3px solid var(--fokus); outline-offset: 3px; }
+.temata__sloupce { display: grid; gap: 18px; }
+.temata__sloupec h3 { display: flex; align-items: baseline; gap: 8px; margin: 0 0 8px; font-size: 1rem; }
+.temata__pocet { color: var(--ink-soft); font-size: .84rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+.temata__seznam { display: grid; align-content: start; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.temata__nic { margin: 8px 0 0; color: var(--ink-soft); font-size: .9rem; }
+
+.tema { border: 1px solid var(--linka); border-left: 3px solid var(--past); border-radius: 7px; background: #fff; }
+.tema--ceka { border-left-color: var(--fokus); }
+.tema__souhrn { position: relative; display: grid; gap: 4px; padding: 10px 36px 10px 12px; list-style: none; cursor: pointer; }
+.tema__souhrn::-webkit-details-marker { display: none; }
+.tema__souhrn::after { content: ''; position: absolute; top: 15px; right: 15px; width: 8px; height: 8px; border-right: 2px solid var(--ink-soft); border-bottom: 2px solid var(--ink-soft); transform: rotate(45deg); transition: transform 160ms ease; }
+.tema__detail[open] > .tema__souhrn::after { top: 19px; transform: rotate(225deg); }
+.tema__nazev { font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+.tema__nahled { display: -webkit-box; overflow: hidden; color: var(--ink-soft); font-size: .9rem; line-height: 1.4; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+.tema__detail[open] .tema__nahled { display: none; }
+.tema__stitky { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-top: 2px; }
+.stitek { padding: 1px 8px; border: 1px solid #18332e40; border-radius: 6px; color: var(--ink-soft); font-size: .72rem; font-weight: 700; line-height: 1.5; }
+.stitek--zodpovezeno { border-color: var(--past); color: #fff; background: var(--past); }
+.stitek--ceka { border-color: #f6e7d3; color: #7a4416; background: #f6e7d3; }
+.stitek--ukazka { border-style: dashed; }
+.tema__telo { padding: 12px 12px 14px; border-top: 1px solid var(--linka); }
+.tema__telo .prepis { margin-bottom: 12px; font-size: .9rem; }
+.tema__telo .odpoved__zdroje { margin-bottom: 10px; }
+.tema__popisek { margin: 0 0 6px; color: var(--ink-soft); font-size: .78rem; font-weight: 760; letter-spacing: .06em; text-transform: uppercase; }
+
+@media (max-width: 699px) {
+  .prehled__ucho .podani { gap: 8px; margin-top: 20px; }
+  .prehled__ucho .mikrofon { width: 140px; height: 140px; }
+  .temata { padding: 18px 14px 14px; }
+  /* Název seznamu nese záložka, nadpis zůstává jen pro čtečky. */
+  .temata__sloupec h3 { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  #temata-ukazat-zodpovezena:checked ~ .temata__sloupce .temata__sloupec--cekajici,
+  #temata-ukazat-cekajici:checked ~ .temata__sloupce .temata__sloupec--zodpovezena { display: none; }
+}
+
+@media (min-width: 700px) {
+  .temata__prepinac, .temata__zalozky { display: none; }
+  .temata__sloupce { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1000px) {
+  .stranka--prehled { grid-template-columns: 340px minmax(0, 1fr); grid-template-rows: auto auto 1fr; align-items: start; column-gap: 18px; padding-bottom: 24px; }
+  .stranka--prehled > .zpet { grid-column: 1 / -1; }
+  .prehled__ucho { grid-column: 1; grid-row: 2; }
+  /* V úzkém sloupci se název vejde na jeden řádek. */
+  .prehled__ucho h1 { font-size: 2.3rem; }
+  .prehled__paticka { grid-column: 1; grid-row: 3; }
+  .prehled__temata { grid-column: 2; grid-row: 2 / span 2; }
+  /* Přehled má výšku okna a posouvají se jen seznamy, takže je všechno na jedné obrazovce. */
+  .temata { display: grid; grid-template-rows: auto auto minmax(0, 1fr); height: calc(100dvh - 88px); min-height: 420px; }
+  .temata__sloupce { grid-template-rows: minmax(0, 1fr); min-height: 0; }
+  .temata__sloupec { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-height: 0; }
+  .temata__seznam { padding-right: 6px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+}
+
 @media (max-width: 520px) {
   .stranka { padding: 16px 8px 28px; }
   .karta { padding: 24px 18px; }
@@ -149,6 +228,6 @@ form > label:not(:first-child), .dvojice { margin-top: 16px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mikrofon { transition: none; }
+  .mikrofon, .tema__souhrn::after { transition: none; }
   .toceni { animation-duration: 3s; }
 }
