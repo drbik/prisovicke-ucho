@@ -97,6 +97,14 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 - Stránka ucha ukazuje na jedné obrazovce ucho, zodpovězené dotazy a témata čekající na zastupitele. Dokud se vzkazy neukládají, jsou to ukázky od týmu podle rozhodnutí z 9. 11. 2026: každá má štítek „Ukázka“, bez vymyšlených autorů, hlasů a dat podání, odpovědi jsou skutečný výstup ucha se zdroji. Data jsou v `src/lib/temata/ukazky.json`.
 - Mezi čekající ukázky smí jen dotaz, ke kterému index zdrojů opravdu nic nemá. Dotaz, ke kterému index má aspoň související údaj (cena vody za loňský rok, nájem ve stávajících bytech, minulý termín akce), mezi čekající nepatří. Každý čekající dotaz má v datech hlídané vzory a `npx tsx nastroje/index/kontrola-ukazek.ts` selže, když některý v indexu něco najde. Spouští se po každé změně ukázek a po každé obnově indexu.
 
+## Rozhodnutí (12. 11. 2026)
+
+- Dotaz se vždy dělí na samostatné otázky, nejvýš 4. Dělí ho AI a každá otázka se ptá na jednu věc. Každá část má vlastní hledání, odpověď a ověření. Dotaz na jednu věc se hledá v autorově znění a jeho hledání běží souběžně s rozdělením (rozdělení má limit 3 s), protože přeformulovaná otázka hledala hůř a čekání zdržovalo. Důvod: u dotazu na sportoviště a ceny pronájmu vytlačily úseky o sportu ceník Sokolovny a jedna čárka navíc v citaci zahodila celou odpověď.
+- Autor průběžně vidí, na jaké otázky AI dotaz rozdělila a co se u které děje: hledáme, odpověď jsme našli, nebo ve zdrojích není. Části běží souběžně. Server posílá průběh po řádcích JSON (`application/x-ndjson`).
+- Pravidlo F-75 platí pro každou část zvlášť: když v části cokoli neprojde, převezmou ji zastupitelé a ostatní části odpověď ukážou. Tomáš schválil návrh opravy 12. 11. 2026.
+- Prompt odpovědi verze 5: až 4 věty na část, u řádku tabulky citace se záhlavím sloupců, při rozporu zdrojů novější údaj. Model i ověření znají dnešní datum, takže termín, který už minul, nevydají za příští. Údaje o jiném místě nebo budově se nepoužijí. Ověření navíc zamítne větu se jménem soukromé osoby (žadatel, nájemce), které model jinak ze zápisů rady přebíral.
+- Text z PDF odděluje sloupce tabulky znaky „ | “, stejně jako u Wordu. Bez toho nešlo poznat, že v ceníku Sokolovny je 8 000 Kč vratná kauce, a ne cena energie.
+
 ## MVP (prezentační verze)
 
 1. Grafika ucha na webu nezavisli-prisovice.cz. Po kliknutí rozhraní s mikrofonem a záložním textovým polem.

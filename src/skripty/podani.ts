@@ -11,8 +11,8 @@ import {
   type PotvrzenyVzkaz,
 } from '../lib/podani/potvrzeni';
 import type { TechnickeUdaje, VysledekPodani } from '../lib/podani/zpracovani';
-import type { DuvodPredani, ZobrazenaOdpoved } from '../lib/odpovedi/odpoved';
-import type { VysledekDotazu } from '../lib/odpovedi/zpracovani';
+import type { DuvodPredani, VetaZobrazene, ZobrazenaOdpoved } from '../lib/odpovedi/odpoved';
+import type { UdalostDotazu, VysledekDotazu } from '../lib/odpovedi/zpracovani';
 import { OBLASTI, TYPY_PODNETU } from '../lib/oblasti';
 
 type Pohled = 'zadost' | 'nahravani' | 'odesilani' | 'text' | 'vysledek' | 'potvrzeno' | 'chyba';
@@ -55,8 +55,18 @@ const DUVODY_BEZ_ODPOVEDI: Record<DuvodPredani, string> = {
   'citace-neni-v-useku': BEZ_OPORY,
   'cislo-neni-v-citaci': BEZ_OPORY,
   'neplyne-z-citace': BEZ_OPORY,
+  'soukroma-osoba': BEZ_OPORY,
 };
 const ODPOVED_SITE = 'Odpověď se nepodařilo vyhledat, spojení selhalo. Zkontrolujte připojení a zkuste to znovu.';
+// Průběh hledání (12. 11. 2026): autor vidí, na jaké části AI dotaz rozdělila a co se u které právě děje.
+const CTEME_DOTAZ = 'Čteme dotaz a zjišťujeme, na co všechno se ptáte.';
+const HLEDAME = 'Hledáme odpověď na webu obce a na webu Nezávislých pro Příšovice.';
+const STAVY_CASTI = {
+  hledani: 'Hledáme odpověď…',
+  odpoved: 'Odpověď jsme našli.',
+  zastupitelum: 'Ve zdrojích jsme odpověď nenašli.',
+} as const;
+const TYP_PRUBEHU = 'application/x-ndjson';
 const ODPOVED_LIMIT = 'Během chvilky přišlo moc požadavků. Počkejte prosím minutu a zkuste to znovu.';
 // Odkaz smí vést jen na zdroje indexu, i kdyby server vrátil něco jiného.
 const POVOLENY_ZDROJ = /^https:\/\/(?:prisovice\.cz|nezavisli-prisovice\.cz)\//;
@@ -102,6 +112,8 @@ const chybiSeznam = prvek('[data-odpoved-chybi-seznam]', panel);
 const upozorneniOdpovedi = prvek('[data-odpoved-upozorneni]', panel);
 const duvodBezOdpovedi = prvek('[data-odpoved-duvod]', panel);
 const hledatZnovu = prvek('[data-odpoved-znovu]', panel);
+const prubehPopis = prvek('[data-prubeh-popis]', panel);
+const prubeh = prvek('[data-prubeh]', panel);
 
 let nahravani: Nahravani | null = null;
 let odeslani: AbortController | null = null;
@@ -228,10 +240,9 @@ function ukazatStavOdpovedi(stav: 'hledani' | 'nalezena' | 'zastupitelum' | null
   }
 }
 
-function ukazatOdpoved(data: ZobrazenaOdpoved) {
-  oznaceniOdpovedi.textContent = data.oznaceni.join(' · ');
+function odstavecVet(vety: VetaZobrazene[]) {
   const odstavec = document.createElement('p');
-  for (const veta of data.vety) {
+  for (const veta of vety) {
     const odkaz = document.createElement('a');
     odkaz.href = `#odpoved-zdroj-${veta.zdroj}`;
     odkaz.textContent = String(veta.zdroj);
@@ -240,7 +251,22 @@ function ukazatOdpoved(data: ZobrazenaOdpoved) {
     index.append(odkaz);
     odstavec.append(veta.text, index, ' ');
   }
-  vetyOdpovedi.replaceChildren(odstavec);
+  return odstavec;
+}
+
+function ukazatOdpoved(data: ZobrazenaOdpoved) {
+  oznaceniOdpovedi.textContent = data.oznaceni.join(' · ');
+  // Dotaz na víc věcí: pod každou zodpovězenou otázkou její věty.
+  if (data.casti?.length) {
+    vetyOdpovedi.replaceChildren(...data.casti.flatMap((cast) => {
+      const otazka = document.createElement('h4');
+      otazka.className = 'odpoved__cast';
+      otazka.textContent = cast.otazka;
+      return [otazka, odstavecVet(cast.vety)];
+    }));
+  } else {
+    vetyOdpovedi.replaceChildren(odstavecVet(data.vety));
+  }
   // Částečná odpověď: části dotazu, na které zdroje neodpovídají.
   chybiSeznam.replaceChildren(...data.nezodpovezeno.map((cast) => {
     const polozka = document.createElement('li');
@@ -283,22 +309,97 @@ function ukazatBezOdpovedi(duvod: string, muzeZnovu: boolean) {
   oznameni.textContent = 'Odpověď jsme na webu nenašli. Dotaz převezmou zastupitelé.';
 }
 
+// Části dotazu, jak je rozdělila AI. Jedna část se jako seznam neukazuje.
+function ukazatCasti(casti: string[]) {
+  if (casti.length < 2) {
+    prubeh.hidden = true;
+    prubehPopis.textContent = HLEDAME;
+    oznameni.textContent = HLEDAME;
+    return;
+  }
+  prubehPopis.textContent = `Dotaz má ${casti.length} části. Odpověď hledáme ke každé zvlášť.`;
+  prubeh.replaceChildren(...casti.map((otazka, i) => {
+    const polozka = document.createElement('li');
+    polozka.dataset.stav = 'hledani';
+    const znak = document.createElement('span');
+    znak.className = 'prubeh__znak';
+    znak.setAttribute('aria-hidden', 'true');
+    const toceni = document.createElement('span');
+    toceni.className = 'toceni';
+    znak.append(toceni);
+    const text = document.createElement('span');
+    text.className = 'prubeh__otazka';
+    text.textContent = `${i + 1}. ${otazka}`;
+    const stav = document.createElement('span');
+    stav.className = 'prubeh__stav';
+    stav.textContent = STAVY_CASTI.hledani;
+    polozka.append(znak, text, stav);
+    return polozka;
+  }));
+  prubeh.hidden = false;
+  oznameni.textContent = `Dotaz má ${casti.length} části. Hledáme odpověď na každou zvlášť. ${casti.map((otazka, i) => `${i + 1}. ${otazka}`).join(' ')}`;
+}
+
+function ukazatHotovouCast(cislo: number, vysledek: 'odpoved' | 'zastupitelum') {
+  const polozka = prubeh.children[cislo - 1];
+  if (prubeh.hidden || !(polozka instanceof HTMLElement)) return;
+  polozka.dataset.stav = vysledek;
+  polozka.querySelector('.prubeh__znak')?.replaceChildren(vysledek === 'odpoved' ? '✓' : '–');
+  const stav = polozka.querySelector('.prubeh__stav');
+  if (stav) stav.textContent = STAVY_CASTI[vysledek];
+  oznameni.textContent = `Část ${cislo} ze ${prubeh.children.length}: ${vysledek === 'odpoved' ? 'odpověď jsme našli' : 'odpověď ve zdrojích není'}.`;
+}
+
+// Server posílá průběh po řádcích JSON. Poslední řádek nese výsledek.
+async function cistPrubeh(telo: ReadableStream<Uint8Array>, priUdalosti: (udalost: UdalostDotazu) => void) {
+  const ctecka = telo.getReader();
+  const dekoder = new TextDecoder();
+  let zbytek = '';
+  for (;;) {
+    const { value, done } = await ctecka.read();
+    zbytek += dekoder.decode(value, { stream: !done });
+    let konec = zbytek.indexOf('\n');
+    while (konec !== -1) {
+      const radek = zbytek.slice(0, konec).trim();
+      zbytek = zbytek.slice(konec + 1);
+      if (radek) priUdalosti(JSON.parse(radek) as UdalostDotazu);
+      konec = zbytek.indexOf('\n');
+    }
+    if (done) break;
+  }
+  if (zbytek.trim()) priUdalosti(JSON.parse(zbytek) as UdalostDotazu);
+}
+
 // Krok 8.7: potvrzený dotaz projde hledáním na webu obce a v kartách webu Nezávislých (F-70 až F-76).
 async function hledatOdpoved(vzkaz: PotvrzenyVzkaz) {
   hledani?.abort();
   const rizeni = new AbortController();
   hledani = rizeni;
   hledanyDotaz = vzkaz;
+  prubeh.hidden = true;
+  prubeh.replaceChildren();
+  prubehPopis.textContent = CTEME_DOTAZ;
   ukazatStavOdpovedi('hledani');
-  oznameni.textContent = 'Vzkaz je potvrzený. Hledáme odpověď na webu.';
+  oznameni.textContent = `Vzkaz je potvrzený. ${CTEME_DOTAZ}`;
   try {
     const vysledek = await fetch(API_DOTAZU, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', accept: TYP_PRUBEHU },
       body: JSON.stringify({ text: vzkaz.text, typ: vzkaz.typ }),
       signal: rizeni.signal,
     });
-    const data = await vysledek.json().catch(() => null) as VysledekDotazu | null;
+    const prijato: { data: VysledekDotazu | null } = { data: null };
+    if (vysledek.ok && vysledek.body && (vysledek.headers.get('content-type') ?? '').includes(TYP_PRUBEHU)) {
+      await cistPrubeh(vysledek.body, (udalost) => {
+        if (rizeni.signal.aborted) return;
+        if (udalost.udalost === 'casti') ukazatCasti(udalost.casti);
+        else if (udalost.udalost === 'cast') ukazatHotovouCast(udalost.cislo, udalost.vysledek);
+        else prijato.data = udalost.vysledek;
+      });
+    } else {
+      prijato.data = await vysledek.json().catch(() => null) as VysledekDotazu | null;
+    }
+    const { data } = prijato;
     if (rizeni.signal.aborted) return;
     if (!vysledek.ok || !data) {
       ukazatBezOdpovedi(vysledek.status === 429 ? ODPOVED_LIMIT : DUVODY_BEZ_ODPOVEDI['chyba-ai'], true);

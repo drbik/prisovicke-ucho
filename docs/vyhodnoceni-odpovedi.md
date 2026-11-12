@@ -101,3 +101,24 @@ Obě otázky tedy podle schválené sady prošly. Přeřazení na odpověď zat�
 **Návrhy, stížnost a pochvala (Q27 až Q30)** se nehledají.
 
 **Známé slabiny k dalšímu ladění:** druhá kontrola je u časových údajů přísná (Q02, Q06) a jednotlivé volání Workers AI může výjimečně trvat přes minutu (Q13).
+
+## Dotaz po částech (12. 11. 2026)
+
+Podnět: dotaz „jaké zázemí Příšovice poskytují pro sportovní vyžití a jaké jsou ceny za nájem hřiště, tělocvičny nebo Sokolovny“ skončil u zastupitelů, i když ceník Sokolovny v indexu je. Úseky o sportu ho vytlačily z šesti úseků pro model a čárka navíc v jedné citaci zahodila celou částečnou odpověď. Oprava (krok 8.13 v [plánu](plan-mvp.md)):
+
+- AI dotaz rozdělí na nejvýš 4 samostatné otázky. Každá má vlastní hledání, odpověď a ověření a stránka průběžně ukazuje stav každé části. Dotaz na jednu věc se hledá v autorově znění a jeho hledání běží souběžně s rozdělením.
+- Prompt odpovědi verze 5: až 4 věty na část, řádek tabulky se záhlavím sloupců, při rozporu novější zdroj, dnešní datum (termín, který minul, není „příští“), údaje o jiném místě se nepoužijí. Ověření navíc zamítne větu se jménem soukromé osoby (žadatel, nájemce).
+- Kontrola citace přijme záhlaví tabulky a pozdější řádek, které model napíše za sebou, a ukáže mezi nimi výpustku.
+- Text PDF odděluje sloupce tabulek znaky „ | “. Bez toho ověřovací model ceník Sokolovny zamítal: ze „4.000 Kč + energie 8.000 Kč“ nešlo poznat, že 8 000 Kč je kauce. Se sloupci ho pustil ve 4 ze 4 pokusů. Nový text úseků se do D1 a Vectorize nahraje s nasazením, běhy níže proto běžely ještě na indexu bez sloupců.
+
+| Běh | Co se měnilo | S odpovědí (automaticky) | Zastupitelům | Do 10 s |
+|---|---|---|---|---|
+| A | první znění verze 5, každý dotaz přeformulovaný | 10 ze 16 | 8 z 10 | 8 z 15 |
+| B | dotaz na jednu věc v autorově znění, dnešní datum, rozdělení zachová „teď“, „příští“ | 12 ze 16 | **10 z 10** | 9 ze 13 |
+| C | navíc hledání celku souběžně s rozdělením | 11 ze 16 | **10 z 10** | 4 ze 12 |
+| srovnání | původní kód (verze 4) týž večer | 10 ze 16 | 10 z 10 | 9 ze 12 |
+
+- **Běh A** ukázal, že přeformulovaná otázka hledá hůř (Q10, Q15 nenašly zdroj), jednou do ní model vložil cizí slovo a na „další vítání občánků“ odpověděl termínem, který už minul (Q23). Proto běh B.
+- **Ruční kontrola běhu B:** správně 12 ze 16 (75 %, práh 70 %). Q03 a Q13 jsou částečné: na jednu část odpověď, druhá jde zastupitelům. Q06 a Q11 teď zodpoví obě části (výluka a náhradní autobus, starosta i místostarosta). Q09 cituje správnou částku, ale druhou větu uvádí slovy „v jiném zápisu“, ačkoli jde o tentýž dokument. Q15 skončila na výpadku Workers AI (25 s), Q16 zamítlo ověření.
+- **Rychlost:** Workers AI byla 12. 11. večer pomalejší. Původní kód měl do 10 s jen 9 ze 12 odpovědí (10. 11. 13 ze 14). V běhu C trvalo samotné rozdělení až 5 s, proto má rozdělení limit 3 s: když nestihne, platí celý dotaz, jehož hledání už běží. Dotaz na více věcí trvá déle (Q03, Q14 9 až 25 s), autor ale vidí, která část se hledá a která je hotová. Práh 90 % do 10 s se tento večer nesplnil ani s původním kódem.
+- **Výsledky:** `vyhodnoceni-2026-11-12-17-35-54.json` (A), `-17-42-53.json` (B), `-17-49-31.json` (C), `-17-52-58.json` (srovnání) ve složce dat.

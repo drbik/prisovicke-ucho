@@ -2,7 +2,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { precistKarty } from '../nastroje/index/karty';
 import { jeRizeniSoukromeOsoby } from '../nastroje/index/nastaveni';
-import { odstranitOpakovane, spojitRadky } from '../nastroje/index/pdf';
+import { odstranitOpakovane, slozitStranu, spojitRadky } from '../nastroje/index/pdf';
 import { odkazyPodkladu, precistPodklad, precistTlampac } from '../nastroje/index/nezavisli';
 import { jeCitelnyOcr, textOcr, textWordu } from '../nastroje/index/prevod';
 import { precistRobots } from '../nastroje/index/sit';
@@ -93,6 +93,27 @@ describe('PDF (8.4)', () => {
       'Rada schvaluje program.\nUsnesení přijato.',
       'Rada bere na vědomí kontrolu.\nUsnesení přijato.',
       'Rada souhlasí s pronájmem.\nPodpis starosty',
+    ]);
+  });
+
+  // Ceník Sokolovny (12. 11. 2026): bez oddělení sloupců vypadala kauce jako cena energie.
+  it('velkou mezeru mezi sloupci tabulky zapíše jako svislou čáru, mezery mezi slovy nechá', () => {
+    const polozka = (str: string, x: number, y: number, width: number) => ({ str, transform: [11, 0, 0, 11, x, y], width, height: 11 });
+    const text = slozitStranu([
+      polozka('Ceny pronájmu', 96.7, 336.7, 63.3),
+      polozka(' ', 160, 336.7, 180),
+      polozka('Vratná kauce', 344.6, 336.7, 54.8),
+      polozka('o Celá sokolovna', 120, 320.6, 79.5),
+      polozka('4.000 Kč + energie', 238.3, 320.6, 82.1),
+      polozka('8.000 Kč', 380, 320.6, 37.9),
+      polozka('Rada obce', 70, 300, 46),
+      polozka('schvaluje', 119, 300, 44),
+    ]);
+    // Poslední řádek je níž, takže začne nový odstavec (prázdný řádek).
+    expect(text.split('\n').filter(Boolean)).toEqual([
+      'Ceny pronájmu | Vratná kauce',
+      'o Celá sokolovna | 4.000 Kč + energie | 8.000 Kč',
+      'Rada obce schvaluje',
     ]);
   });
 });

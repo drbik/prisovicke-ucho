@@ -1,3 +1,4 @@
+import { POKYNY_ROZDELENI } from '../odpovedi/prompt-odpovedi';
 import type { ZpravaModelu } from './prompt-upravy';
 import type { SluzbaAi, VysledekPrepisu, VysledekUpravy } from './rozhrani';
 import { VERZE_PROMPTU } from './prompt-upravy';
@@ -14,7 +15,20 @@ interface MoznostiFalesneAi {
   vystupyGenerovani?: string[];
   chybaGenerovani?: Error;
   vektor?: (text: string) => number[];
+  // Výstupy rozdělení dotazu na části v pořadí volání. Bez nich se dotaz nerozdělí a hledá se celý.
+  vystupyRozdeleni?: string[];
   ozvena?: boolean;
+  // Lokální vývoj: zdržení hledání a odpovědi, aby byl na stránce vidět průběh.
+  zpozdeniMs?: number;
+}
+
+const pockat = (ms?: number) => (ms ? new Promise((hotovo) => setTimeout(hotovo, ms)) : Promise.resolve());
+
+// Ozvěna rozdělí dotaz podle otazníků, aby šel průběh po částech zkusit i bez skutečné AI.
+function rozdelitOzvenou(zpravy: ZpravaModelu[]) {
+  const dotaz = (zpravy[1]?.content ?? '').replace(/^<dotaz>\n|\n<\/dotaz>$/g, '');
+  const otazky = dotaz.split(/(?<=\?)\s+/).map((otazka) => otazka.trim()).filter((otazka) => otazka.endsWith('?'));
+  return JSON.stringify({ casti: otazky.length > 1 ? otazky : [dotaz] });
 }
 
 const PLATNY_VYSTUP = JSON.stringify({
@@ -36,13 +50,17 @@ export function vytvorFalesneAi({
   vystupyGenerovani,
   chybaGenerovani,
   vektor,
+  vystupyRozdeleni,
   ozvena,
+  zpozdeniMs,
 }: MoznostiFalesneAi = {}) {
   const volani: Uint8Array[] = [];
   const upravy: string[] = [];
   const generovani: ZpravaModelu[][] = [];
   const vektorovano: string[] = [];
   const zbyvajiciVystupy = [...(vystupyGenerovani ?? [])];
+  const zbyvajiciRozdeleni = [...(vystupyRozdeleni ?? [])];
+  const rozdeleni: string[] = [];
   const ai: SluzbaAi = {
     async prepsat(audio) {
       volani.push(audio);
@@ -64,13 +82,22 @@ export function vytvorFalesneAi({
     modelOdpovedi: 'falesny-model-odpovedi',
     async vektory(texty) {
       vektorovano.push(...texty);
+      // Různě dlouhé části trvají různě dlouho, aby se na stránce střídaly hotové a hledané.
+      await pockat(zpozdeniMs && (zpozdeniMs * (1 + ((texty[0]?.length ?? 0) % 3))) / 2);
       return texty.map((text) => vektor?.(text) ?? [1, 0, 0]);
     },
     async generovat(zpravy) {
+      // Rozdělení dotazu má vlastní frontu výstupů, aby testy odpovědí nemusely počítat s dalším voláním.
+      if (zpravy[0]?.content === POKYNY_ROZDELENI) {
+        rozdeleni.push(zpravy[1]?.content ?? '');
+        if (chybaGenerovani) throw chybaGenerovani;
+        return zbyvajiciRozdeleni.shift() ?? (ozvena ? rozdelitOzvenou(zpravy) : JSON.stringify({ casti: [] }));
+      }
       generovani.push(zpravy);
+      await pockat(zpozdeniMs);
       if (chybaGenerovani) throw chybaGenerovani;
       return zbyvajiciVystupy.shift() ?? NEVIM;
     },
   };
-  return { ai, volani, upravy, generovani, vektorovano };
+  return { ai, volani, upravy, generovani, vektorovano, rozdeleni };
 }

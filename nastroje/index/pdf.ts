@@ -16,7 +16,7 @@ export const standardFontDataUrl = pathToFileURL(path.join(balicek, 'standard_fo
 export const wasmUrl = pathToFileURL(path.join(balicek, 'wasm') + path.sep).href;
 export const iccUrl = pathToFileURL(path.join(balicek, 'iccs') + path.sep).href;
 
-interface PolozkaTextu {
+export interface PolozkaTextu {
   str: string;
   transform: number[];
   width: number;
@@ -29,8 +29,13 @@ export interface StranaPdf {
   text: string;
 }
 
+// Mezera mezi slovy větší než trojnásobek výšky písma odděluje sloupce tabulky. Mezi sloupce se píše „ | “
+// jako u tabulek z Wordu, jinak by řádek ceníku „Celá sokolovna 4.000 Kč + energie 8.000 Kč“ nešel přečíst
+// (8.000 Kč je kauce z dalšího sloupce, ne cena energie). Slova v zarovnaném odstavci mají mezery menší.
+export const MEZERA_SLOUPCU = 3;
+
 // Složí řádky z položek textu. Nový řádek začíná při změně svislé polohy, odstavec při větší mezeře.
-function slozitStranu(polozky: PolozkaTextu[]) {
+export function slozitStranu(polozky: PolozkaTextu[]) {
   const radky: { y: number; vyska: number; text: string }[] = [];
   let radek: { y: number; vyska: number; text: string; konecX: number } | null = null;
   for (const polozka of polozky) {
@@ -38,11 +43,14 @@ function slozitStranu(polozky: PolozkaTextu[]) {
     const x = polozka.transform[4];
     const y = polozka.transform[5];
     const vyska = Math.abs(polozka.height) || Math.abs(polozka.transform[3]) || 10;
+    const jeText = polozka.str.trim() !== '';
     if (radek && Math.abs(y - radek.y) <= vyska * 0.5) {
+      // Konec řádku se počítá od posledního slova. Mezera nebo tabulátor mezi sloupci ho neposune.
       const mezera = x - radek.konecX;
-      if (mezera > vyska * 0.15 && !/\s$/.test(radek.text) && !/^\s/.test(polozka.str)) radek.text += ' ';
+      if (jeText && mezera > vyska * MEZERA_SLOUPCU) radek.text = `${radek.text.trimEnd()} | `;
+      else if (mezera > vyska * 0.15 && !/\s$/.test(radek.text) && !/^\s/.test(polozka.str)) radek.text += ' ';
       radek.text += polozka.str;
-      radek.konecX = x + polozka.width;
+      if (jeText) radek.konecX = x + polozka.width;
     } else if (polozka.str) {
       if (radek) radky.push(radek);
       radek = { y, vyska, text: polozka.str, konecX: x + polozka.width };

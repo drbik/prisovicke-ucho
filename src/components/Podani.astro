@@ -141,7 +141,8 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
         <section class="odpoved" aria-labelledby="odpoved-titulek" data-odpoved hidden>
           <h3 id="odpoved-titulek" class="odpoved__titulek" tabindex="-1" data-odpoved-titulek>Odpověď na dotaz</h3>
           <div data-odpoved-stav="hledani" hidden>
-            <p><span class="toceni" aria-hidden="true"></span> Hledáme odpověď na webu obce a na webu Nezávislých pro Příšovice.</p>
+            <p><span class="toceni" aria-hidden="true"></span> <span data-prubeh-popis></span></p>
+            <ol class="prubeh" data-prubeh hidden></ol>
           </div>
           <div data-odpoved-stav="nalezena" hidden>
             <p class="odpoved__oznaceni" data-odpoved-oznaceni></p>

@@ -9,7 +9,8 @@ import { VERZE_PROMPTU } from '../../src/lib/ai/prompt-upravy';
 import type { UpravaVzkazu } from '../../src/lib/ai/uprava';
 import { vytvorIndexCloudflare } from '../../src/lib/odpovedi/cloudflare';
 import { PRAH_PODOBNOSTI } from '../../src/lib/odpovedi/hledani';
-import { odpovedetNaDotaz, type VysledekOdpovedi } from '../../src/lib/odpovedi/odpoved';
+import { odpovedetPoCastech } from '../../src/lib/odpovedi/casti';
+import type { VysledekOdpovedi } from '../../src/lib/odpovedi/odpoved';
 import { VERZE_PROMPTU_ODPOVEDI } from '../../src/lib/odpovedi/prompt-odpovedi';
 import { pripojitCloudflare } from './cloudflare';
 import { SLOZKA_DAT } from './nastaveni';
@@ -71,17 +72,21 @@ try {
       radek.vysledek = 'nehleda';
     } else {
       vystupyModelu = [];
-      let nalezene: { url: string; podobnost: number }[] = [];
+      const nalezene: { url: string; podobnost: number }[] = [];
+      let casti: string[] = [];
       const zacatek = Date.now();
       let vysledek: VysledekOdpovedi | { vysledek: 'zastupitelum'; duvod: 'chyba-ai'; chyba: string };
       try {
-        vysledek = await odpovedetNaDotaz(uprava.text, {
+        // Stejně jako stránka: dotaz se rozdělí na části a každá se hledá zvlášť (12. 11. 2026).
+        vysledek = await odpovedetPoCastech(uprava.text, {
           ai,
           index,
           prahPodobnosti: prah,
           naHledani: (useky, nejlepsi) => {
-            nalezene = useky.map((u) => ({ url: u.dokument.url, podobnost: nejlepsi }));
+            nalezene.push(...useky.map((u) => ({ url: u.dokument.url, podobnost: nejlepsi })));
           },
+        }, (udalost) => {
+          if (udalost.udalost === 'casti') casti = udalost.casti;
         });
       } catch (chyba) {
         vysledek = { vysledek: 'zastupitelum', duvod: 'chyba-ai', chyba: chyba instanceof Error ? chyba.message.slice(0, 200) : String(chyba) };
@@ -93,6 +98,7 @@ try {
       if (vysledek.vysledek === 'zastupitelum') radek.duvod = vysledek.duvod;
       if ('chyba' in vysledek) radek.chyba = vysledek.chyba;
       if (vysledek.vysledek === 'odpoved') radek.odpoved = vysledek.odpoved;
+      radek.casti = casti;
       const ocekavaneUrl = new Set((otazka.zdroje ?? []).map((z) => bezKotvy(z.url)));
       radek.nalezeneZdroje = [...new Set(nalezene.map((n) => n.url))];
       radek.ocekavanyZdrojNalezen = ocekavaneUrl.size ? (radek.nalezeneZdroje as string[]).some((u) => ocekavaneUrl.has(u)) : null;

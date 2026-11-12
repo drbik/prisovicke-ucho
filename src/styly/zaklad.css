@@ -122,6 +122,14 @@ form > label:not(:first-child), .dvojice { margin-top: 16px; }
 .odpoved__titulek { margin: 0 0 10px; font-size: 1.05rem; }
 .odpoved__oznaceni { margin: 0 0 8px; color: var(--past); font-size: .78rem; font-weight: 760; letter-spacing: .06em; text-transform: uppercase; }
 .odpoved__text p { margin: 0 0 10px; overflow-wrap: anywhere; }
+.odpoved__cast { margin: 14px 0 4px; font-size: .92rem; overflow-wrap: anywhere; }
+.odpoved__cast:first-child { margin-top: 0; }
+.prubeh { margin: 4px 0 0; padding: 0; list-style: none; }
+.prubeh li { display: grid; grid-template-columns: 1.4rem 1fr; gap: 2px 8px; margin-bottom: 10px; overflow-wrap: anywhere; }
+.prubeh__znak { grid-row: span 2; color: var(--ink-soft); font-weight: 760; text-align: center; }
+.prubeh__otazka { font-weight: 650; }
+.prubeh__stav { color: var(--ink-soft); font-size: .86rem; }
+.prubeh li[data-stav="odpoved"] .prubeh__znak, .prubeh li[data-stav="odpoved"] .prubeh__stav { color: var(--past); }
 .odpoved__text sup a { margin-left: 2px; color: var(--past); font-weight: 750; text-underline-offset: 2px; }
 .odpoved__chybi-titulek { margin: 14px 0 6px; font-size: .9rem; }
 .odpoved__chybi ul { margin: 0 0 10px; padding-left: 22px; }

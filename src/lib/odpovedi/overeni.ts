@@ -15,7 +15,8 @@ export type DuvodZamitnuti =
   | 'spatny-usek'
   | 'citace-neni-v-useku'
   | 'cislo-neni-v-citaci'
-  | 'neplyne-z-citace';
+  | 'neplyne-z-citace'
+  | 'soukroma-osoba';
 
 export class ZamitnutaOdpoved extends Error {
   readonly duvod: DuvodZamitnuti;
@@ -117,8 +118,9 @@ function cislaVety(veta: string) {
 }
 
 // Citaci model občas složí ze dvou nesousedních vět téhož úseku. Části se pak hledají každá zvlášť,
-// bez tečky nebo čárky na konci, kterou model za useknutou větu přidá.
-const HRANICE_CASTI = /(?<=[.!?…:;])\s+|\n+/;
+// bez tečky nebo čárky na konci, kterou model za useknutou větu přidá. Výpustku mezi částmi (záhlaví tabulky … řádek)
+// model píše sám, ta se do částí nepočítá.
+const HRANICE_CASTI = /(?<=[.!?:;])\s+|\s*…\s*|\s+\.{3}\s+|\n+/;
 const bezKoncoveInterpunkce = (text: string) => text.replace(/[.,;:]+$/, '');
 
 function castiCitace(citace: string) {
@@ -130,6 +132,38 @@ export function jeTextVUseku(text: string, usek: NalezenyUsek) {
   return normalizovat(`${usek.hlavicka}\n${usek.text}`).includes(normalizovat(bezKoncoveInterpunkce(text)));
 }
 
+// Řádek tabulky s jejím záhlavím: model napíše záhlaví a řádek za sebou, i když jsou mezi nimi jiné řádky
+// („Ceny pronájmu Vratná kauce o Přísálí 2.000 Kč…“). Citace se pak rozdělí na dvě části, z nichž první končí
+// na konci řádku úseku a druhá začíná na začátku pozdějšího řádku. Kus řádku se s kusem jiného řádku spojit nedá.
+const MIN_ZNAKU_RADKU = 5;
+
+function zahlaviARadek(citace: string, usek: NalezenyUsek): string | null {
+  let zdroj = '';
+  const hranice = new Set<number>([0]);
+  for (const radek of `${usek.hlavicka}\n${usek.text}`.split('\n')) {
+    zdroj += normalizovat(radek);
+    hranice.add(zdroj.length);
+  }
+  const vyskyty = (text: string) => {
+    const mista: number[] = [];
+    for (let i = zdroj.indexOf(text); i !== -1; i = zdroj.indexOf(text, i + 1)) mista.push(i);
+    return mista;
+  };
+  const slova = citace.split(/\s+/);
+  for (let k = 1; k < slova.length; k += 1) {
+    const zahlavi = slova.slice(0, k).join(' ');
+    const radek = slova.slice(k).join(' ');
+    const nZahlavi = normalizovat(zahlavi);
+    const nRadek = normalizovat(bezKoncoveInterpunkce(radek));
+    if (nZahlavi.length < MIN_ZNAKU_RADKU || nRadek.length < MIN_ZNAKU_RADKU) continue;
+    const konce = vyskyty(nZahlavi).map((i) => i + nZahlavi.length).filter((konec) => hranice.has(konec));
+    if (!konce.length) continue;
+    const prvniKonec = Math.min(...konce);
+    if (vyskyty(nRadek).some((i) => i >= prvniKonec && hranice.has(i))) return `${zahlavi} … ${radek}`;
+  }
+  return null;
+}
+
 // Citace v podobě pro zobrazení: celá, když je v úseku doslova, jinak souvislé skupiny částí oddělené výpustkou.
 // Null, když v úseku není.
 function citaceVUseku(citace: string, usek: NalezenyUsek) {
@@ -139,7 +173,7 @@ function citaceVUseku(citace: string, usek: NalezenyUsek) {
   if (cela && zdroj.includes(cela)) return ocistena;
   const jeVUseku = (text: string) => zdroj.includes(normalizovat(bezKoncoveInterpunkce(text)));
   const casti = castiCitace(ocistena);
-  if (casti.length < 2 || !casti.every(jeVUseku)) return null;
+  if (casti.length < 2 || !casti.every(jeVUseku)) return zahlaviARadek(ocistena, usek);
   const skupiny: string[] = [];
   for (const cast of casti) {
     const posledni = skupiny[skupiny.length - 1];
@@ -184,6 +218,9 @@ export function precistOvereni(vystup: string, pocetVet: number) {
   for (const polozka of data.vysledky) {
     const p = (polozka ?? {}) as Record<string, unknown>;
     plyne.set(Number(p.cislo), p.plyne === true);
+    // Jméno žadatele, nájemce a jiné soukromé osoby do odpovědi nepatří, i když ve zdroji je (12. 11. 2026).
+    // Pole u každé věty: tvar se seznamem čísel vět psal model kratší, ale pak zamítal i věty bez jména.
+    if (p.soukroma_osoba === true) throw new ZamitnutaOdpoved('soukroma-osoba');
   }
   // Věta bez výsledku se počítá jako neověřená.
   for (let cislo = 1; cislo <= pocetVet; cislo += 1) {

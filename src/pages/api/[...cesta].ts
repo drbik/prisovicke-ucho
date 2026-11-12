@@ -10,7 +10,8 @@ export const prerender = false;
 
 const vyvoj = import.meta.env.DEV;
 const falesne = vyvoj && env.FALESNE_AI === '1';
-const ai = falesne ? vytvorFalesneAi({ ozvena: true }).ai : vytvorCloudflareAi(env.AI);
+// Falešná AI hledá s malým zdržením, aby byl při lokální zkoušce vidět průběh hledání po částech.
+const ai = falesne ? vytvorFalesneAi({ ozvena: true, zpozdeniMs: 1500 }).ai : vytvorCloudflareAi(env.AI);
 const index = falesne ? vytvorFalesnyIndex() : vytvorIndexCloudflare(env.DB, env.VECTORIZE);
 const api = vytvorApi({ ai, index, limiter: env.PODANI_RATE_LIMITER, vyvoj });
 
