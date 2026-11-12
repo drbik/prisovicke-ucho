@@ -62,6 +62,8 @@ export interface TechnickeOdpovedi {
   castiZodpovezeno?: number;
   duvodyCasti?: DuvodPredani[];
   rozdeleniMs?: number;
+  // Kolik citací model neopsal doslova a kód je nahradil přesným zněním zdroje.
+  opravenoCitaci?: number;
 }
 
 export type VysledekOdpovedi =
@@ -155,6 +157,7 @@ export async function odpovedetNaDotaz(dotaz: string, z: ZavislostiOdpovedi): Pr
     const navrzene = precistOdpoved(vystup);
     if (!navrzene.length) return { vysledek: 'zastupitelum', duvod: 'model-nevi', technicke };
     const vety = overitKodem(navrzene, hledani.useky);
+    technicke.opravenoCitaci = vety.filter((v) => v.opravenaCitace).length;
     const predOverenim = ted();
     const kOvereni = vety.map((v) => ({ ...v, zdroj: hledani.useky[v.usek - 1].hlavicka }));
     const overeni = await z.ai.generovat(zpravyOvereni(dotaz, kOvereni, datumDnes(ted())), { maxTokenu: MAX_TOKENU_OVERENI });

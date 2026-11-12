@@ -106,6 +106,7 @@ export function spojitVysledky(casti: string[], vysledky: VysledekOdpovedi[], ro
     hledaniMs: nejvic((t) => t.hledaniMs),
     odpovedMs: nejvic((t) => t.odpovedMs),
     overeniMs: nejvic((t) => t.overeniMs),
+    opravenoCitaci: vse.reduce((soucet, t) => soucet + (t.opravenoCitaci ?? 0), 0),
     model: vse[0].model,
     verzePromptu: vse[0].verzePromptu,
     ...souhrn,

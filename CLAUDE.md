@@ -104,6 +104,7 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 - Pravidlo F-75 platí pro každou část zvlášť: když v části cokoli neprojde, převezmou ji zastupitelé a ostatní části odpověď ukážou. Tomáš schválil návrh opravy 12. 11. 2026.
 - Prompt odpovědi verze 5: až 4 věty na část, u řádku tabulky citace se záhlavím sloupců, při rozporu zdrojů novější údaj. Model i ověření znají dnešní datum, takže termín, který už minul, nevydají za příští. Údaje o jiném místě nebo budově se nepoužijí. Ověření navíc zamítne větu se jménem soukromé osoby (žadatel, nájemce), které model jinak ze zápisů rady přebíral.
 - Text z PDF odděluje sloupce tabulky znaky „ | “, stejně jako u Wordu. Bez toho nešlo poznat, že v ceníku Sokolovny je 8 000 Kč vratná kauce, a ne cena energie.
+- Kontrola citace toleruje změněnou koncovku slova, protože model při opisu „opravuje“ pády („vratné kauce“ místo „vratná kauce“) a kód tím zahazoval celé části. Čísla a krátká slova musí sedět přesně, nejvýš jedna odchylka na 8 slov. Pod odpovědí je vždy přesné znění zdroje, ne opis modelu, a ověření i kontrola čísel běží proti němu. Tomáš schválil 12. 11. 2026 večer.
 
 ## MVP (prezentační verze)
 
