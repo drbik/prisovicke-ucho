@@ -168,3 +168,4 @@ Zkoušky se skutečnou AI na indexu se sloupci tabulek:
 - **Oprava citace se v sadě nepoužila ani jednou** (`opravenoCitaci` 0 u všech otázek). Rozdíly proti běhu B jsou rozptyl modelu.
 - **Q22 (cena vody):** model zkusil odpověď z řádku kalkulace, citace ale neodpovídala zdroji ani s tolerancí, takže dotaz správně převzali zastupitelé.
 - **Výsledky:** `vyhodnoceni-2026-11-12-20-45-31.json` ve složce dat.
+- **Na ostré adrese** (Worker verze 27aec3ec, 12. 11. 2026 večer): „Jaké jsou ceny za nájem Sokolovny?“ 3 ze 3 s odpovědí a s cenou sálu 4 000 Kč z usnesení rady, jednou s citací opravenou na znění zdroje. Dotaz na prostory k pronájmu dostal odpověď na vnitřní prostory, venkovní zamítla kontrola citace.
