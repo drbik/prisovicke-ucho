@@ -1,12 +1,14 @@
 # Index zdrojů pro odpovědi z webu
 
-*Krok 8 z [plánu MVP](plan-mvp.md#krok-8-index-webu-a-odpověď-s-citací). Stav indexu k 10. 11. 2026, stahováno 10. 11. 2026 ráno, Word, ODT, OCR, Tlampač a podklady webu Nezávislých doplněné večer.*
+*Krok 8 z [plánu MVP](plan-mvp.md#krok-8-index-webu-a-odpověď-s-citací). Stav indexu k 12. 11. 2026 večer. Tabulka zdrojů níže je ze 10. 11. 2026.*
 
 Index drží text webu obce prisovice.cz a veřejný obsah webu Nezávislých pro Příšovice (karty projektů, Tlampač a podklady). Z něj ucho hledá odpověď na potvrzený dotaz (F-70 až F-76). Index se aktualizuje jen ručně (F-71). Pravidelný běh do MVP nepatří.
 
 ## Co v indexu je
 
-**Rozšíření z 10. 11. 2026 (se souhlasem Tomáše):** do indexu jdou i dokumenty Word a ODT a text naskenovaných PDF rozpoznaný OCR. Nahráno večer 10. 11. 2026: v D1 je 428 dokumentů a 3 003 úseků, ve Vectorize 3 003 vektorů (24 starých vektorů smazáno). Ostré ucho odpovídá z tohoto indexu.
+**Obnova 12. 11. 2026 večer:** web obce stažen znovu (5 nových souborů: 3 aktuality, 1 PDF a 1 položka úřední desky), zpracováno se sloupci tabulek v PDF a nahráno. V D1 je 436 dokumentů a 3 070 úseků, ve Vectorize 3 070 vektorů. Embeddingy se počítaly pro 1 043 nových nebo změněných úseků, odhadem asi 540 neuronů. Ostré ucho odpovídá z tohoto indexu.
+
+**Rozšíření z 10. 11. 2026 (se souhlasem Tomáše):** do indexu jdou i dokumenty Word a ODT a text naskenovaných PDF rozpoznaný OCR. Nahráno večer 10. 11. 2026: v D1 bylo 428 dokumentů a 3 003 úseků, ve Vectorize 3 003 vektorů (24 starých vektorů smazáno).
 
 | Zdroj | Dokumentů | Úseků | Znaků |
 |---|---|---|---|

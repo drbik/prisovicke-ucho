@@ -122,3 +122,16 @@ Podnět: dotaz „jaké zázemí Příšovice poskytují pro sportovní vyžití
 - **Ruční kontrola běhu B:** správně 12 ze 16 (75 %, práh 70 %). Q03 a Q13 jsou částečné: na jednu část odpověď, druhá jde zastupitelům. Q06 a Q11 teď zodpoví obě části (výluka a náhradní autobus, starosta i místostarosta). Q09 cituje správnou částku, ale druhou větu uvádí slovy „v jiném zápisu“, ačkoli jde o tentýž dokument. Q15 skončila na výpadku Workers AI (25 s), Q16 zamítlo ověření.
 - **Rychlost:** Workers AI byla 12. 11. večer pomalejší. Původní kód měl do 10 s jen 9 ze 12 odpovědí (10. 11. 13 ze 14). V běhu C trvalo samotné rozdělení až 5 s, proto má rozdělení limit 3 s: když nestihne, platí celý dotaz, jehož hledání už běží. Dotaz na více věcí trvá déle (Q03, Q14 9 až 25 s), autor ale vidí, která část se hledá a která je hotová. Práh 90 % do 10 s se tento večer nesplnil ani s původním kódem.
 - **Výsledky:** `vyhodnoceni-2026-11-12-17-35-54.json` (A), `-17-42-53.json` (B), `-17-49-31.json` (C), `-17-52-58.json` (srovnání) ve složce dat.
+
+### Ověření na ostré adrese (12. 11. 2026 večer)
+
+Worker verze d2dd83f1, index se sloupci tabulek (436 dokumentů, 3 070 úseků).
+
+- **Průběh:** Cloudflare řádky NDJSON nezdržuje. U Tomášova dotazu přišlo rozdělení za 1,6 s a hotové části za 3,2 s, 6,9 s, 16,5 s a 19,6 s.
+- **Tomášův dotaz** se rozdělil na 4 části (zázemí pro sport, hřiště, tělocvična, Sokolovna).
+  - Sokolovna má odpověď s ceníkem z formuláře Dohoda o pronájmu sokolovny. Cenu sálu ale uvádí 2 000 Kč z formuláře z ledna 2024. Rada usnesením UR č. 179/2025 ze 4. 9. 2025 zvýšila cenu samotného sálu na 4 000 Kč plus energie a úsek s usnesením byl mezi šesti úseky pro model.
+  - Hřiště zamítlo ověření kvůli jménu soukromé osoby. U tělocvičny model odpověď nenašel. Zázemí pro sport zamítla kontrola citace.
+- **Krátký dotaz „Jaké jsou ceny za nájem Sokolovny?“** šel na ostré adrese 3 ze 3 zastupitelům, protože citace nebyla v úseku.
+  - V rozboru tří odpovědí modelu bere model cenu sálu z novějšího usnesení rady.
+  - Ve 2 ze 3 ale citaci usnesení opíše s jedním změněným slovem: „vratné kauce“ místo „vratná kauce“, jak stojí ve zdroji.
+  - Kontrola citace pak zamítne celou část, ačkoli ostatní tři řádky ceníku prošly.
