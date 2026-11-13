@@ -118,14 +118,12 @@ export interface TemaFeedu {
   pocet: number;
   // Datum poslední změny (RRRR-MM-DD). Ukázky bez vzkazů ho nemají.
   zmeneno?: string;
-  // Styl a text postavy zakladatele, když téma založil vzkaz.
-  styl?: KlicStylu;
-  textStylu?: string;
   odpoved?: OdpovedVzkazu;
   // Poddotazy, na které odpověď zatím není.
   cekajici: string[];
-  // Ostatní vzkazy k tématu, bez zakladatele. V nabídce chybí.
-  vzkazy: { id: string; text: string; vztah: VztahVzkazu; datum: string; styl: KlicStylu; textStylu?: string }[];
+  // Ostatní vzkazy k tématu, bez zakladatele. Styl postavy se ve feedu neukazuje (Tomáš 13. 11. 2026: postavy patří
+  // jen k přímému namlouvání a odpovědi), v databázi u vzkazu zůstává.
+  vzkazy: { id: string; text: string; vztah: VztahVzkazu; datum: string }[];
 }
 
 export interface NovyVzkaz {

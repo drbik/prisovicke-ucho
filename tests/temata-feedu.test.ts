@@ -353,7 +353,7 @@ describe('tým: skrytí, přesun, sloučení a převod', () => {
     await prevestVzkazy(z, true);
     expect(uloziste.vzkazy[0]).toMatchObject({ vztah: 'zakladatel' });
     const [tema] = await feed(uloziste);
-    expect(tema).toMatchObject({ stav: 'zodpovezeno', pocet: 1, styl: 'bart', zmeneno: '2026-11-13' });
+    expect(tema).toMatchObject({ stav: 'zodpovezeno', pocet: 1, zmeneno: '2026-11-13' });
     expect(textyVet(tema)).toEqual(['Pronájem sálu stojí 4.000 Kč.']);
     expect(await prevestVzkazy(z, true)).toEqual([]);
   });

@@ -3,7 +3,6 @@
 // Změněné téma z panelu přijde událostí „ucho:zmena-tematu“, skok na téma událostí „ucho:ukazat-tema“
 // (posílá je src/skripty/podani.ts).
 import { TYPY_PODNETU } from '../lib/oblasti';
-import { JMENA_STYLU } from '../lib/odpovedi/mluvci';
 import { kmenyDotazu, odpovidaHledani, proHledani } from '../lib/temata/normalizace';
 import type { TemaFeedu } from '../lib/vzkazy/typy';
 import { ceskeDatum, element, metaTematu, popisVztahu, vytvoritOdpovedTematu } from './odpoved-tematu';
@@ -12,13 +11,6 @@ const koren = document.querySelector<HTMLElement>('[data-feed]');
 const seznam = koren?.querySelector<HTMLUListElement>('[data-feed-seznam]');
 const pole = koren?.querySelector<HTMLInputElement>('[data-feed-hledat]');
 const nic = koren?.querySelector<HTMLElement>('[data-feed-nic]');
-
-function stylVzkazu(styl: TemaFeedu['styl'], textStylu?: string) {
-  if (!styl || styl === 'spisovne' || !textStylu) return null;
-  const detail = element('details', 'polozka__styl');
-  detail.append(element('summary', '', `Ve stylu: ${JMENA_STYLU[styl]}`), element('p', 'polozka__text-stylu', textStylu));
-  return detail;
-}
 
 function vytvoritPolozku(t: TemaFeedu) {
   const li = element('li', `polozka polozka--${t.stav}`);
@@ -35,8 +27,6 @@ function vytvoritPolozku(t: TemaFeedu) {
 
   const telo = element('div', 'polozka__telo');
   telo.append(element('blockquote', 'prepis', t.text));
-  const styl = stylVzkazu(t.styl, t.textStylu);
-  if (styl) telo.append(styl);
   if (t.odpoved) {
     telo.append(vytvoritOdpovedTematu(t.odpoved, `tema-${t.id}`));
   } else {
@@ -61,8 +51,6 @@ function vytvoritPolozku(t: TemaFeedu) {
         element('p', 'polozka__vztah', `${popisVztahu(v.vztah, t.typ)} · ${ceskeDatum(v.datum)}`),
         element('blockquote', 'prepis', v.text),
       );
-      const stylV = stylVzkazu(v.styl, v.textStylu);
-      if (stylV) polozka.append(stylV);
       seznamVzkazu.append(polozka);
     }
     vzkazy.append(seznamVzkazu);
