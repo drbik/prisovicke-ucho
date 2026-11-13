@@ -26,6 +26,7 @@ Cloudová session k nim nemá přístup. V lokální session je zpřístupni jen
 - `docs/plan-mvp.md` – MVP rozdělené na postupné kroky, rozpis kroků 1 až 4 a pořadí testů.
 - `docs/test-zarizeni.md` – výsledky testů na zařízeních a co zbývá ověřit.
 - `docs/zadani-krok-8.md` – zadání kroku 8 (index webu a odpověď s citací) pro samostatnou session, včetně pravidla, kdy je hotový.
+- `docs/navrh-alternativni-mluvci.md` – alternativní mluvčí: jak převyprávění funguje, pojistky a výsledky zkoušky se skutečnou AI.
 
 Požadavky mají ID (F-01 až F-83) a prioritu MVP / Později / Zvážit. V commitech a kódu na ně odkazuj.
 
@@ -37,7 +38,7 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 - **Fakta o projektech:** faktický master je `src/content/akce-prisovice-timeline.md`, publikované karty jsou v `src/content/projects/`. Timeline obsahuje i neveřejné záměry a neověřené údaje (TBD), proto do ucha přebírej jen to, co je v publikované kartě.
 - **Oblasti:** oblast se s kartou projektu páruje stabilním `slug` (např. `dostupne-bydleni`). Název karty se může změnit, slug ne.
 - **Vzhled:** barvy a písma podle webu (`DESIGN_SPEC.md`, styly v `src/pages/index.astro`).
-- **Hlas textů:** `SIMPLE_COPY_PROMPT.md` je politický hlas karet webu. Odpovědi ucha jsou věcné, s citací a upozorněním, že nejde o úřední vyjádření obce.
+- **Hlas textů:** `SIMPLE_COPY_PROMPT.md` je politický hlas karet webu. Odpovědi ucha jsou věcné, s citací a upozorněním, že nejde o úřední vyjádření obce. Výjimkou je převyprávění alternativním mluvčím (rozhodnutí z 13. 11. 2026).
 - **Hlavičky:** `src/lib/security-headers.ts` a `public/_headers` musí souhlasit, hlídá to `npm run test:security`. Mění se jen v projektu webu.
 - **Nasazení:** ucho má vlastní Worker pro cestu `/ucho`. Do Workeru webu `prisovice-nezavisli` se nikdy nenasazuje. Web se nasazuje jen v jeho projektu a jen na výslovný pokyn.
 - Když se ucho a web v něčem, co patří webu, liší, platí web. Rozdíl zapiš do `docs/oblasti-a-web.md`, web neopravuj odsud.
@@ -105,6 +106,14 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 - Prompt odpovědi verze 5: až 4 věty na část, u řádku tabulky citace se záhlavím sloupců, při rozporu zdrojů novější údaj. Model i ověření znají dnešní datum, takže termín, který už minul, nevydají za příští. Údaje o jiném místě nebo budově se nepoužijí. Ověření navíc zamítne větu se jménem soukromé osoby (žadatel, nájemce), které model jinak ze zápisů rady přebíral.
 - Text z PDF odděluje sloupce tabulky znaky „ | “, stejně jako u Wordu. Bez toho nešlo poznat, že v ceníku Sokolovny je 8 000 Kč vratná kauce, a ne cena energie.
 - Kontrola citace toleruje změněnou koncovku slova, protože model při opisu „opravuje“ pády („vratné kauce“ místo „vratná kauce“) a kód tím zahazoval celé části. Čísla a krátká slova musí sedět přesně, nejvýš jedna odchylka na 8 slov. Pod odpovědí je vždy přesné znění zdroje, ne opis modelu, a ověření i kontrola čísel běží proti němu. Tomáš schválil 12. 11. 2026 večer.
+
+## Rozhodnutí (13. 11. 2026)
+
+- Ucho má alternativní mluvčí: Bart Simpson, Malý princ, Medvídek Pú, Sokrates, Marvin, Suchý úředník a Staročeština. Pod zodpovězenou odpovědí a u zodpovězených ukázek je řada tlačítek a kliknutí nechá AI převyprávět odpověď hlasem postavy. Cílem je, aby z webu nečpěla úředničina a byl přívětivý a lehce humorný pro toho, kdo o to stojí. Je to rozšíření MVP a výjimka z hlasu textů, Tomáš ho zadal 13. 11. 2026.
+- Ve zkušebním a vývojovém provozu mají postavy skutečná jména a zadání stylu se drží postavy bez ohledu na web, jeho účel a obsah otázky (pokyn Tomáše: „toto není politický a absolutně korektní prezentace“). Ověřovací model posměch ani tón nehlídá.
+- Věcná odpověď, citace, zdroje a upozornění zůstávají vždy vidět. Převyprávění je v rámečku se štítkem „Pro pobavení“. Kód hlídá jen čísla: všechna z odpovědi zůstanou a žádné nepřibude. Číslovku smí mluvčí napsat číslicí a naopak, jedničku jen číslicí.
+- Převypráví se jen odpověď, kterou server sám vydal a podepsal (HMAC, klíč `KLIC_PODPISU` ve Workers Secrets), nebo ukázka podle id. Převyprávění má vlastní počítadlo limitu požadavků a nic se neukládá.
+- Podrobnosti a výsledky zkoušky jsou v `docs/navrh-alternativni-mluvci.md`.
 
 ## MVP (prezentační verze)
 

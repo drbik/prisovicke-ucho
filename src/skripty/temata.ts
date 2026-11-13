@@ -1,6 +1,7 @@
 // Hledání v přehledu témat. Text každého tématu připraví stránka do data-hledani (bez diakritiky),
 // tady se jen porovná se začátky napsaných slov. Bez skriptu přehled funguje, jen se v něm nedá hledat.
 import { kmenyDotazu, odpovidaHledani } from '../lib/temata/normalizace';
+import { vytvoritMluvci } from './mluvci';
 
 const koren = document.querySelector<HTMLElement>('[data-temata]');
 const pole = koren?.querySelector<HTMLInputElement>('[data-temata-hledat]');
@@ -28,4 +29,10 @@ if (koren && pole) {
   pole.addEventListener('input', filtrovat);
   // Prohlížeč po návratu na stránku může pole předvyplnit.
   if (pole.value) filtrovat();
+}
+
+// Alternativní mluvčí u zodpovězených ukázek (13. 11. 2026). Server ukázku najde podle id.
+for (const misto of document.querySelectorAll<HTMLElement>('[data-mluvci-ukazka]')) {
+  const id = misto.dataset.mluvciUkazka;
+  if (id) misto.replaceChildren(vytvoritMluvci({ ukazka: id }));
 }

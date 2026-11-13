@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { stream } from 'hono/streaming';
 import { ChybaPodani } from '../podani/chyby';
 import { odpovedetNaPripraveny, pripravitDotaz, zpracovatDotaz, type UdalostDotazu, type ZavislostiDotazu } from '../odpovedi/zpracovani';
+import { zpracovatPrevypraveni } from '../odpovedi/zpracovani-stylu';
 import { zpracovatHlas, zpracovatText } from '../podani/zpracovani';
 
 // Průběh hledání odpovědi chodí po řádcích JSON, když o něj stránka požádá hlavičkou Accept.
@@ -19,6 +20,7 @@ export function vytvorApi(z: ZavislostiDotazu) {
   api.get('/health', (c) => c.json({ stav: 'ok' }));
   api.post('/vzkaz/hlas', async (c) => c.json(await zpracovatHlas(c.req.raw, z)));
   api.post('/vzkaz/text', async (c) => c.json(await zpracovatText(c.req.raw, z)));
+  api.post('/odpoved/styl', async (c) => c.json(await zpracovatPrevypraveni(c.req.raw, z)));
   api.post('/dotaz', async (c) => {
     if (!(c.req.header('accept') ?? '').includes(TYP_PRUBEHU)) return c.json(await zpracovatDotaz(c.req.raw, z));
     // Chyby požadavku (původ, limit, text) přijdou jako HTTP chyba dřív, než začne průběh.

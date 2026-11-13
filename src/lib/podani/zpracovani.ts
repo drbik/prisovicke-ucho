@@ -46,10 +46,10 @@ function hlaskaChyby(chyba: unknown) {
   return chyba instanceof Error ? chyba.message.slice(0, 300) : 'neznámá chyba';
 }
 
-export async function zkontrolovatPozadavek(request: Request, z: Pick<ZavislostiPodani, 'limiter' | 'vyvoj'>) {
+export async function zkontrolovatPozadavek(request: Request, z: Pick<ZavislostiPodani, 'limiter' | 'vyvoj'>, ucel?: 'podani' | 'styl') {
   if (!jePuvodPovolen(request, z.vyvoj)) throw new ChybaPodani('cizi-puvod');
   // Lokální vývoj limit nemá. V produkci bez limiteru požadavek neprojde.
-  if (!z.vyvoj && !(await povolitPozadavek(request, z.limiter))) throw new ChybaPodani('limit-pozadavku');
+  if (!z.vyvoj && !(await povolitPozadavek(request, z.limiter, ucel))) throw new ChybaPodani('limit-pozadavku');
 }
 
 export function sLimitem<T>(slib: Promise<T>, ms: number) {

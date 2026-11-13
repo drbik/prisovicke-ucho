@@ -9,6 +9,8 @@ const STATUSY = {
   'prepis-selhal': 502,
   'prazdny-prepis': 422,
   'uprava-selhala': 502,
+  // Převyprávění mluvčím: podklad nepodepsal server, nebo ukázka neexistuje.
+  'neplatny-podklad': 403,
 } as const;
 
 export type KodChyby = keyof typeof STATUSY;

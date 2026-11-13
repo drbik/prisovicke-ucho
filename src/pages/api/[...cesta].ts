@@ -13,6 +13,8 @@ const falesne = vyvoj && env.FALESNE_AI === '1';
 // Falešná AI hledá s malým zdržením, aby byl při lokální zkoušce vidět průběh hledání po částech.
 const ai = falesne ? vytvorFalesneAi({ ozvena: true, zpozdeniMs: 1500 }).ai : vytvorCloudflareAi(env.AI);
 const index = falesne ? vytvorFalesnyIndex() : vytvorIndexCloudflare(env.DB, env.VECTORIZE);
-const api = vytvorApi({ ai, index, limiter: env.PODANI_RATE_LIMITER, vyvoj });
+// Podpis odpovědí pro převyprávění mluvčím. Klíč je ve Workers Secrets, lokální vývoj má pevný.
+const klicPodpisu = env.KLIC_PODPISU || (vyvoj ? 'jen-lokalni-vyvoj' : undefined);
+const api = vytvorApi({ ai, index, limiter: env.PODANI_RATE_LIMITER, vyvoj, klicPodpisu });
 
 export const ALL: APIRoute = ({ request }) => api.fetch(request);

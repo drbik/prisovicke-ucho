@@ -16,11 +16,13 @@ export interface Limiter {
   limit(moznosti: { key: string }): Promise<{ success: boolean }>;
 }
 
-export async function povolitPozadavek(request: Request, limiter?: Limiter) {
+// Účel dělí limit: převyprávění mluvčím (13. 11. 2026) má vlastní počítadlo, aby proklikání mluvčích
+// nezablokovalo další dotaz.
+export async function povolitPozadavek(request: Request, limiter?: Limiter, ucel: 'podani' | 'styl' = 'podani') {
   const ip = request.headers.get('cf-connecting-ip');
   if (!limiter || !ip) throw new ChybaPodani('nedostupne');
   // IP dodává Cloudflare, klient ji nezmění. V limiteru je jen její hash.
-  const otisk = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`podani|${ip}`));
+  const otisk = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${ucel}|${ip}`));
   const key = Array.from(new Uint8Array(otisk), (bajt) => bajt.toString(16).padStart(2, '0')).join('');
   try {
     return (await limiter.limit({ key })).success;

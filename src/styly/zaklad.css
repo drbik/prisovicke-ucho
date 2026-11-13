@@ -140,6 +140,16 @@ form > label:not(:first-child), .dvojice { margin-top: 16px; }
 .odpoved__zdroje li:target { outline: 2px solid var(--fokus); outline-offset: 4px; }
 .zdroj__oznaceni { display: block; color: var(--ink-soft); font-size: .78rem; font-weight: 700; }
 .zdroj__datum { display: block; color: var(--ink-soft); font-size: .84rem; }
+/* Alternativní mluvčí (13. 11. 2026): převyprávění je jen v čárkovaném rámečku, věcná odpověď zůstává nad ním. */
+.mluvci { margin: 4px 0 6px; }
+.mluvci__titulek { margin: 0 0 6px; color: var(--ink-soft); font-size: .74rem; font-weight: 760; letter-spacing: .06em; text-transform: uppercase; }
+.mluvci__volby { display: flex; flex-wrap: wrap; gap: 6px; }
+.mluvci__volba { min-height: 40px; padding: 6px 12px; border: 1px solid var(--past); border-radius: 999px; color: var(--past); background: transparent; font: inherit; font-size: .84rem; font-weight: 700; cursor: pointer; }
+.mluvci__volba:hover { background: #236b6014; }
+.mluvci__volba[aria-pressed="true"] { color: #fff; background: var(--past); }
+.mluvci__ramecek { margin-top: 10px; padding: 12px 14px; border: 1px dashed var(--accent); border-radius: 12px; background: #fff; }
+.mluvci__stitek { margin: 0 0 6px; color: var(--accent); font-size: .74rem; font-weight: 760; letter-spacing: .06em; text-transform: uppercase; }
+.mluvci__text { margin: 0 0 8px; white-space: pre-line; overflow-wrap: anywhere; }
 .zdroj__uryvek { margin: 6px 0 0; padding: 8px 12px; border-left: 3px solid var(--past); border-radius: 0 7px 7px 0; background: #edf2e8; font-size: .86rem; white-space: pre-line; }
 
 .ram { display: block; width: 100%; height: min(720px, 80dvh); margin-top: 20px; border: 1px solid var(--linka); border-radius: 7px; background: var(--plocha); }

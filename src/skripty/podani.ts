@@ -14,6 +14,7 @@ import type { TechnickeUdaje, VysledekPodani } from '../lib/podani/zpracovani';
 import type { DuvodPredani, VetaZobrazene, ZobrazenaOdpoved } from '../lib/odpovedi/odpoved';
 import type { UdalostDotazu, VysledekDotazu } from '../lib/odpovedi/zpracovani';
 import { OBLASTI, TYPY_PODNETU } from '../lib/oblasti';
+import { vytvoritMluvci } from './mluvci';
 
 type Pohled = 'zadost' | 'nahravani' | 'odesilani' | 'text' | 'vysledek' | 'potvrzeno' | 'chyba';
 
@@ -106,6 +107,7 @@ const opakovat = prvek<HTMLButtonElement>('[data-opakovat]', panel);
 const odpoved = prvek('[data-odpoved]', panel);
 const oznaceniOdpovedi = prvek('[data-odpoved-oznaceni]', panel);
 const vetyOdpovedi = prvek('[data-odpoved-vety]', panel);
+const mluvciOdpovedi = prvek('[data-odpoved-mluvci]', panel);
 const zdrojeOdpovedi = prvek('[data-odpoved-zdroje]', panel);
 const chybiOdpovedi = prvek('[data-odpoved-chybi]', panel);
 const chybiSeznam = prvek('[data-odpoved-chybi-seznam]', panel);
@@ -267,6 +269,8 @@ function ukazatOdpoved(data: ZobrazenaOdpoved) {
   } else {
     vetyOdpovedi.replaceChildren(odstavecVet(data.vety));
   }
+  // Alternativní mluvčí: jen u odpovědi, kterou server podepsal.
+  mluvciOdpovedi.replaceChildren(...(data.prevypraveni ? [vytvoritMluvci(data.prevypraveni)] : []));
   // Částečná odpověď: části dotazu, na které zdroje neodpovídají.
   chybiSeznam.replaceChildren(...data.nezodpovezeno.map((cast) => {
     const polozka = document.createElement('li');

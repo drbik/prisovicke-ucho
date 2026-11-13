@@ -9,5 +9,7 @@ declare module 'cloudflare:workers' {
     VECTORIZE: import('./lib/odpovedi/cloudflare').VazbaVectorize;
     // Jen lokálně v .dev.vars: stránka běží bez přihlášení ke Cloudflare.
     FALESNE_AI?: string;
+    // Workers Secret: podpis odpovědí pro převyprávění mluvčím. Nikdy do repozitáře ani do výpisu.
+    KLIC_PODPISU?: string;
   };
 }

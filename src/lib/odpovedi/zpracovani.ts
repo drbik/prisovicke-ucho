@@ -6,6 +6,7 @@ import { zakladniTyp, zkontrolovatPozadavek, type ZavislostiPodani } from '../po
 import { LIMIT_CASTI_MS, odpovedetPoCastech, type PrubehOdpovedi } from './casti';
 import type { TechnickeOdpovedi, VysledekOdpovedi } from './odpoved';
 import type { IndexZdroju } from './rozhrani';
+import { podepsatPodklad, podkladOdpovedi } from './styl';
 
 // Když hledání a oba modely nestihnou odpovědět na část dotazu do té doby, převezmou ji zastupitelé (PRD, Rychlost).
 export const LIMIT_ODPOVEDI_MS = LIMIT_CASTI_MS;
@@ -14,6 +15,8 @@ export interface ZavislostiDotazu extends ZavislostiPodani {
   index?: IndexZdroju;
   limitOdpovediMs?: number;
   prahPodobnosti?: number;
+  // Klíč pro podpis odpovědi, kterou pak smí stránka nechat převyprávět mluvčím (13. 11. 2026).
+  klicPodpisu?: string;
 }
 
 export type VysledekDotazu =
@@ -92,6 +95,10 @@ export async function odpovedetNaPripraveny(
       znakuDotazu: text.length,
       hlaska: hlasky.length ? hlasky.join(' | ') : undefined,
     });
+    if (vysledek.vysledek === 'odpoved' && z.klicPodpisu) {
+      const podklad = podkladOdpovedi(text, vysledek.odpoved);
+      vysledek.odpoved.prevypraveni = { podklad, podpis: await podepsatPodklad(podklad, z.klicPodpisu) };
+    }
     return { ...vysledek, celkemMs };
   } catch (chyba) {
     const celkemMs = ted() - zacatek;

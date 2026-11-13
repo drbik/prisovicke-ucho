@@ -68,6 +68,7 @@ const bezOdpovedi = (tema: UkazkoveTema) => (tema.typ === 'dotaz'
                     ))}
                   </p>
                 </div>
+                <div data-mluvci-ukazka={tema.id}></div>
                 <h4 class="odpoved__zdroje-titulek">Zdroje</h4>
                 <ol class="odpoved__zdroje">
                   {tema.odpoved?.zdroje.map((zdroj) => (

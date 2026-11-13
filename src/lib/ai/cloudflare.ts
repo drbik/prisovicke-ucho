@@ -111,11 +111,11 @@ export function vytvorCloudflareAi(ai: VazbaAi): SluzbaAi {
       return skore;
     },
 
-    async generovat(zpravy, { maxTokenu }) {
+    async generovat(zpravy, { maxTokenu, teplota = 0 }) {
       const vystup = await ai.run(MODEL_ODPOVEDI, {
         messages: zpravy,
         max_tokens: maxTokenu,
-        temperature: 0,
+        temperature: teplota,
         chat_template_kwargs: { enable_thinking: false },
       });
       return textOdpovedi(vystup as VystupJazykovehoModelu);
