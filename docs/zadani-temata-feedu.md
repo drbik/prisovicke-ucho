@@ -187,7 +187,7 @@ Ke každé větvi toku napiš testy bez sítě: totéž, poddotaz, jiné téma, 
 
 | Fáze | Stav | Datum | Poznámka |
 |---|---|---|---|
-| A. Průzkum a návrh | Nezačato | | |
+| A. Průzkum a návrh | Čeká na Tomáše | 13. 11. 2026 | Návrh a měření v [temata-feedu.md](temata-feedu.md), 13 otevřených otázek s doporučením. Měřicí skript `nastroje/mereni-temat.ts`, měření stálo asi 390 neuronů. Sokolovna má podobnost 0,80 (práh byl 0,85), správné téma je ale u všech 18 dvojic mezi 3 nejbližšími. |
 | B. Sada pro sdružování | Nezačato | | |
 | C. Stavba | Nezačato | | |
 | D. Ověření | Nezačato | | |
