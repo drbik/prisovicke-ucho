@@ -1,6 +1,6 @@
 # Témata ve feedu: jedna odpověď na téma
 
-*Návrh z 13. 11. 2026, fáze A úkolu v [zadani-temata-feedu.md](zadani-temata-feedu.md). Požadavky F-33 až F-37 a F-81. Je to rozšíření MVP pro zkušební provoz. **Čeká na schválení Tomášem, nic z toho zatím není postavené.***
+*Návrh z 13. 11. 2026, fáze A úkolu v [zadani-temata-feedu.md](zadani-temata-feedu.md). Požadavky F-33 až F-37 a F-81. Je to rozšíření MVP pro zkušební provoz. **Tomáš návrh schválil 13. 11. 2026 beze změn, včetně doporučení ke všem 13 otevřeným otázkám.***
 
 ## Shrnutí návrhu
 
@@ -286,6 +286,8 @@ Práh nabídky 0,65 se doladí na sadě z fáze B tak, aby platil první řádek
 - **Moderace a osobní údaje** zůstávají jako ve [feed-vzkazu.md](feed-vzkazu.md). Texty připojených vzkazů jsou ve feedu sbalené, ale veřejné.
 
 ## Otevřené otázky a doporučení
+
+*Tomáš 13. 11. 2026 schválil všechna doporučení. Platí tedy sloupec Doporučení.*
 
 | # | Otázka | Doporučení |
 |---|---|---|
