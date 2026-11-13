@@ -13,6 +13,7 @@ import {
 import type { TechnickeUdaje, VysledekPodani } from '../lib/podani/zpracovani';
 import type { DuvodPredani, VetaZobrazene, ZobrazenaOdpoved } from '../lib/odpovedi/odpoved';
 import type { UdalostDotazu, VysledekDotazu } from '../lib/odpovedi/zpracovani';
+import type { PolozkaFeedu } from '../lib/vzkazy/typy';
 import { OBLASTI, TYPY_PODNETU } from '../lib/oblasti';
 import { JMENA_STYLU, POPISY_TLACITKA, jeStyl, type KlicMluvciho, type KlicStylu } from '../lib/odpovedi/mluvci';
 import type { PodepsanyPodklad } from '../lib/odpovedi/styl';
@@ -125,6 +126,12 @@ const popisMikrofonu = prvek('[data-mikrofon-popis]');
 const paprsky = prvek('[data-styly]');
 const puvodniIkona = ikonaMikrofonu.firstElementChild!.cloneNode(true);
 const stavStylu = prvek('[data-styl-stav]', panel);
+// Uložení do feedu a opakovaný dotaz (13. 11. 2026).
+const ulozeniText = prvek('[data-ulozeni-text]', panel);
+const ukazatVeFeedu = prvek<HTMLButtonElement>('[data-ukazat-ve-feedu]', panel);
+const podobnyBox = prvek('[data-odpoved-podobny]', panel);
+const podobnyNazev = prvek('[data-podobny-nazev]', panel);
+const ukazatPodobny = prvek<HTMLButtonElement>('[data-ukazat-podobny]', panel);
 
 let nahravani: Nahravani | null = null;
 let odeslani: AbortController | null = null;
@@ -142,7 +149,12 @@ let hledani: AbortController | null = null;
 let styl: KlicStylu = 'spisovne';
 let spisovnyText = '';
 let poleUkazuje: KlicStylu = 'spisovne';
-const vzkazyPostav = new Map<KlicMluvciho, string>();
+const vzkazyPostav = new Map<KlicMluvciho, { text: string; podpis?: string }>();
+// Návrh AI úpravy s podpisem serveru. Při potvrzení se pošle s vzkazem, server podle něj vzkaz uloží (F-14).
+let posledniPodani: VysledekPodani | null = null;
+// Vzkaz a podobné téma ve feedu, na které panel nabídne skok.
+let idVeFeedu: string | null = null;
+let idPodobneho: string | null = null;
 let stylovani: AbortController | null = null;
 // Postava, která odpoví na potvrzený dotaz, a rámeček s její odpovědí.
 let stylOdpovedi: KlicStylu = 'spisovne';
@@ -222,6 +234,7 @@ function ukazatVysledek(data: VysledekPodani) {
   ukazatTechnicke(data.technicke);
   spisovnyText = text;
   vzkazyPostav.clear();
+  posledniPodani = data;
   ukazat('vysledek', 'Vzkaz je upravený. Zkontrolujte ho a potvrďte.');
   void ukazatStylVzkazu();
 }
@@ -264,7 +277,7 @@ async function ukazatStylVzkazu() {
   const popis = `Vzkaz ve stylu: ${jmeno}. Opravy dělejte ve spisovném znění, podle něj hledáme i odpověď.`;
   const hotovy = vzkazyPostav.get(mluvci);
   if (hotovy) {
-    ukazatTextVzkazu(hotovy, mluvci, popis);
+    ukazatTextVzkazu(hotovy.text, mluvci, popis);
     return;
   }
   ukazatTextVzkazu(spisovnyText, 'spisovne');
@@ -281,7 +294,7 @@ async function ukazatStylVzkazu() {
   if (stylovani !== rizeni) return;
   stylovani = null;
   if ('text' in vysledek) {
-    vzkazyPostav.set(mluvci, vysledek.text);
+    vzkazyPostav.set(mluvci, { text: vysledek.text, podpis: vysledek.podpis });
     ukazatTextVzkazu(vysledek.text, mluvci, popis);
   } else {
     ukazatTextVzkazu(spisovnyText, 'spisovne', `${vysledek.chyba} Vzkaz zůstává spisovně.`);
@@ -318,9 +331,43 @@ function potvrdit(udalost: SubmitEvent) {
     + (poleUkazuje === 'spisovne' ? '' : ` Vzkaz ve stylu: ${JMENA_STYLU[poleUkazuje]}. Odpověď hledáme podle spisovného znění.`);
   stylOdpovedi = styl;
   ukazat('potvrzeno', 'Vzkaz je potvrzený.');
-  // F-72: návrhy, stížnosti a pochvaly se nehledají.
-  if (vzkaz.typ === 'dotaz') void hledatOdpoved(vzkaz);
-  else ukazatStavOdpovedi(null);
+  // Každý potvrzený vzkaz jde na server: uloží se do feedu. Odpověď se hledá jen u dotazu (F-72).
+  void hledatOdpoved(vzkaz);
+}
+
+// Co server potřebuje k uložení: návrh AI úpravy s podpisem, potvrzené zařazení a text postavy, pokud ho autor viděl.
+function udajeKUlozeni(vzkaz: PotvrzenyVzkaz) {
+  if (!posledniPodani?.podpis) return undefined;
+  const { vstup, surovyText, uprava, podpis } = posledniPodani;
+  const textPostavy = styl !== 'spisovne' ? vzkazyPostav.get(styl) : undefined;
+  return {
+    navrh: { vstup, surovyText, uprava },
+    podpis,
+    nazev: vzkaz.nazev,
+    oblast: vzkaz.oblast,
+    styl,
+    ...(textPostavy?.podpis ? { textStylu: textPostavy.text, podpisStylu: textPostavy.podpis } : {}),
+  };
+}
+
+function skocitNaTema(id: string) {
+  panel.close();
+  document.dispatchEvent(new CustomEvent('ucho:ukazat-tema', { detail: id }));
+}
+
+function ukazatUlozeni(vzkaz?: PolozkaFeedu) {
+  idVeFeedu = vzkaz?.id ?? null;
+  ukazatVeFeedu.hidden = !vzkaz;
+  ulozeniText.textContent = vzkaz
+    ? 'Vzkaz je zveřejněný ve feedu vedle ucha, bez vašeho jména.'
+    : 'Vzkaz se do feedu nepodařilo uložit.';
+  if (vzkaz) document.dispatchEvent(new CustomEvent('ucho:novy-vzkaz', { detail: vzkaz }));
+}
+
+function ukazatPodobne(tema: { id: string; nazev: string } | null) {
+  idPodobneho = tema?.id ?? null;
+  podobnyNazev.textContent = tema?.nazev ?? '';
+  podobnyBox.hidden = !tema;
 }
 
 // Odpověď hlasem postavy zvolené při potvrzení. Má ji odpověď z webu i dotaz bez odpovědi, když je server podepsal.
@@ -480,16 +527,21 @@ async function hledatOdpoved(vzkaz: PotvrzenyVzkaz) {
   const rizeni = new AbortController();
   hledani = rizeni;
   hledanyDotaz = vzkaz;
+  const jeDotaz = vzkaz.typ === 'dotaz';
   prubeh.hidden = true;
   prubeh.replaceChildren();
   prubehPopis.textContent = CTEME_DOTAZ;
-  ukazatStavOdpovedi('hledani');
-  oznameni.textContent = `Vzkaz je potvrzený. ${CTEME_DOTAZ}`;
+  ukazatPodobne(null);
+  ukazatVeFeedu.hidden = true;
+  ulozeniText.textContent = 'Ukládáme vzkaz do feedu…';
+  if (jeDotaz) ukazatStavOdpovedi('hledani');
+  else ukazatStavOdpovedi(null);
+  oznameni.textContent = jeDotaz ? `Vzkaz je potvrzený. ${CTEME_DOTAZ}` : 'Vzkaz je potvrzený. Ukládáme ho do feedu.';
   try {
     const vysledek = await fetch(API_DOTAZU, {
       method: 'POST',
       headers: { 'content-type': 'application/json', accept: TYP_PRUBEHU },
-      body: JSON.stringify({ text: vzkaz.text, typ: vzkaz.typ }),
+      body: JSON.stringify({ text: vzkaz.text, typ: vzkaz.typ, ulozit: udajeKUlozeni(vzkaz) }),
       signal: rizeni.signal,
     });
     const prijato: { data: VysledekDotazu | null } = { data: null };
@@ -498,6 +550,7 @@ async function hledatOdpoved(vzkaz: PotvrzenyVzkaz) {
         if (rizeni.signal.aborted) return;
         if (udalost.udalost === 'casti') ukazatCasti(udalost.casti);
         else if (udalost.udalost === 'cast') ukazatHotovouCast(udalost.cislo, udalost.vysledek);
+        else if (udalost.udalost === 'podobne') ukazatPodobne(udalost.tema);
         else prijato.data = udalost.vysledek;
       });
     } else {
@@ -505,6 +558,11 @@ async function hledatOdpoved(vzkaz: PotvrzenyVzkaz) {
     }
     const { data } = prijato;
     if (rizeni.signal.aborted) return;
+    ukazatUlozeni(data?.vzkaz);
+    if (!jeDotaz) {
+      oznameni.textContent = ulozeniText.textContent;
+      return;
+    }
     if (!vysledek.ok || !data) {
       ukazatBezOdpovedi(vysledek.status === 429 ? ODPOVED_LIMIT : DUVODY_BEZ_ODPOVEDI['chyba-ai'], true);
     } else if (data.vysledek === 'odpoved') {
@@ -518,7 +576,8 @@ async function hledatOdpoved(vzkaz: PotvrzenyVzkaz) {
     }
   } catch (chyba) {
     if (chyba instanceof DOMException && chyba.name === 'AbortError') return;
-    ukazatBezOdpovedi(ODPOVED_SITE, true);
+    ukazatUlozeni(undefined);
+    if (jeDotaz) ukazatBezOdpovedi(ODPOVED_SITE, true);
   } finally {
     if (hledani === rizeni) hledani = null;
   }
@@ -634,6 +693,8 @@ prvek('[data-zpet-k-uprave]', panel).addEventListener('click', () => {
   ukazatStavOdpovedi(null);
   ukazat('vysledek');
 });
+ukazatVeFeedu.addEventListener('click', () => { if (idVeFeedu) skocitNaTema(idVeFeedu); });
+ukazatPodobny.addEventListener('click', () => { if (idPodobneho) skocitNaTema(idPodobneho); });
 prvek('[data-hledat-znovu]', panel).addEventListener('click', () => {
   if (hledanyDotaz) void hledatOdpoved(hledanyDotaz);
 });

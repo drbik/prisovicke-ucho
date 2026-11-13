@@ -7,7 +7,7 @@ const ZAKLAD = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/api`;
 const LIMIT = 'Během chvilky přišlo moc požadavků na postavy. Počkejte prosím minutu a zkuste to znovu.';
 const BEZ_SPOJENI = 'Spojení se nepodařilo. Zkontrolujte připojení a zkuste to znovu.';
 
-export type VysledekStylu = { text: string } | { chyba: string };
+export type VysledekStylu = { text: string; podpis?: string } | { chyba: string };
 
 async function zavolat(cesta: string, telo: Record<string, unknown>, mluvci: KlicMluvciho, signal?: AbortSignal): Promise<VysledekStylu> {
   try {
@@ -18,8 +18,8 @@ async function zavolat(cesta: string, telo: Record<string, unknown>, mluvci: Kli
       signal,
     });
     if (odpoved.status === 429) return { chyba: LIMIT };
-    const data = await odpoved.json().catch(() => null) as VysledekPrevypraveni | null;
-    if (odpoved.ok && data?.vysledek === 'prevypraveno') return { text: data.text };
+    const data = await odpoved.json().catch(() => null) as (VysledekPrevypraveni & { podpis?: string }) | null;
+    if (odpoved.ok && data?.vysledek === 'prevypraveno') return { text: data.text, ...(data.podpis ? { podpis: data.podpis } : {}) };
     return { chyba: `${JMENA_MLUVCICH[mluvci]} to tentokrát nezvládl.` };
   } catch (chyba) {
     if (chyba instanceof DOMException && chyba.name === 'AbortError') throw chyba;

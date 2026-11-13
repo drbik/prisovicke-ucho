@@ -1,120 +1,55 @@
 ---
-// Přehled témat vedle ucha: zodpovězené dotazy a témata, která čekají na zastupitele. Zatím jen ukázky od týmu,
-// viz src/lib/temata/temata.ts. Bez JavaScriptu se dají rozbalit i přepínat, skript přidává jen hledání.
+// Feed vedle ucha (13. 11. 2026, Tomáš): jednoduchý seznam vzkazů a dotazů s filtry stavu a typu nahoře.
+// Uložené vzkazy se ukazují hned, bez schválení, od nejnovějšího. Za nimi jsou ukázky od týmu se štítkem Ukázka.
+// Data jdou do stránky jako JSON, seznam staví skript src/skripty/temata.ts.
 import { TYPY_PODNETU } from '../lib/oblasti';
-import { UPOZORNENI } from '../lib/odpovedi/zdroje';
-import { STAVY_TEMATU, UKAZKOVA_TEMATA, nazevOblasti, rozdelitTemata, textProHledani, type UkazkoveTema } from '../lib/temata/temata';
+import { uloziste } from '../lib/prostredi';
+import { POCET_VE_FEEDU, feedDoStranky, sestavitFeed } from '../lib/vzkazy/feed';
+import type { PolozkaFeedu } from '../lib/vzkazy/typy';
 
-const { zodpovezena, cekajici } = rozdelitTemata(UKAZKOVA_TEMATA);
+let ulozene: PolozkaFeedu[] = [];
+try {
+  ulozene = await uloziste.feed(POCET_VE_FEEDU);
+} catch (chyba) {
+  // Výpadek databáze feed nezastaví, ukážou se aspoň ukázky.
+  console.error({ udalost: 'feed-selhal', hlaska: chyba instanceof Error ? chyba.message.slice(0, 200) : 'neznámá chyba' });
+}
+const polozky = sestavitFeed(ulozene);
 
-// Krátké označení zdroje do štítku. Celé označení je u odpovědi.
-const stitkyZdroje = (tema: UkazkoveTema) => (tema.odpoved?.zdroje ?? [])
-  .map((zdroj) => (zdroj.web === 'prisovice.cz' ? 'Z webu obce' : 'Z webu Nezávislých'))
-  .filter((stitek, i, vse) => vse.indexOf(stitek) === i);
-
-const bezOdpovedi = (tema: UkazkoveTema) => (tema.typ === 'dotaz'
-  ? 'Na webu obce ani na webu Nezávislých pro Příšovice ucho odpověď nenašlo. Dotaz čeká na zastupitele.'
-  : 'Návrhy a stížnosti ucho na webu nehledá. Čekají na vyjádření zastupitelů.');
+const TYPY_MNOZNE: Record<keyof typeof TYPY_PODNETU, string> = {
+  dotaz: 'Dotazy',
+  navrh: 'Návrhy',
+  stiznost: 'Stížnosti',
+  pochvala: 'Pochvaly',
+};
 ---
 
-<section class="temata" aria-labelledby="temata-titulek" data-temata>
-  <header class="temata__hlavicka">
-    <div>
-      <h2 id="temata-titulek">Dotazy a odpovědi</h2>
-      <p class="temata__souhrn"><strong>{zodpovezena.length}</strong> zodpovězených · <strong>{cekajici.length}</strong> čeká na zastupitele</p>
-    </div>
-    <div class="temata__hledani">
-      <label class="jen-ctecka" for="temata-hledat">Hledat v dotazech a odpovědích</label>
-      <input id="temata-hledat" class="temata__hledat" type="search" placeholder="Hledat v dotazech" autocomplete="off" data-temata-hledat />
-    </div>
+<section class="feed" aria-labelledby="feed-titulek" data-feed>
+  <header class="feed__hlavicka">
+    <h2 id="feed-titulek">Vzkazy a dotazy</h2>
+    <label class="jen-ctecka" for="feed-hledat">Hledat ve vzkazech a odpovědích</label>
+    <input id="feed-hledat" class="feed__hledat" type="search" placeholder="Hledat" autocomplete="off" data-feed-hledat />
   </header>
 
-  <p class="temata__ukazka">
-    <strong>Ukázky od týmu.</strong> Dotazy připravil tým Nezávislých pro Příšovice, odpovědi k nim vybralo ucho ze skutečných zdrojů. Vaše vzkazy se zatím neukládají. Odpovědi nejsou úředním vyjádřením obce.
-  </p>
-
-  <input class="temata__prepinac jen-ctecka" type="radio" name="temata-seznam" id="temata-ukazat-zodpovezena" checked />
-  <input class="temata__prepinac jen-ctecka" type="radio" name="temata-seznam" id="temata-ukazat-cekajici" />
-  <div class="temata__zalozky">
-    <label for="temata-ukazat-zodpovezena">Zodpovězené <span class="temata__pocet" data-temata-pocet="zodpovezena">{zodpovezena.length}</span></label>
-    <label for="temata-ukazat-cekajici">Čekají <span class="temata__pocet" data-temata-pocet="cekajici">{cekajici.length}</span></label>
+  <div class="feed__filtry">
+    <div class="feed__filtr" role="group" aria-label="Stav">
+      <button type="button" class="filtr" aria-pressed="true" data-filtr="stav" data-hodnota="">Vše <span class="filtr__pocet" data-feed-pocet=""></span></button>
+      <button type="button" class="filtr" aria-pressed="false" data-filtr="stav" data-hodnota="zodpovezeno">Zodpovězené <span class="filtr__pocet" data-feed-pocet="zodpovezeno"></span></button>
+      <button type="button" class="filtr" aria-pressed="false" data-filtr="stav" data-hodnota="ceka">Čekají na odpověď <span class="filtr__pocet" data-feed-pocet="ceka"></span></button>
+    </div>
+    <div class="feed__filtr" role="group" aria-label="Typ">
+      <button type="button" class="filtr filtr--typ" aria-pressed="true" data-filtr="typ" data-hodnota="">Všechny typy</button>
+      {Object.entries(TYPY_MNOZNE).map(([typ, nazev]) => (
+        <button type="button" class="filtr filtr--typ" aria-pressed="false" data-filtr="typ" data-hodnota={typ}>{nazev}</button>
+      ))}
+    </div>
   </div>
 
-  <div class="temata__sloupce">
-    <section class="temata__sloupec temata__sloupec--zodpovezena" aria-labelledby="temata-zodpovezena" data-temata-sloupec="zodpovezena">
-      <h3 id="temata-zodpovezena">Zodpovězené <span class="temata__pocet" data-temata-pocet="zodpovezena">{zodpovezena.length}</span></h3>
-      <ul class="temata__seznam">
-        {zodpovezena.map((tema) => (
-          <li class="tema tema--zodpovezeno" data-tema data-hledani={textProHledani(tema)}>
-            <details class="tema__detail">
-              <summary class="tema__souhrn">
-                <span class="tema__nazev">{tema.nazev}</span>
-                <span class="tema__nahled">{tema.odpoved?.vety[0].text}</span>
-                <span class="tema__stitky">
-                  {stitkyZdroje(tema).map((stitek) => <span class="stitek stitek--zodpovezeno">{stitek}</span>)}
-                  <span class="stitek">{TYPY_PODNETU[tema.typ]}</span>
-                  {tema.oblast !== 'ostatni' && <span class="stitek">{nazevOblasti(tema.oblast)}</span>}
-                  <span class="stitek stitek--ukazka">Ukázka</span>
-                </span>
-              </summary>
-              <div class="tema__telo">
-                <p class="tema__popisek">Dotaz</p>
-                <blockquote class="prepis">{tema.text}</blockquote>
-                <p class="odpoved__oznaceni">{tema.odpoved?.oznaceni.join(' · ')}</p>
-                <div class="odpoved__text">
-                  <p>
-                    {tema.odpoved?.vety.map((veta) => (
-                      <Fragment>{veta.text}<sup><a href={`#${tema.id}-zdroj-${veta.zdroj}`} aria-label={`zdroj ${veta.zdroj}`}>{veta.zdroj}</a></sup>{' '}</Fragment>
-                    ))}
-                  </p>
-                </div>
-                <h4 class="odpoved__zdroje-titulek">Zdroje</h4>
-                <ol class="odpoved__zdroje">
-                  {tema.odpoved?.zdroje.map((zdroj) => (
-                    <li id={`${tema.id}-zdroj-${zdroj.cislo}`}>
-                      <span class="zdroj__oznaceni">{zdroj.oznaceni}</span>
-                      <a href={zdroj.url} target="_blank" rel="noopener noreferrer">{zdroj.nazev}</a>
-                      <span class="zdroj__datum">{zdroj.misto ? `${zdroj.datum} · ${zdroj.misto}` : zdroj.datum}</span>
-                      <blockquote class="zdroj__uryvek">„{zdroj.uryvek}“</blockquote>
-                    </li>
-                  ))}
-                </ol>
-                <p class="drobne">{UPOZORNENI}</p>
-              </div>
-            </details>
-          </li>
-        ))}
-      </ul>
-      <p class="temata__nic" data-temata-nic hidden>Tady hledání nic nenašlo.</p>
-    </section>
-
-    <section class="temata__sloupec temata__sloupec--cekajici" aria-labelledby="temata-cekajici" data-temata-sloupec="cekajici">
-      <h3 id="temata-cekajici">Čekají na zastupitele <span class="temata__pocet" data-temata-pocet="cekajici">{cekajici.length}</span></h3>
-      <ul class="temata__seznam">
-        {cekajici.map((tema) => (
-          <li class="tema tema--ceka" data-tema data-hledani={textProHledani(tema)}>
-            <details class="tema__detail">
-              <summary class="tema__souhrn">
-                <span class="tema__nazev">{tema.nazev}</span>
-                <span class="tema__stitky">
-                  <span class="stitek stitek--ceka">{STAVY_TEMATU[tema.stav]}</span>
-                  <span class="stitek">{TYPY_PODNETU[tema.typ]}</span>
-                  {tema.oblast !== 'ostatni' && <span class="stitek">{nazevOblasti(tema.oblast)}</span>}
-                  <span class="stitek stitek--ukazka">Ukázka</span>
-                </span>
-              </summary>
-              <div class="tema__telo">
-                <p class="tema__popisek">{TYPY_PODNETU[tema.typ]}</p>
-                <blockquote class="prepis">{tema.text}</blockquote>
-                <p class="drobne">{bezOdpovedi(tema)}</p>
-              </div>
-            </details>
-          </li>
-        ))}
-      </ul>
-      <p class="temata__nic" data-temata-nic hidden>Tady hledání nic nenašlo.</p>
-    </section>
-  </div>
+  <ul class="feed__seznam" data-feed-seznam></ul>
+  <p class="feed__nic" data-feed-nic hidden>Tady nic není.</p>
+  <p class="feed__poznamka">Vzkazy se zveřejňují hned po potvrzení, bez jména autora. Ukázky připravil tým Nezávislých pro Příšovice. Odpovědi nejsou úředním vyjádřením obce.</p>
+  <noscript><p class="feed__nic">Seznam vzkazů potřebuje JavaScript.</p></noscript>
+  <script type="application/json" id="feed-data" set:html={feedDoStranky(polozky)}></script>
 </section>
 
 <script src="../skripty/temata.ts"></script>

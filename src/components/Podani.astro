@@ -150,8 +150,9 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
             </div>
           </div>
 
+          <p class="poznamka poznamka--zverejneni">Po potvrzení se vzkaz hned zveřejní ve feedu vedle ucha, bez vašeho jména. Nepište do něj jména, adresy ani jiné osobní údaje.</p>
           <div class="akce">
-            <button class="tlacitko" type="submit" data-potvrdit>Potvrdit</button>
+            <button class="tlacitko" type="submit" data-potvrdit>Potvrdit a zveřejnit</button>
             <button class="tlacitko tlacitko--druhe" type="button" data-zahodit>Zahodit</button>
           </div>
         </form>
@@ -167,7 +168,11 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
 
       <section data-pohled="potvrzeno" hidden>
         <h2 tabindex="-1" data-fokus>Vzkaz je potvrzený</h2>
-        <p class="poznamka">Zkušební provoz: vzkaz se nikam neuložil a nikdo ho nedostane. Ukládání přibude spolu s přihlášením.</p>
+        <!-- Uložení do feedu (13. 11. 2026): stav ukládání a odkaz na vzkaz ve feedu. -->
+        <div class="ulozeni" role="status" data-ulozeni>
+          <p data-ulozeni-text></p>
+          <button class="odkaz ulozeni__odkaz" type="button" data-ukazat-ve-feedu hidden>Zobrazit ve feedu</button>
+        </div>
         <dl class="zarazeni">
           <dt>Název</dt><dd data-potvrzeny-nazev></dd>
           <dt>Typ</dt><dd data-potvrzeny-typ></dd>
@@ -178,6 +183,11 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
 
         <section class="odpoved" aria-labelledby="odpoved-titulek" data-odpoved hidden>
           <h3 id="odpoved-titulek" class="odpoved__titulek" tabindex="-1" data-odpoved-titulek>Odpověď na dotaz</h3>
+          <!-- Opakovaný dotaz (13. 11. 2026): na podobný dotaz už je odpověď, odkaz na ni ve feedu. -->
+          <div class="odpoved__podobny" data-odpoved-podobny hidden>
+            <p>Na podobný dotaz už je odpověď: <strong data-podobny-nazev></strong></p>
+            <button class="odkaz" type="button" data-ukazat-podobny>Zobrazit odpověď</button>
+          </div>
           <!-- Odpověď hlasem zvolené postavy (13. 11. 2026). Věcná odpověď a zdroje jsou pod ní. -->
           <div data-odpoved-mluvci></div>
           <div data-odpoved-stav="hledani" hidden>
@@ -190,7 +200,7 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
             <div class="odpoved__chybi" data-odpoved-chybi hidden>
               <h4 class="odpoved__chybi-titulek">Tohle jsme ve zdrojích nenašli</h4>
               <ul data-odpoved-chybi-seznam></ul>
-              <p class="poznamka">Zbytek dotazu převezmou zastupitelé. Ve zkušebním provozu se ale zatím nikam neuložil a nikdo ho nedostal.</p>
+              <p class="poznamka">Dotaz je ve feedu mezi zodpovězenými. Na zbytek může odpovědět člověk, třeba zastupitel nebo pracovník obecního úřadu.</p>
             </div>
             <h4 class="odpoved__zdroje-titulek">Zdroje</h4>
             <ol class="odpoved__zdroje" data-odpoved-zdroje></ol>
@@ -199,7 +209,7 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
           <div data-odpoved-stav="zastupitelum" hidden>
             <p class="odpoved__oznaceni">Odpověď jsme na webu nenašli</p>
             <p data-odpoved-duvod></p>
-            <p class="poznamka">Dotaz převezmou zastupitelé. Ve zkušebním provozu se ale zatím nikam neuložil a nikdo ho nedostal.</p>
+            <p class="poznamka">Dotaz je ve feedu mezi čekajícími na odpověď. Odpovědět může člověk, třeba zastupitel nebo pracovník obecního úřadu.</p>
             <div class="akce" data-odpoved-znovu hidden>
               <button class="tlacitko tlacitko--druhe" type="button" data-hledat-znovu>Hledat znovu</button>
             </div>

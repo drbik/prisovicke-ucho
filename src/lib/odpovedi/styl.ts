@@ -4,6 +4,7 @@
 // Jediné technické pravidlo hlídá kód: čísla z odpovědi musí zůstat a jiná přibýt nesmí.
 import type { ZpravaModelu } from '../ai/prompt-upravy';
 import type { SluzbaAi } from '../ai/rozhrani';
+import { overit, podepsat } from '../bezpecnost/podpis';
 import { JMENA_MLUVCICH, type KlicMluvciho } from './mluvci';
 
 export { jeMluvci, type KlicMluvciho } from './mluvci';
@@ -212,27 +213,31 @@ async function stylizovat(
   return { vysledek: 'nezvladl', mluvci, jmeno, duvod, pokusu: POKUSU_STYLU };
 }
 
-// Podpis podkladu (HMAC-SHA256). Server převypráví jen odpověď, kterou sám vydal, jinak by koncový bod
-// komukoli zdarma přepsal libovolný text. Klíč je ve Workers Secrets, lokálně stačí pevný vývojový.
-const kodovac = new TextEncoder();
-
+// Podpis podkladu. Server převypráví jen odpověď, kterou sám vydal, jinak by koncový bod komukoli zdarma přepsal
+// libovolný text. Klíč je ve Workers Secrets, lokálně stačí pevný vývojový.
 function kanonicky(podklad: PodkladPrevypraveni) {
   return JSON.stringify({ dotaz: podklad.dotaz, casti: podklad.casti.map((cast) => ({ otazka: cast.otazka, vety: cast.vety })) });
 }
 
-async function klicHmac(tajemstvi: string) {
-  return crypto.subtle.importKey('raw', kodovac.encode(tajemstvi), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);
+export function podepsatPodklad(podklad: PodkladPrevypraveni, tajemstvi: string) {
+  return podepsat('styl1', kanonicky(podklad), tajemstvi);
 }
 
-export async function podepsatPodklad(podklad: PodkladPrevypraveni, tajemstvi: string) {
-  const podpis = await crypto.subtle.sign('HMAC', await klicHmac(tajemstvi), kodovac.encode(`styl1|${kanonicky(podklad)}`));
-  return Array.from(new Uint8Array(podpis), (b) => b.toString(16).padStart(2, '0')).join('');
+export function overitPodpis(podklad: PodkladPrevypraveni, podpis: string, tajemstvi: string) {
+  return overit('styl1', kanonicky(podklad), podpis, tajemstvi);
 }
 
-export async function overitPodpis(podklad: PodkladPrevypraveni, podpis: string, tajemstvi: string) {
-  if (!/^[0-9a-f]{64}$/.test(podpis)) return false;
-  const bajty = new Uint8Array(podpis.match(/../g)!.map((dvojice) => parseInt(dvojice, 16)));
-  return crypto.subtle.verify('HMAC', await klicHmac(tajemstvi), bajty, kodovac.encode(`styl1|${kanonicky(podklad)}`));
+// Text postavy k uložení vzkazu: server ho uloží, jen když ho sám napsal k tomuto spisovnému znění.
+function kanonickyStylVzkazu(mluvci: KlicMluvciho, vstup: string, vystup: string) {
+  return JSON.stringify({ mluvci, vstup, vystup });
+}
+
+export function podepsatStylVzkazu(mluvci: KlicMluvciho, vstup: string, vystup: string, tajemstvi: string) {
+  return podepsat('vzkaz-styl1', kanonickyStylVzkazu(mluvci, vstup, vystup), tajemstvi);
+}
+
+export function overitStylVzkazu(mluvci: KlicMluvciho, vstup: string, vystup: string, podpis: unknown, tajemstvi: string) {
+  return overit('vzkaz-styl1', kanonickyStylVzkazu(mluvci, vstup, vystup), podpis, tajemstvi);
 }
 
 // Podklad z požadavku stránky se před ověřením podpisu přečte do přesného tvaru, nic navíc neprojde.

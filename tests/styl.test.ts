@@ -180,7 +180,10 @@ describe('POST /api/vzkaz/styl', () => {
     const { api, generovani, log, limiterStylu, limiter } = sestavitApi({ vystupyGenerovani: ['(povzdech) Opravte chodník Na Výsluní. Stejně je to marné.'] });
     const odpoved = await api.fetch(zadost('/vzkaz/styl', { mluvci: 'marvin', text: VZKAZ }));
     expect(odpoved.status).toBe(200);
-    expect(await odpoved.json()).toEqual({ vysledek: 'prevypraveno', mluvci: 'marvin', jmeno: 'Marvin', text: '(povzdech) Opravte chodník Na Výsluní. Stejně je to marné.', pokusu: 1 });
+    const data = await odpoved.json() as Record<string, unknown>;
+    expect(data).toMatchObject({ vysledek: 'prevypraveno', mluvci: 'marvin', jmeno: 'Marvin', text: '(povzdech) Opravte chodník Na Výsluní. Stejně je to marné.', pokusu: 1 });
+    // Text postavy server podepíše, aby ho při potvrzení mohl uložit do feedu.
+    expect(data.podpis).toMatch(/^[0-9a-f]{64}$/);
     expect(generovani[0][0].content).toContain('Jsi Marvin');
     expect(generovani[0][1].content).toContain(VZKAZ);
     expect(log.mock.calls[0][0]).toMatchObject({ udalost: 'prevypraveni', co: 'vzkaz', mluvci: 'marvin', vysledek: 'prevypraveno' });

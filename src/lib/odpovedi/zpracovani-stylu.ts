@@ -10,6 +10,7 @@ import {
   VERZE_PROMPTU_STYLU,
   jeMluvci,
   overitPodpis,
+  podepsatStylVzkazu,
   precistPodklad,
   prepsatVzkaz,
   prevypravet,
@@ -90,9 +91,12 @@ export async function zpracovatPrevypraveni(request: Request, z: ZavislostiStylu
 
 // Autorův vzkaz hlasem postavy. Vstup je spisovné znění, které autor vidí při kontrole. Je to stejný druh vstupu
 // jako u /vzkaz/text (libovolný text od autora), proto stejná délka a limit požadavků místo podpisu.
-export async function zpracovatStylVzkazu(request: Request, z: ZavislostiStylu): Promise<VysledekPrevypraveni> {
+// Text postavy server podepíše, aby ho při potvrzení mohl uložit do feedu jen tak, jak ho sám napsal.
+export async function zpracovatStylVzkazu(request: Request, z: ZavislostiStylu): Promise<VysledekPrevypraveni & { podpis?: string }> {
   const { data, mluvci } = await precistData(request, z);
   const text = typeof data.text === 'string' ? data.text.trim() : '';
   if (text.length < MIN_ZNAKU_TEXTU || text.length > MAX_ZNAKU_UPRAVY) throw new ChybaPodani('spatny-text');
-  return spustit(z, mluvci, 'vzkaz', LIMIT_STYLU_VZKAZU_MS, () => prepsatVzkaz(z.ai, text, mluvci));
+  const vysledek = await spustit(z, mluvci, 'vzkaz', LIMIT_STYLU_VZKAZU_MS, () => prepsatVzkaz(z.ai, text, mluvci));
+  if (vysledek.vysledek !== 'prevypraveno' || !z.klicPodpisu) return vysledek;
+  return { ...vysledek, podpis: await podepsatStylVzkazu(mluvci, text, vysledek.text, z.klicPodpisu) };
 }

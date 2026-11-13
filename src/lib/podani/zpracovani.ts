@@ -1,4 +1,5 @@
 import { odstranitHalucinace } from '../ai/halucinace';
+import { overit, podepsat } from '../bezpecnost/podpis';
 import type { SluzbaAi } from '../ai/rozhrani';
 import type { UpravaVzkazu } from '../ai/uprava';
 import { ChybaPodani } from './chyby';
@@ -18,6 +19,8 @@ export interface ZavislostiPodani {
   log?: (zaznam: Record<string, unknown>) => void;
   ted?: () => number;
   limitUpravyMs?: number;
+  // Klíč pro podpis návrhu AI úpravy. Uložit jde jen vzkaz, který prošel úpravou na serveru (F-14).
+  klicPodpisu?: string;
 }
 
 export interface TechnickeUdaje {
@@ -36,6 +39,23 @@ export interface VysledekPodani {
   surovyText: string;
   uprava: UpravaVzkazu;
   technicke: TechnickeUdaje;
+  // Podpis návrhu (vstup, surový text, úprava). Stránka ho pošle při potvrzení a server podle něj vzkaz uloží.
+  podpis?: string;
+}
+
+// Návrh AI úpravy, jak ho server vydal. Podepisuje se v pevném tvaru, aby podpis seděl i po cestě stránkou.
+export type NavrhPodani = Pick<VysledekPodani, 'vstup' | 'surovyText' | 'uprava'>;
+
+function kanonickyNavrh({ vstup, surovyText, uprava }: NavrhPodani) {
+  return JSON.stringify({ vstup, surovyText, uprava: { text: uprava.text, nazev: uprava.nazev, typ: uprava.typ, oblast: uprava.oblast } });
+}
+
+export function overitNavrh(navrh: NavrhPodani, podpis: unknown, klic: string) {
+  return overit('navrh1', kanonickyNavrh(navrh), podpis, klic);
+}
+
+async function podepsany<T extends VysledekPodani>(vysledek: T, klic?: string): Promise<T> {
+  return klic ? { ...vysledek, podpis: await podepsat('navrh1', kanonickyNavrh(vysledek), klic) } : vysledek;
 }
 
 export function zakladniTyp(hlavicka: string | null) {
@@ -124,12 +144,12 @@ export async function zpracovatHlas(request: Request, z: ZavislostiPodani): Prom
   if (!surovyText) throw new ChybaPodani('prazdny-prepis');
 
   const { uprava, technicke } = await upravit(surovyText, z);
-  return {
+  return podepsany({
     vstup: 'hlas',
     surovyText,
     uprava,
     technicke: { typ, velikostB: audio.byteLength, prepisMs, delkaS, ...technicke },
-  };
+  }, z.klicPodpisu);
 }
 
 export async function zpracovatText(request: Request, z: ZavislostiPodani): Promise<VysledekPodani> {
@@ -148,5 +168,5 @@ export async function zpracovatText(request: Request, z: ZavislostiPodani): Prom
   if (typeof text !== 'string' || !jeTextPlatny(text)) throw new ChybaPodani('spatny-text');
   const surovyText = text.trim();
   log({ udalost: 'text', znaku: surovyText.length });
-  return { vstup: 'text', surovyText, ...(await upravit(surovyText, z)) };
+  return podepsany({ vstup: 'text', surovyText, ...(await upravit(surovyText, z)) }, z.klicPodpisu);
 }

@@ -27,6 +27,7 @@ Cloudová session k nim nemá přístup. V lokální session je zpřístupni jen
 - `docs/test-zarizeni.md` – výsledky testů na zařízeních a co zbývá ověřit.
 - `docs/zadani-krok-8.md` – zadání kroku 8 (index webu a odpověď s citací) pro samostatnou session, včetně pravidla, kdy je hotový.
 - `docs/navrh-alternativni-mluvci.md` – alternativní mluvčí: jak převyprávění funguje, pojistky a výsledky zkoušky se skutečnou AI.
+- `docs/feed-vzkazu.md` – ukládání potvrzených vzkazů, feed vedle ucha, opakovaný dotaz a skrytí nevhodného vzkazu.
 
 Požadavky mají ID (F-01 až F-83) a prioritu MVP / Později / Zvážit. V commitech a kódu na ně odkazuj.
 
@@ -116,6 +117,15 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 - Věcná odpověď, citace, zdroje a upozornění zůstávají vždy vidět. Odpověď postavy je v rámečku „pro pobavení“ nad nimi. Kód hlídá jen čísla: všechna z textu zůstanou a žádné nepřibude. Číslovku smí postava napsat číslicí a naopak, jedničku jen číslicí.
 - Odpověď postava převypráví, jen když ji server sám vydal a podepsal (HMAC, klíč `KLIC_PODPISU` ve Workers Secrets). Vzkaz přepisuje z textu od autora, stejně jako AI úprava. Postavy mají vlastní limit požadavků (`STYL_RATE_LIMITER`, 20 za minutu) a nic se neukládá.
 - Podrobnosti a výsledky zkoušky jsou v `docs/navrh-alternativni-mluvci.md`.
+
+## Rozhodnutí (13. 11. 2026, feed)
+
+- Potvrzený vzkaz se uloží do D1 a hned zveřejní ve feedu vedle ucha, bez schválení (Tomáš to zvolil s vědomím, že moderace ani zakrývání osobních údajů v MVP nejsou). Ukládají se všechny potvrzené vzkazy: dotazy, návrhy, stížnosti a pochvaly. Bez jména autora, bez IP adresy a bez nahrávky. Neveřejně i surový přepis a návrh AI úpravy. Je to rozšíření MVP a odchylka od rozhodnutí z 2. 11. 2026, že přihlášení je před nahráváním.
+- Uložit jde jen vzkaz, jehož návrh AI úpravy server podepsal (F-14). Před potvrzením je upozornění, že se vzkaz zveřejní, a tlačítko „Potvrdit a zveřejnit“. Nevhodný vzkaz tým skryje příkazem `npx tsx nastroje/vzkazy.ts skryt ID`.
+- Feed je jeden jednoduchý seznam s hledáním a filtry stavu (Zodpovězené, Čekají na odpověď) a typu. Ukázky od týmu v něm zůstávají se štítkem Ukázka, za skutečnými vzkazy.
+- Opakovaný dotaz: když je embedding nového dotazu podobný zodpovězenému dotazu nebo ukázce aspoň na 0,85, panel ukáže odkaz na odpověď a ve feedu na ni jde skočit.
+- Lokální vývoj ukládá vzkazy jen do paměti, ne do ostré databáze.
+- Podrobnosti jsou v `docs/feed-vzkazu.md`.
 
 ## MVP (prezentační verze)
 
