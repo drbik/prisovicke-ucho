@@ -6,19 +6,25 @@ Index drží text webu obce prisovice.cz a veřejný obsah webu Nezávislých pr
 
 ## Co v indexu je
 
-**Okno 4 roky (13. 11. 2026, zadal Tomáš):** okno pro aktuality, úřední desku a jejich PDF je od 9. 11. 2022 místo od 9. 11. 2024. Stahování poslalo 241 požadavků a stáhlo 225 souborů: 11 aktualit, 92 položek úřední desky a 122 příloh. Mezi nimi jsou i aktuality zveřejněné 12. 11. 2026. Word převedl 7 nových dokumentů, OCR přečetlo 65 nových stran. Mimo okno teď nezůstalo nic: nejstarší aktualita a položka desky v sitemapě jsou z 22. 11. 2022, takže 4 roky pokrývají vše, co obec ve WordPressu zveřejnila.
+**Okno 4 roky (13. 11. 2026, zadal Tomáš):** okno pro aktuality, úřední desku a jejich PDF je od 9. 11. 2022 místo od 9. 11. 2024. Stahování poslalo 241 požadavků a stáhlo 225 souborů: 11 aktualit, 92 položek úřední desky a 122 příloh. Mezi nimi jsou i aktuality zveřejněné 12. 11. 2026. Tabulka zdrojů výše je ze zpracování bez OCR obrázků. Word převedl 7 nových dokumentů, OCR přečetlo 65 nových stran. Mimo okno teď nezůstalo nic: nejstarší aktualita a položka desky v sitemapě jsou z 22. 11. 2022, takže 4 roky pokrývají vše, co obec ve WordPressu zveřejnila.
 
 | | Před (12. 11. 2026) | Po (13. 11. 2026) |
 |---|---|---|
-| Dokumenty v D1 | 436 | 552 |
-| Úseky v D1 | 3 070 | 5 069 |
-| Vektory ve Vectorize | 3 070 | 5 069 |
-| Embeddingy spočítané při nahrání | 1 043 | 2 004 |
-| Odhad neuronů | asi 540 | asi 1 040 |
+| Dokumenty v D1 | 436 | 552, s OCR obrázků 560 |
+| Úseky v D1 | 3 070 | 5 069, s OCR obrázků 5 077 |
+| Vektory ve Vectorize | 3 070 | 5 069, s OCR obrázků 5 077 |
+| Embeddingy spočítané při nahrání | 1 043 | 2 004 a 9 (OCR obrázků) |
+| Odhad neuronů | asi 540 | asi 1 040 a pod 10 |
 
 Odhad neuronů vychází z poměru předchozích nahrání (zhruba 0,52 neuronu na úsek). Opory všech typových otázek zůstaly v úsecích svých zdrojů (`kontrola-sady.ts`).
 
-**Co okno 4 let nepřineslo:** pozvánky na vánoční jarmark 21. a 22. 11. 2026, rozsvícení vánočního stromečku 27. 11. 2026 a koncert My Gospel 5. 12. 2026 jsou aktuality z 12. 11. 2026, které mají jen nadpis a obrázek pozvánky (JPG a PNG). Bez vlastního textu jdou mezi obálky a do indexu se nedostanou, stejně jako starší aktuality Vánoční prodejní trhy 2023 a Rozsvícení vánočního stromečku (únor 2024). Hledání „Kdy budou vánoční trhy?“ proto najde jen zmínky v zápisech rady, ne pozvánku. Text obrázků by dodalo OCR obrázků v aktualitách, to je rozšíření MVP a čeká na rozhodnutí Tomáše.
+**OCR obrázků v aktualitách (13. 11. 2026, schválil Tomáš):** pozvánky na vánoční jarmark 21. a 22. 11. 2026, rozsvícení vánočního stromečku 27. 11. 2026 a koncert My Gospel 5. 12. 2026 jsou aktuality, které mají jen nadpis a obrázek pozvánky. Okno 4 let je samo do indexu nedostalo. Proto `index:stahnout` stahuje i obrázky (JPG a PNG) z obsahu aktualit a položek úřední desky v okně, které mají nejvýš 3 obrázky. Fotogalerie (vítání občánků, masopust) se nestahují. `index:ocr` je přečte stejným OCR ve Windows jako skeny PDF a `index:zpracovat` přidá čitelný text k aktualitě. Obrázek je čitelný, když má aspoň 10 slov a slova tvoří aspoň 40 % útržků, protože plakát má málo slov (jarmark 20, koncert 15). Mapa objízdné trasy, fotografie a ocenění tímto prahem neprojdou. Snímky výsledků voleb se nečtou, protože obsahují jména a věk kandidátů. Aktualita s takovým textem má v názvu „text rozpoznaný z obrázku“, nebo „část textu rozpoznaná z obrázku“.
+
+- Staženo 17 obrázků (33 požadavků). Text z obrázku má 8 aktualit: jarmark, rozsvícení stromečku, koncert My Gospel, beseda s Marií Formáčkovou, Panova flétna, Čistá řeka Jizera, divadlo v Pěnčíně a platební portál.
+- Index po nahrání: D1 560 dokumentů a 5 077 úseků, Vectorize 5 077 vektorů. Embeddingy se počítaly pro 9 úseků.
+- `hledat.ts "Kdy budou vánoční trhy?"` najde aktualitu s jarmarkem vektorově i fulltextem. Pozvánka zní: sobota 21. a neděle 22. listopadu 2026, Sokolovna čp. 145, vždy od 10:00 do 15:00 hodin.
+
+**Čekající dotazy po obnově (13. 11. 2026, pokyn Tomáše):** `npx tsx nastroje/zodpovedet-cekajici.ts` projde čekající témata ve feedu a čekající ukázky stejným hledáním, odpovědí a ověřením jako stránka. Nic nezapisuje. Ucho odpovědělo na téma „Dotaz na termín rozsvícení vánočního stromku“: pátek 27. listopadu 2026 od 17:00 hodin na návsi, zdrojem je pozvánka obce. Odpověď je zapsaná v ostré D1 jako platná část odpovědi z webu (tabulka `odpoved`, `puvod` web) a téma má stav `zodpovezeno-z-webu`. Je to odpověď z webu obce se zdrojem, ne odpověď úřadu. Druhý vzkaz téhož tématu („rozlicení“ s překlepem) hledání samo nenašlo, patří ale ke stejnému tématu, a tak dostal stejnou odpověď. Na žádnou ze 12 čekajících ukázek ucho neodpovědělo, ani na Výdejní box a Nabíječku.
 
 **Kontrola ukázek po rozšíření:** dvě čekající ukázky teď v indexu něco najdou, protože do okna přibyly zápisy rady z roku 2024. „Výdejní box na balíky“ najde usnesení rady č. 199/2024 o rozšíření Z-boxu Zásilkovny (zápis 16/2024 z 9. 10. 2024). „Nabíječka na elektroauto v obci“ najde žádosti o nabíjecí stanice v zápisech rady 1/2024 a 3/2024. Ukázky se nezměnily, rozhodne Tomáš.
 
@@ -53,16 +59,16 @@ Odhad neuronů vychází z poměru předchozích nahrání (zhruba 0,52 neuronu 
 | Co | Počet | Proč |
 |---|---|---|
 | Aktuality a položky úřední desky zveřejněné před 9. 11. 2022 | 0 | Okno 4 let. Nejstarší položky v sitemapě jsou z 22. 11. 2022, okno tak zatím nic nevynechává. Při okně 2 let mimo zůstávalo 11 aktualit a 94 položek desky. |
-| Aktuality, jejichž obsah je jen obrázek | 35 stránek bez textu, mezi nimi pozvánky na vánoční jarmark, rozsvícení stromečku a koncert | Text v obrázku index nečte, OCR obrázků čeká na rozhodnutí |
+| Obrázky ve fotogaleriích a nečitelné obrázky | aktuality s více než 3 obrázky, 9 obrázků pod prahem čitelnosti, 2 snímky výsledků voleb | Fotografie nemají text. Mapy a loga dají jen útržky. Výsledky voleb obsahují jména a věk kandidátů. |
 | Řízení soukromých osob na úřední desce | 15 položek a 15 PDF | Dražby, exekuce, stavební řízení o rodinných domech, přístavbách, tůních a dělení pozemků (rozhodnuto 9. 11. 2026). Názvy se sem kvůli osobním údajům nezapisují. |
 | Výpisové stránky | 5 | Aktuality, Aktuálně, Úřední deska, Archiv úřední desky a Mapa stránek jen opakují texty položek |
-| Stránky bez vlastního textu | 398 | Rozcestníky, galerie a obálky úřední desky. Kde odkazují na PDF, je v indexu PDF. |
+| Stránky bez vlastního textu | 391 | Rozcestníky, galerie a obálky úřední desky. Kde odkazují na PDF, je v indexu PDF. |
 | Skeny, ze kterých OCR nepřečte nic použitelného | 9 PDF | Mapy, ocenění, plánek směny pozemků a dvě oznámení o vstupu na pozemky se samými výkresy |
 | Strany bez použitelného textu v jinak čitelných PDF | 41 stran nečitelných pro OCR, 21 PDF se stranami bez textu | Výkresy, mapy, grafy a přílohy havarijního plánu. OCR z nich dá jen útržky (do 25 slov), filtr je do indexu nepustí. |
 | Dokumenty v jiném formátu | 32 | Excel a zip zůstávají mimo index (rozhodnuto 10. 11. 2026). Patří sem návrh rozpočtu v Excelu. |
 | Odkazy na jiné weby | 22 | Stará úřední deska prisovice.e-obec.cz (nesleduje se, rozhodnuto 24. 10. 2026) a portál CENIA |
 | PDF, které web vrací s chybou 404 | 1 | Informace o GDPR odkázaná z odpovědi podle zákona 106 z listopadu 2022 |
-| Duplicitní PDF | 36 | Obec stejný dokument zveřejnila dvakrát pod jinou adresou. V indexu je jedna kopie. |
+| Duplicitní PDF | 35 | Obec stejný dokument zveřejnila dvakrát pod jinou adresou. V indexu je jedna kopie. |
 
 **Skeny, které ucho díky OCR nově přečte.** Před rozšířením byly mimo index, odpovědi na ně končily u zastupitelů. Nejdůležitější z nich:
 
@@ -86,7 +92,7 @@ Všechno běží ručně na počítači, ne ve Workeru. K Cloudflare se skripty 
 
 1. `npm run index:stahnout`: stáhne robots.txt, sitemapy, data z REST API, stránky, PDF a titulní stránku webu Nezávislých. Posílá nejvýš zhruba jeden požadavek za sekundu s obecným User-Agentem. První běh trval asi 27 minut a poslal 728 požadavků. Druhý běh stáhl 0 souborů a poslal 8 požadavků, protože nic se nezměnilo (datum změny v sitemapě, uložené PDF a ETag titulní stránky).
 2. `npm run index:word`: převede stažené dokumenty Word a ODT na prostý text v UTF-8. Převod dělá nainstalovaný Microsoft Word s vypnutými makry, soubory otevírá jen ke čtení a na konci se zavře. Soubor, který Word hlásí jako poškozený, zkusí otevřít s opravou. Už převedené dokumenty přeskočí.
-3. `npm run index:ocr`: strany PDF bez textové vrstvy vykreslí do obrázku (asi 300 dpi) a přečte je OCR ve Windows v češtině. Nic se neinstaluje a nic neodchází mimo počítač. Rozpoznané strany přeskočí, obrázky po OCR smaže.
+3. `npm run index:ocr`: strany PDF bez textové vrstvy vykreslí do obrázku (asi 300 dpi) a přečte je OCR ve Windows v češtině. Od 13. 11. 2026 stejně přečte i stažené obrázky pozvánek z aktualit a úřední desky. Nic se neinstaluje a nic neodchází mimo počítač. Rozpoznané strany přeskočí, obrázky po OCR smaže.
 4. `npm run index:zpracovat`: vytáhne text z HTML a PDF (`pdfjs-dist`), přidá text z Wordu a z OCR, rozdělí ho na úseky (asi 1 200 znaků, překryv 150) a zapíše dokumenty, úseky a zprávu o vynechaném. Trvá asi 5 minut. Od 12. 11. 2026 odděluje v PDF sloupce tabulek znaky „ | “ (mezera větší než trojnásobek výšky písma), stejně jako u Wordu. Bez toho splýval ceník Sokolovny („Celá sokolovna 4.000 Kč + energie 8.000 Kč“) a nešlo poznat, že 8 000 Kč je kauce. Změnilo se tím 1 014 úseků ve 186 dokumentech, hlavně rozpočty, závěrečné účty, zápisy a ceníky.
 5. `npx tsx nastroje/index/kontrola-sady.ts`: ověří, že doslovné opory typových otázek jsou v úsecích svých zdrojů. Při posledním zpracování prošly všechny.
 6. `npm run index:nahrat`: spočítá embeddingy (`@cf/baai/bge-m3`) jen pro nové nebo změněné úseky a nahraje index do D1 a Vectorize. Index na chvíli zmizí a hned se nahraje znovu, smazané úseky odstraní i z Vectorize. První nahrání stálo asi 1 000 neuronů.

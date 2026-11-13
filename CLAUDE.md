@@ -136,6 +136,8 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 ## Rozhodnutí (13. 11. 2026, index)
 
 - Okno stahování a indexu prisovice.cz je 4 roky, od 9. 11. 2022 (`OKNO_OD` v `nastroje/index/nastaveni.ts`). Platí pro aktuality, úřední desku a jejich PDF, stálé stránky se berou celé jako dosud. Zadal Tomáš 13. 11. 2026, protože na ostré adrese chyběly informace o vánočních trzích a rozsvícení stromu. Ostatní výjimky platí dál, `akce-prisovice-timeline.md` do indexu nikdy nepatří. Počty jsou v `docs/index-zdroju.md`.
+- Index čte i text obrázků pozvánek a plakátů v aktualitách a na úřední desce (OCR ve Windows, nejvýš 3 obrázky v článku, bez fotogalerií a snímků výsledků voleb). Schválil Tomáš 13. 11. 2026, protože pozvánka na vánoční jarmark byla jen obrázek. Takový zdroj má v názvu „text rozpoznaný z obrázku“.
+- Čekající dotaz, na který po obnově indexu ucho najde odpověď, dostane odpověď z webu se zdrojem (`nastroje/zodpovedet-cekajici.ts`), nikdy odpověď vydávanou za vyjádření úřadu (pokyn Tomáše 13. 11. 2026).
 
 ## MVP (prezentační verze)
 

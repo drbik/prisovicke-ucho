@@ -41,9 +41,14 @@ export interface Clanek {
   kategorie: string[];
   text: string;
   dokumenty: OdkazNaDokument[];
+  // Obrázky v obsahu článku v plné velikosti (rozšíření z 13. 11. 2026: OCR pozvánek a plakátů).
+  obrazky: string[];
 }
 
 const PRIPONY_DOKUMENTU = /\.(pdf|docx?|xlsx?|odt|ods|rtf|zip)$/i;
+const PRIPONY_OBRAZKU = /\.(jpe?g|png)$/i;
+// Zmenšenina WordPressu má v názvu rozměr (plakat-267x400.jpg), původní soubor ho nemá.
+const ROZMER_ZMENSENINY = /-\d+x\d+(\.[a-z]+)$/i;
 
 export function naIsoDatum(text: string | null | undefined) {
   const shoda = /(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})/.exec(text ?? '');
@@ -78,6 +83,23 @@ export function rozebratClanek(html: string, adresa: string): Clanek | null {
     videne.add(url.href);
     dokumenty.push({ url: url.href, text: cistyText(odkaz) });
   }
+  // Obrázek v plné velikosti: odkaz kolem obrázku (lightbox), jinak adresa obrázku bez rozměru zmenšeniny.
+  const obrazky: string[] = [];
+  for (const obrazek of obsah?.querySelectorAll('img') ?? []) {
+    const odkaz = obrazek.closest('a')?.getAttribute('href') ?? '';
+    const zLightboxu = PRIPONY_OBRAZKU.test(odkaz.split(/[?#]/)[0]);
+    let url: URL;
+    try {
+      url = new URL(zLightboxu ? odkaz : obrazek.getAttribute('src') ?? '', adresa);
+    } catch {
+      continue;
+    }
+    url.hash = '';
+    url.search = '';
+    if (!zLightboxu) url.pathname = url.pathname.replace(ROZMER_ZMENSENINY, '$1');
+    if (!PRIPONY_OBRAZKU.test(url.pathname) || obrazky.includes(url.href)) continue;
+    obrazky.push(url.href);
+  }
   return {
     nazev: cistyText(clanek.querySelector('h1.entry-title') ?? clanek.querySelector('h1')),
     datum: naIsoDatum(cistyText(clanek.querySelector('.entry-date'))),
@@ -85,6 +107,7 @@ export function rozebratClanek(html: string, adresa: string): Clanek | null {
     // Nevykreslené zkratky WordPressu ([cmplz-document …], [yottie …]) nejsou obsah.
     text: obsah ? textPrvku(obsah).replace(/\[\/?[a-z][\w-]*(?:\s[^\]]*)?\]/g, '').replace(/\n{3,}/g, '\n\n').trim() : '',
     dokumenty,
+    obrazky,
   };
 }
 

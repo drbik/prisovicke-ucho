@@ -1,5 +1,5 @@
 # Rozpozná text v obrázcích stran přes OCR ve Windows (Windows.Media.Ocr, čeština). Volá ho npm run index:ocr.
-# Vstup: složka s PNG. Ke každému obrázku bez textu zapíše vedle něj .txt v UTF-8, jeden řádek textu na řádek.
+# Vstup: složka s PNG a JPG. Ke každému obrázku bez textu zapíše vedle něj .txt v UTF-8, jeden řádek textu na řádek.
 param([Parameter(Mandatory = $true)][string]$Slozka)
 
 $ErrorActionPreference = 'Stop'
@@ -25,7 +25,8 @@ if (-not $engine) { throw 'OCR pro cestinu neni ve Windows k dispozici.' }
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 $hotovo = 0
 $chyby = 0
-foreach ($obrazek in Get-ChildItem -LiteralPath $Slozka -Filter '*.png') {
+# PNG jsou vykreslené strany PDF, JPG a PNG s -obrazek v názvu jsou obrázky z článků (od 13. 11. 2026).
+foreach ($obrazek in (Get-ChildItem -LiteralPath $Slozka -File | Where-Object { $_.Extension -in '.png', '.jpg', '.jpeg' })) {
   $cil = [System.IO.Path]::ChangeExtension($obrazek.FullName, '.txt')
   if (Test-Path -LiteralPath $cil) { continue }
   $proud = $null

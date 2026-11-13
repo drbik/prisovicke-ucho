@@ -8,15 +8,16 @@ import path from 'node:path';
 import type { TypDokumentu, Usek, ZdrojovyDokument } from '../../src/lib/odpovedi/typy';
 import { hlavickaUseku } from '../../src/lib/odpovedi/zdroje';
 import { precistKarty } from './karty';
-import { SLOZKA_DAT, WEB_NEZAVISLYCH } from './nastaveni';
+import { CLANKY_BEZ_OCR_OBRAZKU, MAX_OBRAZKU_CLANKU, SLOZKA_DAT, WEB_NEZAVISLYCH } from './nastaveni';
 import { MIN_ZNAKU_STRANY, textPdf } from './pdf';
 import { precistPodklad, precistTlampac } from './nezavisli';
-import { jeCitelnyOcr, textOcr, textWordu } from './prevod';
+import { jeCitelnyObrazek, jeCitelnyOcr, textOcr, textWordu } from './prevod';
 import {
   formatPrilohy,
   mesicNahrani,
   nacistJson,
   souborOcr,
+  souborOcrObrazku,
   souborStavu,
   souborTextuWordu,
   ulozitJson,
@@ -54,10 +55,13 @@ const zprava = {
   word: [] as { url: string; nazev: string; znaku: number }[],
   ocr: [] as { url: string; nazev: string; strany: number[] }[],
   ocrNecitelne: [] as { url: string; strana: number }[],
+  // Rozšíření z 13. 11. 2026: aktuality a položky desky, jejichž text dodalo OCR obrázku (pozvánky, plakáty).
+  obrazky: [] as { url: string; nazev: string; obrazku: number }[],
   // Příspěvky Tlampače a soubory podkladů webu Nezávislých.
   nezavisli: [] as { url: string; nazev: string; znaku: number }[],
 };
 const otisky = new Map<string, string>();
+const nacistText = async (soubor: string) => (existsSync(path.join(SLOZKA_DAT, soubor)) ? fs.readFile(path.join(SLOZKA_DAT, soubor), 'utf8') : null);
 const jeStazeno = (z: ZaznamSeznamu) => z.stav === 'stazeno' || z.stav === 'beze-zmeny';
 
 function pridat(dokument: Omit<ZdrojovyDokument, 'id' | 'otisk'>, casti: CastDokumentu[]) {
@@ -89,7 +93,7 @@ const rodice = new Map<string, Rodic[]>();
 const PORADI_RODICU: TypDokumentu[] = ['uredni-deska', 'aktualita', 'stranka'];
 
 for (const zaznam of seznam) {
-  if (zaznam.typ === 'pdf' || zaznam.typ === 'karty' || zaznam.typ === 'nezavisli' || !jeStazeno(zaznam)) continue;
+  if (zaznam.typ === 'pdf' || zaznam.typ === 'karty' || zaznam.typ === 'nezavisli' || zaznam.typ === 'obrazek' || !jeStazeno(zaznam)) continue;
   const ulozeny = stav.html[zaznam.url];
   const clanek: Clanek | null = rozebratClanek(await fs.readFile(path.join(SLOZKA_DAT, ulozeny.soubor), 'utf8'), zaznam.url);
   if (!clanek) continue;
@@ -99,9 +103,18 @@ for (const zaznam of seznam) {
     seznamRodicu.push({ url: zaznam.url, typ: zaznam.typ, nazev: clanek.nazev, datum: zaznam.datum ?? null, pocetPriloh: pdf.length, textOdkazu: odkaz.text });
     rodice.set(odkaz.url, seznamRodicu);
   }
+  // Text pozvánek a plakátů z OCR obrázků. Fotogalerie (víc obrázků) se nečtou, nečitelný text se nepřidá.
+  const zObrazku: string[] = [];
+  if (zaznam.typ !== 'stranka' && clanek.obrazky.length <= MAX_OBRAZKU_CLANKU && !CLANKY_BEZ_OCR_OBRAZKU.test(zaznam.url)) {
+    for (const obrazek of clanek.obrazky) {
+      const surovy = await nacistText(souborOcrObrazku(obrazek));
+      const text = surovy === null ? '' : textOcr(surovy);
+      if (jeCitelnyObrazek(text)) zObrazku.push(text);
+    }
+  }
   let vlastniText = clanek.text;
   for (const odkaz of clanek.dokumenty) if (odkaz.text) vlastniText = vlastniText.replaceAll(odkaz.text, '');
-  const dostVlastnihoTextu = vlastniText.replace(/\s+/g, ' ').trim().length >= MIN_VLASTNIHO_TEXTU[zaznam.typ];
+  const dostVlastnihoTextu = zObrazku.length > 0 || vlastniText.replace(/\s+/g, ' ').trim().length >= MIN_VLASTNIHO_TEXTU[zaznam.typ];
   const seznamOdkazu = zaznam.typ === 'stranka' && clanek.text.length >= MIN_TEXTU_STALE_STRANKY;
   if (!dostVlastnihoTextu && !seznamOdkazu) {
     zprava.obalky += 1;
@@ -109,9 +122,15 @@ for (const zaznam of seznam) {
     continue;
   }
   const r = rest[zaznam.url];
+  // Název řekne, že text pochází z OCR obrázku a může obsahovat chyby rozpoznání. Rozhoduje pozvánka sama.
+  let nazev = clanek.nazev;
+  if (zObrazku.length) {
+    nazev += vlastniText.replace(/\s+/g, ' ').trim().length >= MIN_VLASTNIHO_TEXTU[zaznam.typ] ? ' (část textu rozpoznaná z obrázku)' : ' (text rozpoznaný z obrázku)';
+    zprava.obrazky.push({ url: zaznam.url, nazev, obrazku: zObrazku.length });
+  }
   pridat({
     url: zaznam.url,
-    nazev: clanek.nazev,
+    nazev,
     web: 'prisovice.cz',
     typ: zaznam.typ,
     zverejneno: zaznam.typ === 'uredni-deska' ? clanek.datum : r?.date.slice(0, 10) ?? clanek.datum,
@@ -119,12 +138,11 @@ for (const zaznam of seznam) {
     mesicNahrani: null,
     stazeno: ulozeny.stazeno,
     nadrazenyUrl: null,
-  }, [{ strana: null, text: clanek.text }]);
+  }, [{ strana: null, text: [clanek.text, ...zObrazku].filter(Boolean).join('\n\n') }]);
 }
 
 // 2. Přílohy: PDF, Word a ODT. Název a datum dává stránka, která na přílohu odkazuje, přednostně položka úřední desky.
 // V indexu mají typ „pdf“ (přiložený soubor), aby se nemusela měnit tabulka v D1.
-const nacistText = async (soubor: string) => (existsSync(path.join(SLOZKA_DAT, soubor)) ? fs.readFile(path.join(SLOZKA_DAT, soubor), 'utf8') : null);
 
 const prilohyKeZpracovani = seznam.filter((z) => z.typ === 'pdf' && jeStazeno(z));
 for (const [poradi, zaznam] of prilohyKeZpracovani.entries()) {
@@ -260,4 +278,5 @@ console.log(`Dokumentů ${dokumenty.length}, úseků ${useky.length}.`);
 for (const [typ, s] of Object.entries(souhrn)) console.log(`  ${typ}: ${s.dokumentu} dokumentů, ${s.useku} úseků, ${s.znaku} znaků`);
 console.log(`Obálek bez vlastního textu ${zprava.obalky}, skenů ${zprava.skeny.length}, PDF se stranami bez textu ${zprava.castecneSkeny.length}, duplicit ${zprava.duplicity.length}, chyb ${zprava.chyby.length}.`);
 console.log(`Web Nezávislých: Tlampač a podklady ${zprava.nezavisli.length} dokumentů.`);
+console.log(`Aktuality a položky desky s textem z obrázku ${zprava.obrazky.length}.`);
 console.log(`Word a ODT ${zprava.word.length}, PDF s textem z OCR ${zprava.ocr.length} (${zprava.ocr.reduce((s, o) => s + o.strany.length, 0)} stran), nečitelných stran OCR ${zprava.ocrNecitelne.length}.`);

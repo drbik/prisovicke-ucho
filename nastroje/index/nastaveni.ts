@@ -5,6 +5,14 @@ import path from 'node:path';
 export const OKNO_OD = '2022-11-09';
 export const OKNO_OD_MESIC = OKNO_OD.slice(0, 7);
 
+// OCR obrázků (rozšíření z 13. 11. 2026, schválil Tomáš): jen aktuality a úřední deska v okně, které mají
+// v obsahu nejvýš tolik obrázků. Pozvánka nebo plakát bývá jeden obrázek, fotogalerie (vítání občánků,
+// masopust) mají desítky fotografií bez textu a lidí na nich se OCR netýká.
+export const MAX_OBRAZKU_CLANKU = 3;
+// Snímky výsledků voleb ukazují jména, věk a hlasy kandidátů. Stejně jako stránka Archiv voleb webu
+// Nezávislých se jejich text do indexu nebere.
+export const CLANKY_BEZ_OCR_OBRAZKU = /\/volby-[^/]*vysledky/i;
+
 // Obecný název bez osobních údajů (zadání kroku 8).
 export const USER_AGENT = 'Mozilla/5.0 (compatible; prisovicke-ucho-index/1.0)';
 // Nejvýš zhruba jeden požadavek za sekundu: mezi koncem jednoho a začátkem dalšího je aspoň sekunda.
