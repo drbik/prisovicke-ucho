@@ -136,7 +136,7 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 ## Rozhodnutí (13. 11. 2026, témata)
 
 - Feed ukazuje témata, ne jednotlivé vzkazy (F-33 až F-37, F-81). Téma má hlavní dotaz, jednu odpověď složenou z ověřených vět, poddotazy a připojené vzkazy. Je to rozšíření MVP pro zkušební provoz, zadal ho Tomáš.
-- Po potvrzení ucho nabídne nejvýš 3 podobná témata stejného typu (embedding textu i názvu, práh 0,65). Autor zvolí „Je to totéž“, „Ptám se na víc“ (u návrhů „Doplňuji to“), nebo „Je to jiné téma“. Nic se nesloučí samo a před volbou se nic neukládá (F-14).
+- Bez mezikroku (Tomáš 13. 11. 2026 po zkoušce na ostré adrese): tlačítko „Vyhledat odpověď“ je hned pod vzkazem, vzkaz se uloží jako vlastní téma a rovnou se hledá odpověď. Opravdu podobné téma (práh 0,75, nejvýš 2) se ukáže jen jako tichý odkaz pod odpovědí. Nic se nesloučí samo, témata spojuje tým příkazem. Je to odchylka od F-35 a od rozhodnutí z 24. 10. 2026, že o shodě rozhoduje autor.
 - Odpověď tématu se skládá z částí, AI ji nepřepisuje. Kód nepustí opakovanou větu, rozpor zdrojů posoudí model a novější zdroj vyhraje. Starší část jde ke kontrole, nic se nemaže. Ukázky jsou témata. Tým témata opravuje příkazy v `nastroje/vzkazy.ts` (úprava v rozhraní je Později, F-38).
 - Podrobnosti, měření a výsledky jsou v `docs/temata-feedu.md`.
 

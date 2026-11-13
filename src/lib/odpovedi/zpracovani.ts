@@ -59,6 +59,8 @@ export interface ZavislostiDotazu extends ZavislostiPodani {
 // je existující odpověď tématu bez nového hledání (F-37). „nicNoveho“: poddotaz se neptal na nic, co téma nemá.
 interface Zarazeni {
   tema?: TemaFeedu;
+  // Podobná témata, která se ukážou jen jako odkaz pod odpovědí (13. 11. 2026, žádný mezikrok).
+  podobna?: { id: string; nazev: string }[];
   vzkazId?: string;
   zTematu?: true;
   nicNoveho?: true;
@@ -66,14 +68,11 @@ interface Zarazeni {
 
 // prevypraveni: co smí stránka nechat převyprávět mluvčím, s podpisem serveru. Má ho odpověď i dotaz bez odpovědi
 // (13. 11. 2026). Chybí u výpadku AI a když server nemá klíč.
-// vyber-tematu: podobná témata (F-34). Nic se neuložilo, stránka pošle vzkaz znovu s volbou autora.
-export type VysledekDotazu =
-  | { vysledek: 'vyber-tematu'; temata: TemaFeedu[] }
-  | ((
-    | { vysledek: 'nehleda'; typ: TypPodnetu }
-    | (VysledekOdpovedi & { celkemMs: number; prevypraveni?: PodepsanyPodklad })
-    | { vysledek: 'zastupitelum'; duvod: 'chyba-ai'; celkemMs: number; technicke?: TechnickeOdpovedi }
-  ) & Zarazeni);
+export type VysledekDotazu = (
+  | { vysledek: 'nehleda'; typ: TypPodnetu }
+  | (VysledekOdpovedi & { celkemMs: number; prevypraveni?: PodepsanyPodklad })
+  | { vysledek: 'zastupitelum'; duvod: 'chyba-ai'; celkemMs: number; technicke?: TechnickeOdpovedi }
+) & Zarazeni;
 
 // Průběžné zprávy pro stránku, poslední z nich nese výsledek. Posílají se po řádcích JSON (NDJSON).
 export type UdalostPrubehu = PrubehOdpovedi;
@@ -233,7 +232,7 @@ async function odpovedetBezUlozeni(dotaz: PripravenyDotaz, z: ZavislostiDotazu, 
 async function zaradit(
   dotaz: PripravenyDotaz & { ulozeni: PripraveneUlozeni },
   z: ZavislostiDotazu & { uloziste: UlozisteVzkazu },
-): Promise<{ vyber: TemaFeedu[] } | { id: string; temaId: string; vztah: VztahVzkazu }> {
+): Promise<{ id: string; temaId: string; vztah: VztahVzkazu; podobna: { id: string; nazev: string }[] }> {
   const log = z.log ?? console.log;
   const ted = () => new Date((z.ted ?? Date.now)());
   const zt: ZavislostiTemat = { uloziste: z.uloziste, ai: z.ai, ukazky: z.ukazky, log };
@@ -254,12 +253,14 @@ async function zaradit(
     const vztahSedi = volba.vztah === 'totez' || (volba.vztah === 'poddotaz') === (dotaz.typ === 'dotaz');
     if (!tema || tema.typ !== dotaz.typ || !vztahSedi) volba = undefined;
   }
+  // Bez volby je vzkaz vlastní téma. Opravdu podobná témata se ukážou jen jako odkaz pod odpovědí.
+  let podobna: { id: string; nazev: string }[] = [];
   if (!volba) {
     if (vektor) {
       const zacatek = Date.now();
       const { temata, podobnosti } = await nabidnoutTemata({ vektor, vektorNazvu }, dotaz.typ, zt, existujici?.id);
-      log({ udalost: 'nabidka', typ: dotaz.typ, temat: temata.length, podobnosti: podobnosti.map((p) => p.podobnost), ms: Date.now() - zacatek });
-      if (temata.length) return { vyber: temata };
+      log({ udalost: 'podobna-temata', typ: dotaz.typ, temat: temata.length, podobnosti: podobnosti.map((p) => p.podobnost), ms: Date.now() - zacatek });
+      podobna = temata.map((t) => ({ id: t.id, nazev: t.nazev }));
     }
     volba = { nove: true };
   }
@@ -291,7 +292,7 @@ async function zaradit(
   }
   await z.uloziste.pripojit(id, temaId, vztah, ted());
   log({ udalost: 'zarazeni', vztah, typ: dotaz.typ, ukazka: temaId.startsWith('ukazka-'), znovu: predchozi ? true : undefined });
-  return { id, temaId, vztah };
+  return { id, temaId, vztah, podobna };
 }
 
 // Potvrzený vzkaz (F-14, F-33 až F-37). U uloženého vzkazu ucho nejdřív nabídne podobná témata. Po volbě autora
@@ -316,8 +317,7 @@ export async function odpovedetNaPripraveny(
     log({ udalost: 'ulozeni-selhalo', hlaska: hlaskaChyby(chyba) });
     return odpovedetBezUlozeni(dotaz, z, priPrubehu);
   }
-  if ('vyber' in zarazeni) return { vysledek: 'vyber-tematu', temata: zarazeni.vyber };
-  const { id, temaId, vztah } = zarazeni;
+  const { id, temaId, vztah, podobna } = zarazeni;
 
   // Téma se přepočítá a jde do feedu, k vzkazu se zapíše, co autor viděl (odpověď tématu). Výpadek úložiště tady
   // výsledek nezastaví.
@@ -339,7 +339,7 @@ export async function odpovedetNaPripraveny(
     } catch (chyba) {
       log({ udalost: 'ulozeni-selhalo', hlaska: hlaskaChyby(chyba) });
     }
-    return { zarazeni: { vzkazId: `v-${id}`, ...(tema ? { tema } : {}) }, odpoved };
+    return { zarazeni: { vzkazId: `v-${id}`, ...(tema ? { tema } : {}), ...(podobna.length ? { podobna } : {}) }, odpoved };
   };
 
   // F-72: návrhy, stížnosti a pochvaly se nehledají, jen se zařadí.

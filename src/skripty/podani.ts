@@ -18,9 +18,9 @@ import { OBLASTI, TYPY_PODNETU } from '../lib/oblasti';
 import { JMENA_STYLU, POPISY_TLACITKA, jeStyl, type KlicMluvciho, type KlicStylu } from '../lib/odpovedi/mluvci';
 import type { PodepsanyPodklad } from '../lib/odpovedi/styl';
 import { stylizovatVzkaz, ukazatelNacitani, vytvoritPrevypraveni } from './mluvci';
-import { element, metaTematu, vytvoritOdpovedTematu } from './odpoved-tematu';
+import { element } from './odpoved-tematu';
 
-type Pohled = 'zadost' | 'nahravani' | 'odesilani' | 'text' | 'vysledek' | 'vyber' | 'potvrzeno' | 'chyba';
+type Pohled = 'zadost' | 'nahravani' | 'odesilani' | 'text' | 'vysledek' | 'potvrzeno' | 'chyba';
 
 const API = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/api/vzkaz`;
 const API_DOTAZU = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/api/dotaz`;
@@ -131,9 +131,8 @@ const stavStylu = prvek('[data-styl-stav]', panel);
 const ulozeniText = prvek('[data-ulozeni-text]', panel);
 const ukazatVeFeedu = prvek<HTMLButtonElement>('[data-ukazat-ve-feedu]', panel);
 // Témata ve feedu (13. 11. 2026, F-34 až F-37, F-81).
-const nabidka = prvek('[data-nabidka]', panel);
-const vyberTitulek = prvek('[data-vyber-titulek]', panel);
-const jineTema = prvek<HTMLButtonElement>('[data-jine-tema]', panel);
+const podobnaTemata = prvek('[data-podobna]', panel);
+const tlacitkoPotvrdit = prvek<HTMLButtonElement>('[data-potvrdit]', panel);
 const odpovedTema = prvek('[data-odpoved-tema]', panel);
 const potvrzeniOdpovedi = prvek('[data-potvrzeni-odpovedi]', panel);
 const potvrzeniVolby = prvek('[data-potvrzeni-volby]', panel);
@@ -247,6 +246,7 @@ function ukazatVysledek(data: VysledekPodani) {
   spisovnyText = text;
   vzkazyPostav.clear();
   posledniPodani = data;
+  popsatTlacitko();
   ukazat('vysledek', 'Vzkaz je upravený. Zkontrolujte ho a potvrďte.');
   void ukazatStylVzkazu();
 }
@@ -382,40 +382,23 @@ function ukazatDoptani() {
   doptaniNazev.textContent = doptaniK ? `„${doptaniK.nazev}“` : '';
 }
 
-// Podobná témata (F-34): nejvýš tři i s odpovědí. Autor zvolí totéž, víc (doplnění), nebo jiné téma (F-35).
-function ukazatNabidku(temata: TemaFeedu[], vzkaz: PotvrzenyVzkaz) {
-  nabidka.replaceChildren(...temata.map((t) => {
-    const li = element('li', 'nabidka__tema');
-    const nadpis = element('h3', 'nabidka__nazev', t.nazev);
-    nadpis.id = `nabidka-nazev-${t.id}`;
-    li.append(nadpis, metaTematu(t), element('blockquote', 'prepis', t.text));
-    if (t.odpoved) li.append(vytvoritOdpovedTematu(t.odpoved, `nabidka-${t.id}`, true));
-    else li.append(element('p', 'drobne', t.typ === 'dotaz' ? 'Na toto téma zatím odpověď není.' : 'Téma čeká na vyjádření.'));
-    const akce = element('div', 'akce');
-    const volby: [string, VolbaTematu, string][] = [
-      ['Je to totéž', { tema: t.id, vztah: 'totez' }, 'tlacitko'],
-      [vzkaz.typ === 'dotaz' ? 'Ptám se na víc' : 'Doplňuji to', { tema: t.id, vztah: vzkaz.typ === 'dotaz' ? 'poddotaz' : 'doplneni' }, 'tlacitko tlacitko--druhe'],
-    ];
-    for (const [popis, volba, trida] of volby) {
-      const tlacitko = element('button', trida, popis);
-      tlacitko.type = 'button';
-      tlacitko.setAttribute('aria-describedby', nadpis.id);
-      tlacitko.addEventListener('click', () => zvolitTema(vzkaz, volba));
-      akce.append(tlacitko);
-    }
-    li.append(akce);
-    return li;
-  }));
-  // Návrh, stížnost a pochvala se na nic neptají.
-  vyberTitulek.textContent = vzkaz.typ === 'dotaz' ? 'Ptal se už někdo na totéž?' : 'Psal už někdo o tomtéž?';
-  jineTema.onclick = () => zvolitTema(vzkaz, { nove: true });
-  const pocet = temata.length === 1 ? 'jedno podobné téma' : `${temata.length} podobná témata`;
-  ukazat('vyber', `Ve feedu je ${pocet}. Vyberte, jak s nimi váš vzkaz souvisí.`);
+// Opravdu podobné téma ve feedu (Tomáš 13. 11. 2026): jen tichý odkaz pod odpovědí, žádný mezikrok.
+function ukazatPodobna(podobna?: { id: string; nazev: string }[]) {
+  podobnaTemata.replaceChildren();
+  podobnaTemata.hidden = !podobna?.length;
+  if (!podobna?.length) return;
+  podobnaTemata.append('Podobné téma ve feedu: ');
+  podobna.forEach((tema, i) => {
+    const odkaz = element('button', 'odkaz', tema.nazev);
+    odkaz.type = 'button';
+    odkaz.addEventListener('click', () => skocitNaTema(tema.id));
+    podobnaTemata.append(...(i ? [', ', odkaz] : [odkaz]));
+  });
 }
 
-function zvolitTema(vzkaz: PotvrzenyVzkaz, volba: VolbaTematu) {
-  ukazat('potvrzeno', 'Ukládáme vzkaz.');
-  void hledatOdpoved(vzkaz, volba);
+// Napsaný návrh, stížnost a pochvala se na webu nehledají (F-72), tlačítko je jen zveřejní.
+function popsatTlacitko() {
+  tlacitkoPotvrdit.textContent = polePotvrzeni.typ.value === 'dotaz' ? 'Vyhledat odpověď' : 'Zveřejnit vzkaz';
 }
 
 // F-81: „Odpověď mi stačí“, nebo „Chci se doptat“. Server ho zapíše podle podpisu návrhu.
@@ -605,7 +588,8 @@ async function hledatOdpoved(vzkaz: PotvrzenyVzkaz, volba?: VolbaTematu) {
   odpovedTema.hidden = true;
   potvrzeniOdpovedi.hidden = true;
   ukazatVeFeedu.hidden = true;
-  ulozeniText.textContent = volbaTematu ? 'Ukládáme vzkaz do feedu…' : 'Hledáme ve feedu podobná témata…';
+  ulozeniText.textContent = 'Ukládáme vzkaz do feedu…';
+  ukazatPodobna();
   // Bez volby se nejdřív hledají podobná témata. Odpověď se začne hledat až s první zprávou o průběhu.
   ukazatStavOdpovedi(jeDotaz && volbaTematu ? 'hledani' : null);
   oznameni.textContent = `Vzkaz je potvrzený. ${ulozeniText.textContent}`;
@@ -634,14 +618,11 @@ async function hledatOdpoved(vzkaz: PotvrzenyVzkaz, volba?: VolbaTematu) {
     }
     const { data } = prijato;
     if (rizeni.signal.aborted) return;
-    if (data?.vysledek === 'vyber-tematu') {
-      ukazatNabidku(data.temata, vzkaz);
-      return;
-    }
     // Doptání je odeslané, další vzkaz už k tématu nepatří.
     doptaniK = null;
     ukazatDoptani();
     ukazatUlozeni(data?.tema);
+    ukazatPodobna(data?.podobna);
     if (!jeDotaz) {
       oznameni.textContent = ulozeniText.textContent;
       return;
@@ -685,7 +666,7 @@ function ukazatPoznamkuTematu(data: Extract<VysledekDotazu, { vysledek: 'odpoved
 
 // Upravený vzkaz existuje jen v prohlížeči, proto se před zahozením ptáme.
 function muzeZavrit() {
-  return (aktualniPohled !== 'vysledek' && aktualniPohled !== 'vyber') || window.confirm(OTAZKA_ZAHOZENI);
+  return aktualniPohled !== 'vysledek' || window.confirm(OTAZKA_ZAHOZENI);
 }
 
 function zavrit() {
@@ -797,7 +778,7 @@ ukazatVeFeedu.addEventListener('click', () => { if (idVeFeedu) skocitNaTema(idVe
 prvek('[data-hledat-znovu]', panel).addEventListener('click', () => {
   if (hledanyDotaz) void hledatOdpoved(hledanyDotaz, volbaTematu);
 });
-prvek('[data-vyber-zpet]', panel).addEventListener('click', () => ukazat('vysledek'));
+polePotvrzeni.typ.addEventListener('change', popsatTlacitko);
 prvek('[data-staci]', panel).addEventListener('click', () => {
   void poslatPotvrzeni('staci');
   potvrzeniVolby.hidden = true;

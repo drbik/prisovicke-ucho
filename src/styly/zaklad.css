@@ -195,6 +195,9 @@ form > label:not(:first-child), .dvojice { margin-top: 16px; }
 .odpoved__tema { margin: 0 0 14px; padding: 10px 14px; border-left: 3px solid var(--past); border-radius: 0 7px 7px 0; background: #edf2e8; overflow-wrap: anywhere; }
 .odpoved__cast--nova { color: var(--past); }
 .odpoved__nove { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; color: #fff; background: var(--past); font-size: .72rem; font-weight: 760; letter-spacing: .04em; vertical-align: 1px; }
+.akce--pod-vzkazem { margin-top: 12px; }
+.podobna { margin: 16px 0 0; }
+.podobna .odkaz { min-height: 32px; padding: 2px 0; font-size: inherit; }
 .potvrzeni-odpovedi { margin: 18px 0 0; padding-top: 14px; border-top: 1px solid var(--linka); }
 .potvrzeni-odpovedi__otazka { margin: 0 0 8px; font-weight: 700; }
 .potvrzeni-odpovedi .akce { margin-top: 0; }

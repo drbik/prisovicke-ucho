@@ -108,8 +108,8 @@ describe('uložení potvrzeného vzkazu do feedu (13. 11. 2026)', () => {
     const prvni = await potvrdit(api, podani);
     const druhy = await api.fetch(zadost('/dotaz', { text: 'Navrhuji dvě lavičky u hřiště.', typ: 'navrh', ulozit: ulozit(podani) }));
     const data = await druhy.json() as VysledekDotazu;
-    expect(data.vysledek !== 'vyber-tematu' && data.vzkazId).toBe(prvni.vysledek?.vysledek !== 'vyber-tematu' && prvni.vysledek?.vzkazId);
-    expect(data.vysledek !== 'vyber-tematu' && data.tema?.text).toBe('Navrhuji dvě lavičky u hřiště.');
+    expect(data.vzkazId).toBe(prvni.vysledek?.vzkazId);
+    expect(data.tema?.text).toBe('Navrhuji dvě lavičky u hřiště.');
     expect(uloziste.vzkazy).toHaveLength(1);
     expect(uloziste.temata).toHaveLength(1);
     expect(uloziste.vzkazy[0].text).toBe('Navrhuji dvě lavičky u hřiště.');
@@ -148,7 +148,7 @@ describe('uložení potvrzeného vzkazu do feedu (13. 11. 2026)', () => {
   it('skrytý vzkaz z feedu zmizí', async () => {
     const { api, uloziste, ai } = sestavit({ vystupyUpravy: [uprava('Navrhuji lavičky u hřiště.', 'navrh')] });
     const { vysledek } = await potvrdit(api, await napsat(api, 'navrhuji lavicky u hriste'));
-    const id = vysledek && vysledek.vysledek !== 'vyber-tematu' ? vysledek.vzkazId! : '';
+    const id = vysledek?.vzkazId ?? '';
     expect((await skrytVzkaz(id, true, { uloziste, ai, ukazky: [] })).vzkaz).toMatchObject({ skryto: true });
     expect(sestavitFeed(await uloziste.temataFeedu(10), [])).toEqual([]);
   });

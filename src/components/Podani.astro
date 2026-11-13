@@ -133,6 +133,12 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
             data-upraveny
           ></textarea>
           <p class="chyba" id="chyba-text" role="alert" data-chyba-pole="text" hidden></p>
+          <!-- Tomáš 13. 11. 2026: tlačítko hned pod vzkazem, po stisknutí rovnou hledat odpověď, bez mezikroku. -->
+          <div class="akce akce--pod-vzkazem">
+            <button class="tlacitko" type="submit" data-potvrdit>Vyhledat odpověď</button>
+            <button class="tlacitko tlacitko--druhe" type="button" data-zahodit>Zahodit</button>
+          </div>
+          <p class="poznamka poznamka--zverejneni">Vzkaz se zveřejní ve feedu bez vašeho jména. Nepište do něj jména, adresy ani jiné osobní údaje.</p>
 
           <label for="vzkaz-nazev">Název</label>
           <input id="vzkaz-nazev" type="text" maxlength={MAX_ZNAKU_NAZVU} autocomplete="off" aria-describedby="chyba-nazev" data-nazev />
@@ -154,12 +160,6 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
               <p class="chyba" id="chyba-oblast" role="alert" data-chyba-pole="oblast" hidden></p>
             </div>
           </div>
-
-          <p class="poznamka poznamka--zverejneni">Po potvrzení se vzkaz hned zveřejní ve feedu vedle ucha, bez vašeho jména. Nepište do něj jména, adresy ani jiné osobní údaje.</p>
-          <div class="akce">
-            <button class="tlacitko" type="submit" data-potvrdit>Potvrdit a zveřejnit</button>
-            <button class="tlacitko tlacitko--druhe" type="button" data-zahodit>Zahodit</button>
-          </div>
         </form>
         <details class="technicke">
           <summary data-popis-puvodniho>Původní přepis</summary>
@@ -171,16 +171,6 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
         </details>
       </section>
 
-      <!-- Podobná témata (F-34, F-35): autor zvolí, jak s nimi vzkaz souvisí. Uloží se až potom (F-14). -->
-      <section data-pohled="vyber" hidden>
-        <h2 tabindex="-1" data-fokus data-vyber-titulek>Ptal se už někdo na totéž?</h2>
-        <p>Ve feedu jsou podobná témata. Vyberte, jak s nimi váš vzkaz souvisí. Zveřejní se až potom.</p>
-        <ul class="nabidka" data-nabidka></ul>
-        <div class="akce">
-          <button class="tlacitko" type="button" data-jine-tema>Je to jiné téma</button>
-          <button class="tlacitko tlacitko--druhe" type="button" data-vyber-zpet>Zpět k úpravám</button>
-        </div>
-      </section>
 
       <section data-pohled="potvrzeno" hidden>
         <h2 tabindex="-1" data-fokus>Vzkaz je potvrzený</h2>
@@ -237,6 +227,9 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
             </div>
           </div>
         </section>
+
+        <!-- Opravdu podobné téma ve feedu jen jako tichý odkaz (Tomáš 13. 11. 2026). -->
+        <p class="drobne podobna" data-podobna hidden></p>
 
         <div class="akce">
           <button class="tlacitko" type="button" data-novy>Nový vzkaz</button>

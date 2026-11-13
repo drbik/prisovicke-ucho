@@ -322,6 +322,14 @@ Práh 0,65 zůstává. Práh 0,68 by měkký cíl skoro splnil, ale u povinného
 
 **Čas a cena.** Nabídka trvala v mediánu 0,22 s (embedding a úložiště v paměti, D1 přidá čtení vektorů). Běh stál asi 1 800 neuronů, z toho 1 540 AI úprava 95 vzkazů a 230 nové otázky.
 
+## Změna po zkoušce na ostré adrese (13. 11. 2026, Tomáš)
+
+Tomáš na ostré adrese zkusil dotaz na rozsvícení vánočního stromu a ucho mu nabídlo nesouvisející témata. Pokyn: žádný mezikrok, stránka na telefonu má být jednoduchá a jasná.
+
+- Obrazovka „Ptal se už někdo na totéž?“ zmizela. Tlačítko je hned pod textem vzkazu a jmenuje se **Vyhledat odpověď** (u návrhu, stížnosti a pochvaly **Zveřejnit vzkaz**). Po stisknutí se vzkaz uloží jako vlastní téma a rovnou se hledá odpověď.
+- Podobné téma se ukáže jen jako tichý odkaz „Podobné téma ve feedu: …“ pod odpovědí, a jen když opravdu sedí: práh 0,75 místo 0,65, nejvýš 2 témata. Na schválené sadě to při 0,75 znamená správné téma u 52 z 67 párů a jiné téma u 4 z 34 (vánoční strom × posvícení měl 0,66, už se neukáže).
+- Spojení do jednoho tématu tak už nedělá autor. Dělá ho tým příkazem `presunout` nebo `sloucit`. Doptání („Chci se doptat“) a „Hledat znovu“ jdou k tématu dál přímo. Jde to proti F-35 a rozhodnutí z 24. 10. 2026 („o shodě rozhoduje autor“), Tomáš to zvolil kvůli jednoduchosti.
+
 ## Nasazení (13. 11. 2026)
 
 - Tomáš schválil migraci a nasazení 13. 11. 2026.

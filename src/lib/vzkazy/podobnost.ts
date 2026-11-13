@@ -5,10 +5,11 @@ import type { TypPodnetu } from '../oblasti';
 import type { UkazkoveTema } from '../temata/temata';
 import type { UlozisteVzkazu, VektorUkazky } from './typy';
 
-// Měření ve fázi A (docs/temata-feedu.md): žádný práh stejná a jiná témata neoddělí (správné téma nejníž 0,71,
-// záludné jiné téma nejvýš 0,76), správné téma ale bylo vždy mezi třemi nejbližšími. Proto nabídka, ne sloučení.
-export const PRAH_NABIDKY = 0.65;
-export const MAX_NABIDKY = 3;
+// Měření ve fázi A (docs/temata-feedu.md): žádný práh stejná a jiná témata neoddělí. Od pokynu Tomáše z 13. 11. 2026
+// (žádný mezikrok, žádné rušivé návrhy) se podobné téma ukáže jen jako tichý odkaz pod odpovědí, a jen když opravdu
+// sedí: na schválené sadě je při 0,75 správné téma u 52 z 67 párů a jiné téma u 4 z 34.
+export const PRAH_NABIDKY = 0.75;
+export const MAX_NABIDKY = 2;
 
 export function kosinus(a: ArrayLike<number>, b: ArrayLike<number>) {
   if (a.length !== b.length || !a.length) return 0;

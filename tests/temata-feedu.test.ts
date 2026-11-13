@@ -93,7 +93,7 @@ async function poslat(api: ReturnType<typeof vytvorApi>, p: Podani, tema?: Volba
   return { status: odpoved.status, udalosti, vysledek, tema: vysledek && 'tema' in vysledek ? vysledek.tema : undefined };
 }
 
-const nabidnuta = (v: VysledekDotazu | null) => (v?.vysledek === 'vyber-tematu' ? v.temata : []);
+const nabidnuta = (v: VysledekDotazu | null) => v?.podobna ?? [];
 const odpovedZ = (v: VysledekDotazu | null) => (v?.vysledek === 'odpoved' ? v.odpoved : undefined);
 const feed = async (uloziste: ReturnType<typeof vytvorPametoveUloziste>, ukazky: UkazkoveTema[] = []) => sestavitFeed(await uloziste.temataFeedu(50), ukazky);
 const textyVet = (t?: TemaFeedu) => t?.odpoved?.vety.map((v) => v.text) ?? [];
@@ -109,27 +109,26 @@ describe('zařazení vzkazu k tématu (F-33 až F-37)', () => {
     expect(JSON.stringify(log.mock.calls)).not.toMatch(/ékárn/);
   });
 
-  it('podobné téma nabídne i s odpovědí a nic neuloží, dokud autor nezvolí (F-14, F-34)', async () => {
-    const { api, uloziste, generovani } = sestavit({ vystupyGenerovani: [vety(CTVRTEK), overeno()] });
+  it('bez mezikroku: vzkaz rovnou dostane odpověď ve vlastním tématu a podobné téma je jen odkaz (Tomáš 13. 11. 2026)', async () => {
+    const { api, uloziste } = sestavit({ vystupyGenerovani: [vety(CTVRTEK), overeno(), vety(CTVRTEK), overeno()] });
     const prvni = await poslat(api, await podani('Do kolika má ve čtvrtek otevřeno lékárna?', 'Otevírací doba lékárny'));
-    const volani = generovani.length;
+    expect(nabidnuta(prvni.vysledek)).toEqual([]);
     const druhy = await poslat(api, await podani('Jak dlouho má lékárna ve čtvrtek otevřeno?', 'Lékárna ve čtvrtek'));
-    expect(druhy.vysledek?.vysledek).toBe('vyber-tematu');
-    expect(nabidnuta(druhy.vysledek).map((t) => t.id)).toEqual([prvni.tema?.id]);
-    expect(nabidnuta(druhy.vysledek)[0].odpoved?.vety).toHaveLength(1);
-    expect(uloziste.vzkazy).toHaveLength(1);
-    expect(generovani).toHaveLength(volani);
+    expect(druhy.vysledek?.vysledek).toBe('odpoved');
+    expect(nabidnuta(druhy.vysledek)).toEqual([{ id: prvni.tema?.id, nazev: 'Otevírací doba lékárny' }]);
+    expect(druhy.tema?.id).not.toBe(prvni.tema?.id);
+    expect(uloziste.vzkazy.map((v) => v.vztah)).toEqual(['zakladatel', 'zakladatel']);
   });
 
-  it('nabídne nejvýš tři témata stejného typu', async () => {
+  it('podobná témata jsou nejvýš dvě a stejného typu', async () => {
     const { api, uloziste } = sestavit();
     for (const [i, typ] of (['dotaz', 'dotaz', 'dotaz', 'dotaz', 'navrh'] as const).entries()) {
       await poslat(api, await podani(`Lékárna ${i}?`, `Lékárna ${i}`, typ), { nove: true });
     }
     expect(uloziste.temata).toHaveLength(5);
     const { vysledek } = await poslat(api, await podani('Lékárna znovu?', 'Lékárna'));
-    expect(nabidnuta(vysledek)).toHaveLength(3);
-    expect(nabidnuta(vysledek).every((t) => t.typ === 'dotaz')).toBe(true);
+    expect(nabidnuta(vysledek)).toHaveLength(2);
+    expect(nabidnuta(vysledek).every((t) => uloziste.temata.find((u) => u.id === t.id)?.typ === 'dotaz')).toBe(true);
   });
 
   it('totéž ukáže existující odpověď tématu bez nového hledání (F-37)', async () => {
@@ -248,14 +247,17 @@ describe('zařazení vzkazu k tématu (F-33 až F-37)', () => {
     const { api, uloziste, generovani } = sestavit({ ukazky: [UKAZKA_LEKARNA] });
     const p = await podani('Jak dlouho má lékárna ve čtvrtek otevřeno?', 'Lékárna ve čtvrtek');
     const prvni = await poslat(api, p);
-    expect(nabidnuta(prvni.vysledek)).toMatchObject([{ id: 'ukazka-01', ukazka: true, pocet: 0 }]);
+    expect(nabidnuta(prvni.vysledek)).toEqual([{ id: 'ukazka-01', nazev: UKAZKA_LEKARNA.nazev }]);
+    const volani = generovani.length;
+    // Volba tématu jde dál přes API (doptání, Hledat znovu). Vlastní téma bez dalších vzkazů pak zmizí.
     const druhy = await poslat(api, p, { tema: 'ukazka-01', vztah: 'totez' });
     expect(druhy.vysledek).toMatchObject({ vysledek: 'odpoved', zTematu: true });
     expect(druhy.tema).toMatchObject({ id: 'ukazka-01', ukazka: true, pocet: 1 });
-    expect(generovani).toHaveLength(0);
+    expect(generovani).toHaveLength(volani);
+    expect(uloziste.temata.find((t) => t.id === prvni.tema?.id)?.skryto).toBe(true);
     const temata = await feed(uloziste, [UKAZKA_LEKARNA]);
     expect(temata.filter((t) => t.id === 'ukazka-01')).toHaveLength(1);
-    expect(uloziste.casti).toMatchObject([{ puvod: 'ukazka', vzkazId: null }]);
+    expect(uloziste.casti.filter((c) => c.stav === 'platna')).toMatchObject([{ puvod: 'ukazka', vzkazId: null }]);
   });
 
   it('návrh se sdružuje bez hledání: doplnění, poddotaz u návrhu nejde', async () => {
@@ -263,8 +265,10 @@ describe('zařazení vzkazu k tématu (F-33 až F-37)', () => {
     const prvni = await poslat(api, await podani('Navrhuji lavičky u hřiště.', 'Lavičky u hřiště', 'navrh'));
     expect(prvni.vysledek).toMatchObject({ vysledek: 'nehleda', typ: 'navrh' });
     const p = await podani('K hřišti lavičky a k tomu stříšku.', 'Lavičky a stříška', 'navrh');
-    // Poddotaz u návrhu je neplatná volba, ucho nabídne témata znovu.
-    expect((await poslat(api, p, { tema: prvni.tema!.id, vztah: 'poddotaz' })).vysledek?.vysledek).toBe('vyber-tematu');
+    // Poddotaz u návrhu je neplatná volba: vzkaz dostane vlastní téma a podobné téma jen jako odkaz.
+    const neplatna = await poslat(api, p, { tema: prvni.tema!.id, vztah: 'poddotaz' });
+    expect(neplatna.tema?.id).not.toBe(prvni.tema!.id);
+    expect(nabidnuta(neplatna.vysledek).map((t) => t.id)).toEqual([prvni.tema!.id]);
     const druhy = await poslat(api, p, { tema: prvni.tema!.id, vztah: 'doplneni' });
     expect(druhy.vysledek).toMatchObject({ vysledek: 'nehleda' });
     expect(druhy.tema).toMatchObject({ pocet: 2, stav: 'ceka', vzkazy: [{ vztah: 'doplneni' }] });
@@ -306,7 +310,7 @@ describe('tým: skrytí, přesun, sloučení a převod', () => {
     await skrytTema('ukazka-01', true, z);
     expect(await feed(uloziste, [UKAZKA_LEKARNA])).toEqual([]);
     const { vysledek } = await poslat(api, await podani('Jak dlouho má lékárna ve čtvrtek otevřeno?', 'Lékárna ve čtvrtek'));
-    expect(vysledek?.vysledek).not.toBe('vyber-tematu');
+    expect(nabidnuta(vysledek)).toEqual([]);
   });
 
   it('přesun k ukázce jako poddotaz: odpověď jde s vzkazem bez opakování (jako Sokolovna)', async () => {
