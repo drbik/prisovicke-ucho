@@ -12,7 +12,8 @@ export { jeMluvci, type KlicMluvciho } from './mluvci';
 // Verze 2 (13. 11. 2026): stručnost ve větách, krátký dialog Sokrata. Verze 1 byla jen zkouška se skutečnou AI.
 // Verze 3 (13. 11. 2026): postava přepíše i autorův vzkaz (styl se volí u tlačítka ucha) a převypráví zprávu,
 // že odpověď na webu není.
-export const VERZE_PROMPTU_STYLU = 3;
+// Verze 4 (13. 11. 2026): vzkaz se obrací na obec, ne na zastupitele. Odpovídat může i pracovník obecního úřadu.
+export const VERZE_PROMPTU_STYLU = 4;
 
 // Zadání postav. Žádná číslice: číslo v zadání by model mohl přenést do textu a kontrola by ho zamítla.
 export const POSTAVY: Record<KlicMluvciho, string> = {
@@ -27,7 +28,7 @@ export const POSTAVY: Record<KlicMluvciho, string> = {
 
 // Co mluvčí převypráví, když odpověď z webu není (13. 11. 2026): zvolená postava odpoví i na dotaz bez odpovědi.
 // Text platí pro zkušební provoz, kdy se vzkazy nikam neukládají.
-export const TEXT_BEZ_ODPOVEDI = 'Odpověď na tento dotaz jsme na webu obce ani na webu Nezávislých pro Příšovice nenašli. Až bude ucho v ostrém provozu, převezmou takový dotaz zastupitelé.';
+export const TEXT_BEZ_ODPOVEDI = 'Odpověď na tento dotaz jsme na webu obce ani na webu Nezávislých pro Příšovice nenašli. Až bude ucho v ostrém provozu, odpoví na takový dotaz člověk, třeba zastupitel nebo pracovník obecního úřadu.';
 
 // Co se převypráví: dotaz a zodpovězené části s větami odpovědi. Citace, zdroje a upozornění se nepřevyprávějí.
 export interface PodkladPrevypraveni {
@@ -71,7 +72,7 @@ export function pokynyVzkazu(mluvci: KlicMluvciho) {
 
 ${POSTAVY[mluvci]}
 
-Piš za autora vzkazu, v první osobě, a obracej se na obec nebo na zastupitele. Zachovej všechno, co autor navrhuje, na co se ptá a co mu vadí. Komentáře, nálady a vtipy postavy přidávej podle libosti.
+Piš za autora vzkazu, v první osobě, a obracej se na obec. Zachovej všechno, co autor navrhuje, na co se ptá a co mu vadí. Komentáře, nálady a vtipy postavy přidávej podle libosti.
 
 Technická pravidla, která hlídá program:
 - Každé číslo, datum, čas a částku ze vzkazu napiš číslicemi přesně tak, jak jsou ve vzkazu.

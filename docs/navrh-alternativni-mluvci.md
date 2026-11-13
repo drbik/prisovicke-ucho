@@ -27,10 +27,11 @@ Styl patří k přímému namlouvání vzkazu a dotazu, ne ke starým odpovědí
 - Ťuknutí na ikonu nahrávání nespustí. Velké tlačítko se promění v postavu: dostane její ikonu, oranžovou barvu a popisek „Namluvit jako Marvin“.
 - Nahrávat se začne až ťuknutím na velké tlačítko. Stejně funguje „Raději napíšu“.
 - Pod sluníčkem je nápověda „Ťukněte na postavu kolem tlačítka a vzkaz i odpověď převypráví svým hlasem.“ a rozbalovací „Jak to funguje?“ podle Tomášova popisu:
-  - ucho vzkaz vždy převede do spisovné češtiny, postava ho pak převypráví a stejným hlasem převypráví i odpověď, věcná odpověď se zdroji zůstane vidět;
-  - zastupitelé si vzkaz budou moci přepnout do kteréhokoli stylu, styl, ve kterém ho autor pošle, jim ale napoví jeho náladu nebo roli;
-  - nic vážného, jen pro zpestření všedního dne, zastupitelé jsou lidé jako vy.
-- V popisu jsou zastupitelé, ne úředníci: vzkazy ucha čtou zastupitelé a ucho není úřední kanál obce. Přepínání stylu pro zastupitele přijde s ukládáním vzkazů a administrací, proto „budou moci“.
+  - ucho vzkaz vždy převede do spisovné češtiny a postava ho pak převypráví;
+  - odpověď může ucho najít na webu obce a v jejích dokumentech, pak ji postava převypráví a věcná odpověď se zdroji zůstane vidět, jinak odpoví člověk, třeba zastupitel nebo pracovník obecního úřadu;
+  - kdo bude vzkaz číst, si ho bude moci přepnout do kteréhokoli stylu, styl, ve kterém ho autor pošle, mu ale napoví jeho náladu nebo roli;
+  - nic vážného, jen pro zpestření všedního dne, na druhé straně jsou lidé jako vy.
+- Kdo odpoví, popis neurčuje: může to být zastupitel, pracovník obecního úřadu, nebo odpověď najde ucho přímo v dokumentech (Tomáš 13. 11. 2026). Přepínání stylu pro čtenáře vzkazu přijde s ukládáním vzkazů a administrací, proto „bude moci“.
 - Bez skriptu zůstane jen tlačítko.
 
 **Kontrola vzkazu.** Nad textem vzkazu je řada „Kdo vzkaz řekne“ se stejnými styly (ikona a jméno):
@@ -44,7 +45,7 @@ Styl patří k přímému namlouvání vzkazu a dotazu, ne ke starým odpovědí
 **Odpověď.** Postava zvolená při potvrzení převypráví:
 
 - odpověď z webu;
-- zprávu, že odpověď na webu není („Odpověď na tento dotaz jsme na webu obce ani na webu Nezávislých pro Příšovice nenašli. Až bude ucho v ostrém provozu, převezmou takový dotaz zastupitelé.“).
+- zprávu, že odpověď na webu není („Odpověď na tento dotaz jsme na webu obce ani na webu Nezávislých pro Příšovice nenašli. Až bude ucho v ostrém provozu, odpoví na takový dotaz člověk, třeba zastupitel nebo pracovník obecního úřadu.“).
 
 Převyprávění je v čárkovaném rámečku „Odpovídá Marvin · pro pobavení“ hned pod nadpisem odpovědi. Věcná odpověď, citace, zdroje a upozornění jsou pod ním beze změny. Při výpadku AI postava nemluví, autor má hledat znovu.
 
@@ -71,7 +72,7 @@ Zadání postav je v `src/lib/odpovedi/styl.ts` (`POSTAVY`). Každé popisuje po
 
 Zadání nesmí obsahovat číslici, hlídá to test. Číslo by model mohl přenést do textu a kontrola by text zamítla.
 
-Vzkaz přepisuje postava v první osobě za autora a obrací se na obec. Zachová, co autor navrhuje, na co se ptá a co mu vadí.
+Vzkaz přepisuje postava v první osobě za autora a obrací se na obec (od verze 4 zadání ne na zastupitele, odpovídat může i obecní úřad). Zachová, co autor navrhuje, na co se ptá a co mu vadí.
 
 ## Pojistky
 
