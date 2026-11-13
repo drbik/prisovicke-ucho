@@ -155,5 +155,9 @@ Proto je odpověď postavy vždy v rámečku „pro pobavení“ a věcná odpov
 
 - Tajný klíč `KLIC_PODPISU` je náhodná hodnota nahraná 13. 11. 2026 přes `wrangler secret put`. Není v repozitáři ani ve výpisu. Když se změní, podpisy dříve vydaných odpovědí přestanou platit. Nové odpovědi fungují hned.
 - První verze s tlačítky pod odpovědí a u ukázek: Worker 37baf02f z commitu 7f0efcd, nápověda u ukázek ve verzi b8a4fdd4. Na ostré adrese převyprávěl Marvin ukázku o lékárně a Bart novou odpověď na cenu sálu, podvržený podklad server odmítl (403).
-- Sluníčko a vzkaz hlasem postavy zatím nasazené nejsou.
+- Sluníčko a vzkaz hlasem postavy: Worker 15f88715 z commitu 1c93812 s limiterem `STYL_RATE_LIMITER`. Ověření na ostré adrese:
+  - sluníčko má 8 ikon a ťuknutí na Marvina promění tlačítko v „Namluvit jako Marvin“, panel se neotevře;
+  - Staročeština přepsala návrh dvou laviček na první pokus za 2,0 s, číslo 2 zůstalo;
+  - nový dotaz na lékárnu přišel s podpisem a Medvídek Pú ho převyprávěl na první pokus za 2,7 s;
+  - převyprávění ukázky server odmítl (403) a v přehledu témat mluvčí nejsou.
 - Zvuk (čtení nahlas) zatím ne. Kdyby přišel, tak jen obecným syntetickým hlasem, nikdy napodobením hlasu konkrétního herce z dabingu.
