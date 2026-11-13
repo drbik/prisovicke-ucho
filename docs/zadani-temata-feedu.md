@@ -188,8 +188,8 @@ Ke každé větvi toku napiš testy bez sítě: totéž, poddotaz, jiné téma, 
 | Fáze | Stav | Datum | Poznámka |
 |---|---|---|---|
 | A. Průzkum a návrh | Hotovo | 13. 11. 2026 | Tomáš návrh schválil 13. 11. 2026 beze změn, včetně všech 13 doporučení. Návrh a měření v [temata-feedu.md](temata-feedu.md), 13 otevřených otázek s doporučením. Měřicí skript `nastroje/mereni-temat.ts`, měření stálo asi 390 neuronů. Sokolovna má podobnost 0,80 (práh byl 0,85), správné téma je ale u všech 18 dvojic mezi 3 nejbližšími. |
-| B. Sada pro sdružování | Čeká na Tomáše | 13. 11. 2026 | Sada v [sada-temat.md](sada-temat.md) a `tests/data/sada-temat.json`: 28 skupin, 95 vzkazů, 67 párů ke spojení (33 totéž, 31 poddotaz, 3 doplnění) a 34 párů jiné téma. Stavbu sady hlídá `tests/sada-temat.test.ts`. Pět sporných párů ke kontrole. |
-| C. Stavba | Nezačato | | |
+| B. Sada pro sdružování | Hotovo | 13. 11. 2026 | Tomáš sadu schválil 13. 11. 2026 včetně pěti sporných párů. Sada v [sada-temat.md](sada-temat.md) a `tests/data/sada-temat.json`: 28 skupin, 95 vzkazů, 67 párů ke spojení (33 totéž, 31 poddotaz, 3 doplnění) a 34 párů jiné téma. Stavbu sady hlídá `tests/sada-temat.test.ts`. Pět sporných párů ke kontrole. |
+| C. Stavba | Probíhá | 13. 11. 2026 | |
 | D. Ověření | Nezačato | | |
 | E. Nasazení | Nezačato | | |
 | F. Dokumentace a předání | Nezačato | | |
@@ -197,7 +197,7 @@ Ke každé větvi toku napiš testy bez sítě: totéž, poddotaz, jiné téma, 
 **Body „Kdy je hotovo“:**
 
 - [x] 1. Návrh schválený (13. 11. 2026)
-- [ ] 2. Sada schválená
+- [x] 2. Sada schválená (13. 11. 2026)
 - [ ] 3. Prahy na sadě splněné
 - [ ] 4. Jedna odpověď na téma, bez duplicit, s citacemi
 - [ ] 5. Tři volby autora s testy

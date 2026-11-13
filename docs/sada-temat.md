@@ -1,6 +1,6 @@
 # Sada pro sdružování vzkazů do témat
 
-*Sada z 13. 11. 2026, verze 1, fáze B úkolu v [zadani-temata-feedu.md](zadani-temata-feedu.md). **Čeká na schválení Tomášem.***
+*Sada z 13. 11. 2026, verze 1, fáze B úkolu v [zadani-temata-feedu.md](zadani-temata-feedu.md). Tomáš ji schválil 13. 11. 2026 včetně pěti sporných párů.*
 
 Strojově čitelná podoba je v [`tests/data/sada-temat.json`](../tests/data/sada-temat.json). Stavbu sady hlídá `tests/sada-temat.test.ts`. Sada ověřuje, že ucho autorovi nabídne správné téma (F-34) a že nic nesloučí bez jeho volby (F-35). Návrh, ze kterého vychází, je v [temata-feedu.md](temata-feedu.md).
 
@@ -295,7 +295,7 @@ Zakladatel je první vzkaz skupiny. Nemá dostat nabídku, nebo jen jiná témat
 
 ## Sporné páry ke kontrole
 
-U těchto párů může jiný čtenář vidět vztah jinak. Prosím o potvrzení, nebo opravu:
+U těchto párů může jiný čtenář vidět vztah jinak. Tomáš je 13. 11. 2026 potvrdil tak, jak jsou:
 
 - **G01-3** svatební hostina v sále: totéž se sálem (cena sálu), jiné se svatbou (ta je o obřadu).
 - **G07-2** ověření podpisu v pátek: totéž, protože odpověď říká, že v ostatní dny jde termín domluvit telefonicky.

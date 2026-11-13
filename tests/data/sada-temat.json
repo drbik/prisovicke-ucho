@@ -1,7 +1,7 @@
 {
   "verze": 1,
   "vytvoreno": "2026-11-13",
-  "schvaleno": null,
+  "schvaleno": "2026-11-13",
   "ucel": "Sada pro sdružování vzkazů do témat ve feedu (F-33 až F-37, fáze B úkolu v docs/zadani-temata-feedu.md). Ověřuje, že ucho autorovi nabídne správné téma a že nic nesloučí bez jeho volby.",
   "jak_vznikla": "Vzkazy jsou napsané tak, jak by je řekli nebo napsali občané, i hovorově a bez diakritiky. Témata jsou ukázky z src/lib/temata/ukazky.json, skutečný vzkaz v-2j1g3o2u57 z feedu (potvrzené znění, zveřejněné bez jména) a tři nová témata, která založí první vzkaz skupiny. Část vzkazů vychází z typových otázek kroku 8 (tests/data/typove-otazky.json, uvedeno v poli zdroj).",
   "vztahy": {
