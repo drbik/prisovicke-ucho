@@ -20,7 +20,7 @@ Pod odpovědí z webu je řada tlačítek **Převyprávět jako**:
 
 Po kliknutí AI převypráví odpověď hlasem zvolené postavy. Převyprávění se ukáže v čárkovaném rámečku pod tlačítky se štítkem „Pro pobavení · jméno“ a poznámkou „Převyprávěla AI pro pobavení. Platí věcná odpověď a zdroje.“ Druhé kliknutí na stejné tlačítko rámeček zavře. Hotové převyprávění si stránka pamatuje, dokud se nezavře panel nebo neobnoví stránka.
 
-Tlačítka jsou u zodpovězeného dotazu v panelu ucha a u zodpovězených ukázek v přehledu témat.
+Tlačítka jsou u zodpovězeného dotazu v panelu ucha a u zodpovězených ukázek v přehledu témat. V přehledu jsou až v rozbalené ukázce, proto na ně upozorňuje nápověda nad seznamem („Pro pobavení: rozklikněte zodpovězený dotaz…“) a štítek „Převyprávění“ u každé zodpovězené ukázky. Nápověda, štítky i tlačítka se ukážou jen se skriptem.
 
 ## Co se nemění
 
@@ -109,7 +109,7 @@ Proto je u převyprávění vždy štítek „Pro pobavení“ a věcná odpově
 ## Nasazení (13. 11. 2026)
 
 - Tajný klíč `KLIC_PODPISU` je náhodná hodnota nahraná přes `wrangler secret put`. Není v repozitáři ani ve výpisu. Když se změní, podpisy dříve vydaných odpovědí přestanou platit a jejich tlačítka mluvčí nezvládnou. Nové odpovědi fungují hned.
-- Worker verze 37baf02f z commitu 7f0efcd.
+- Worker verze 37baf02f z commitu 7f0efcd. Nápověda a štítky ve verzi b8a4fdd4 z commitu f81a38b.
 - Ověření na ostré adrese:
   - Marvin převyprávěl ukázku o lékárně na první pokus za 1,8 s;
   - nový dotaz na cenu sálu Sokolovny přišel s podpisem a Bart ho převyprávěl na první pokus za 1,1 s;
