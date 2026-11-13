@@ -26,6 +26,9 @@ Cloudová session k nim nemá přístup. V lokální session je zpřístupni jen
 - `docs/plan-mvp.md` – MVP rozdělené na postupné kroky, rozpis kroků 1 až 4 a pořadí testů.
 - `docs/test-zarizeni.md` – výsledky testů na zařízeních a co zbývá ověřit.
 - `docs/zadani-krok-8.md` – zadání kroku 8 (index webu a odpověď s citací) pro samostatnou session, včetně pravidla, kdy je hotový.
+- `docs/navrh-alternativni-mluvci.md` – alternativní mluvčí: jak převyprávění funguje, pojistky a výsledky zkoušky se skutečnou AI.
+- `docs/feed-vzkazu.md` – ukládání potvrzených vzkazů, feed vedle ucha, opakovaný dotaz a skrytí nevhodného vzkazu.
+- `docs/pwa.md` – ucho jako aplikace na ploše telefonu: manifest, service worker, ikony.
 
 Požadavky mají ID (F-01 až F-83) a prioritu MVP / Později / Zvážit. V commitech a kódu na ně odkazuj.
 
@@ -37,7 +40,7 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 - **Fakta o projektech:** faktický master je `src/content/akce-prisovice-timeline.md`, publikované karty jsou v `src/content/projects/`. Timeline obsahuje i neveřejné záměry a neověřené údaje (TBD), proto do ucha přebírej jen to, co je v publikované kartě.
 - **Oblasti:** oblast se s kartou projektu páruje stabilním `slug` (např. `dostupne-bydleni`). Název karty se může změnit, slug ne.
 - **Vzhled:** barvy a písma podle webu (`DESIGN_SPEC.md`, styly v `src/pages/index.astro`).
-- **Hlas textů:** `SIMPLE_COPY_PROMPT.md` je politický hlas karet webu. Odpovědi ucha jsou věcné, s citací a upozorněním, že nejde o úřední vyjádření obce.
+- **Hlas textů:** `SIMPLE_COPY_PROMPT.md` je politický hlas karet webu. Odpovědi ucha jsou věcné, s citací a upozorněním, že nejde o úřední vyjádření obce. Výjimkou je převyprávění alternativním mluvčím (rozhodnutí z 13. 11. 2026).
 - **Hlavičky:** `src/lib/security-headers.ts` a `public/_headers` musí souhlasit, hlídá to `npm run test:security`. Mění se jen v projektu webu.
 - **Nasazení:** ucho má vlastní Worker pro cestu `/ucho`. Do Workeru webu `prisovice-nezavisli` se nikdy nenasazuje. Web se nasazuje jen v jeho projektu a jen na výslovný pokyn.
 - Když se ucho a web v něčem, co patří webu, liší, platí web. Rozdíl zapiš do `docs/oblasti-a-web.md`, web neopravuj odsud.
@@ -96,6 +99,36 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 
 - Stránka ucha ukazuje na jedné obrazovce ucho, zodpovězené dotazy a témata čekající na zastupitele. Dokud se vzkazy neukládají, jsou to ukázky od týmu podle rozhodnutí z 9. 11. 2026: každá má štítek „Ukázka“, bez vymyšlených autorů, hlasů a dat podání, odpovědi jsou skutečný výstup ucha se zdroji. Data jsou v `src/lib/temata/ukazky.json`.
 - Mezi čekající ukázky smí jen dotaz, ke kterému index zdrojů opravdu nic nemá. Dotaz, ke kterému index má aspoň související údaj (cena vody za loňský rok, nájem ve stávajících bytech, minulý termín akce), mezi čekající nepatří. Každý čekající dotaz má v datech hlídané vzory a `npx tsx nastroje/index/kontrola-ukazek.ts` selže, když některý v indexu něco najde. Spouští se po každé změně ukázek a po každé obnově indexu.
+
+## Rozhodnutí (12. 11. 2026)
+
+- Dotaz se vždy dělí na samostatné otázky, nejvýš 4. Dělí ho AI a každá otázka se ptá na jednu věc. Každá část má vlastní hledání, odpověď a ověření. Dotaz na jednu věc se hledá v autorově znění a jeho hledání běží souběžně s rozdělením (rozdělení má limit 3 s), protože přeformulovaná otázka hledala hůř a čekání zdržovalo. Důvod: u dotazu na sportoviště a ceny pronájmu vytlačily úseky o sportu ceník Sokolovny a jedna čárka navíc v citaci zahodila celou odpověď.
+- Autor průběžně vidí, na jaké otázky AI dotaz rozdělila a co se u které děje: hledáme, odpověď jsme našli, nebo ve zdrojích není. Části běží souběžně. Server posílá průběh po řádcích JSON (`application/x-ndjson`).
+- Pravidlo F-75 platí pro každou část zvlášť: když v části cokoli neprojde, převezmou ji zastupitelé a ostatní části odpověď ukážou. Tomáš schválil návrh opravy 12. 11. 2026.
+- Prompt odpovědi verze 5: až 4 věty na část, u řádku tabulky citace se záhlavím sloupců, při rozporu zdrojů novější údaj. Model i ověření znají dnešní datum, takže termín, který už minul, nevydají za příští. Údaje o jiném místě nebo budově se nepoužijí. Ověření navíc zamítne větu se jménem soukromé osoby (žadatel, nájemce), které model jinak ze zápisů rady přebíral.
+- Text z PDF odděluje sloupce tabulky znaky „ | “, stejně jako u Wordu. Bez toho nešlo poznat, že v ceníku Sokolovny je 8 000 Kč vratná kauce, a ne cena energie.
+- Kontrola citace toleruje změněnou koncovku slova, protože model při opisu „opravuje“ pády („vratné kauce“ místo „vratná kauce“) a kód tím zahazoval celé části. Čísla a krátká slova musí sedět přesně, nejvýš jedna odchylka na 8 slov. Pod odpovědí je vždy přesné znění zdroje, ne opis modelu, a ověření i kontrola čísel běží proti němu. Tomáš schválil 12. 11. 2026 večer.
+
+## Rozhodnutí (13. 11. 2026)
+
+- Ucho má alternativní mluvčí: Bart Simpson, Malý princ, Medvídek Pú, Sokrates, Marvin, Suchý úředník a Staročeština. Cílem je, aby z webu nečpěla úředničina a byl přívětivý a lehce humorný pro toho, kdo o to stojí. Je to rozšíření MVP a výjimka z hlasu textů, Tomáš ho zadal 13. 11. 2026.
+- Styl patří k přímému namlouvání, ne ke starým odpovědím (pokyn Tomáše): u ukázek v přehledu témat mluvčí nejsou. Kolem velkého tlačítka je sluníčko malých kulatých ikon. Základ je Spisovně, kolem jsou postavy. Ťuknutí na ikonu nahrávání nespustí, jen promění velké tlačítko v postavu (ikona, barva, „Namluvit jako Marvin“). Nahrávat se začne až velkým tlačítkem. Stejně funguje „Raději napíšu“.
+- Při kontrole vzkazu postava přepíše autorův vzkaz svým hlasem a styl jde přepnout zpět na Spisovně nebo na jinou postavu. Text postavy je jen k přečtení, opravuje se spisovné znění. Podle spisovného znění se hledá i odpověď a kontroluje potvrzení. Zvolená postava pak převypráví odpověď na dotaz, i zprávu, že odpověď na webu není.
+- Ve zkušebním a vývojovém provozu mají postavy skutečná jména a zadání stylu se drží postavy bez ohledu na web, jeho účel a obsah otázky (pokyn Tomáše: „toto není politický a absolutně korektní prezentace“). Ikony jsou vlastní čárové kresby (skateboard, planetka, hrnec medu, sloup, robot, razítko, brk), ne obrázky postav. Ověřovací model posměch ani tón nehlídá.
+- Věcná odpověď, citace, zdroje a upozornění zůstávají vždy vidět. Odpověď postavy je v rámečku „pro pobavení“ nad nimi. Kód hlídá jen čísla: všechna z textu zůstanou a žádné nepřibude. Číslovku smí postava napsat číslicí a naopak, jedničku jen číslicí.
+- Odpověď postava převypráví, jen když ji server sám vydal a podepsal (HMAC, klíč `KLIC_PODPISU` ve Workers Secrets). Vzkaz přepisuje z textu od autora, stejně jako AI úprava. Postavy mají vlastní limit požadavků (`STYL_RATE_LIMITER`, 20 za minutu) a nic se neukládá.
+- Podrobnosti a výsledky zkoušky jsou v `docs/navrh-alternativni-mluvci.md`.
+
+## Rozhodnutí (13. 11. 2026, feed)
+
+- Potvrzený vzkaz se uloží do D1 a hned zveřejní ve feedu vedle ucha, bez schválení (Tomáš to zvolil s vědomím, že moderace ani zakrývání osobních údajů v MVP nejsou). Ukládají se všechny potvrzené vzkazy: dotazy, návrhy, stížnosti a pochvaly. Bez jména autora, bez IP adresy a bez nahrávky. Neveřejně i surový přepis a návrh AI úpravy. Je to rozšíření MVP a odchylka od rozhodnutí z 2. 11. 2026, že přihlášení je před nahráváním.
+- Uložit jde jen vzkaz, jehož návrh AI úpravy server podepsal (F-14). Před potvrzením je upozornění, že se vzkaz zveřejní, a tlačítko „Potvrdit a zveřejnit“. Nevhodný vzkaz tým skryje příkazem `npx tsx nastroje/vzkazy.ts skryt ID`.
+- Feed je jeden jednoduchý seznam s hledáním a filtry stavu (Zodpovězené, Čekají na odpověď) a typu. Ukázky od týmu v něm zůstávají se štítkem Ukázka, za skutečnými vzkazy.
+- Opakovaný dotaz: když je embedding nového dotazu podobný zodpovězenému dotazu nebo ukázce aspoň na 0,85, panel ukáže odkaz na odpověď a ve feedu na ni jde skočit.
+- Lokální vývoj ukládá vzkazy jen do paměti, ne do ostré databáze.
+- Nahoře ve feedu je heslovitě „Zkušební provoz · ukázkové dotazy a odpovědi · vzkazy se zveřejňují bez jména · nejde o úřední vyjádření obce“. Feed netvrdí, že ukázky připravil tým (Tomáš: to není pravda).
+- Podrobnosti jsou v `docs/feed-vzkazu.md`.
+- Ucho jde přidat na plochu telefonu jako aplikace (PWA). Manifest a service worker leží pod `/ucho`, web Nezávislých se nemění. Service worker nic neukládá do mezipaměti. Podrobnosti v `docs/pwa.md`.
 
 ## MVP (prezentační verze)
 

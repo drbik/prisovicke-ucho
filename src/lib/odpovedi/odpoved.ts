@@ -2,7 +2,7 @@ import type { SluzbaAi } from '../ai/rozhrani';
 import { PRAH_PODOBNOSTI, hledatUseky } from './hledani';
 import { oddilCitace } from './misto';
 import { ZamitnutaOdpoved, jeTextVUseku, overitKodem, precistNezodpovezeno, precistOdpoved, precistOvereni, type DuvodZamitnuti } from './overeni';
-import { VERZE_PROMPTU_ODPOVEDI, zpravyOdpovedi, zpravyOvereni } from './prompt-odpovedi';
+import { VERZE_PROMPTU_ODPOVEDI, datumDnes, zpravyOdpovedi, zpravyOvereni } from './prompt-odpovedi';
 import type { IndexZdroju } from './rozhrani';
 import type { NalezenyUsek, WebZdroje } from './typy';
 import { OZNACENI_ZDROJE, UPOZORNENI, datumZdroje, odkazNaZdroj } from './zdroje';
@@ -19,8 +19,21 @@ export interface CitovanyZdroj {
   misto: string;
 }
 
+export interface VetaZobrazene {
+  text: string;
+  zdroj: number;
+}
+
+// Zodpovězená část dotazu, který se ptal na víc věcí. Stránka ukáže otázku a pod ní její věty.
+export interface ZodpovezenaCast {
+  otazka: string;
+  vety: VetaZobrazene[];
+}
+
 export interface ZobrazenaOdpoved {
-  vety: { text: string; zdroj: number }[];
+  // Všechny věty odpovědi v pořadí. U dotazu na víc věcí jsou navíc rozdělené podle částí v poli casti.
+  vety: VetaZobrazene[];
+  casti?: ZodpovezenaCast[];
   zdroje: CitovanyZdroj[];
   // Části dotazu, na které zdroje neodpovídají. Odpověď je tak částečná a zbytek převezmou zastupitelé.
   nezodpovezeno: string[];
@@ -44,6 +57,13 @@ export interface TechnickeOdpovedi {
   overeniMs?: number;
   model: string;
   verzePromptu: number;
+  // Dotaz rozdělený na části: kolik jich bylo, kolik dostalo odpověď a proč ostatní ne. Bez textu dotazu.
+  casti?: number;
+  castiZodpovezeno?: number;
+  duvodyCasti?: DuvodPredani[];
+  rozdeleniMs?: number;
+  // Kolik citací model neopsal doslova a kód je nahradil přesným zněním zdroje.
+  opravenoCitaci?: number;
 }
 
 export type VysledekOdpovedi =
@@ -131,15 +151,16 @@ export async function odpovedetNaDotaz(dotaz: string, z: ZavislostiOdpovedi): Pr
   }
 
   const predOdpovedi = ted();
-  const vystup = await z.ai.generovat(zpravyOdpovedi(dotaz, hledani.useky), { maxTokenu: MAX_TOKENU_ODPOVEDI });
+  const vystup = await z.ai.generovat(zpravyOdpovedi(dotaz, hledani.useky, datumDnes(ted())), { maxTokenu: MAX_TOKENU_ODPOVEDI });
   technicke.odpovedMs = ted() - predOdpovedi;
   try {
     const navrzene = precistOdpoved(vystup);
     if (!navrzene.length) return { vysledek: 'zastupitelum', duvod: 'model-nevi', technicke };
     const vety = overitKodem(navrzene, hledani.useky);
+    technicke.opravenoCitaci = vety.filter((v) => v.opravenaCitace).length;
     const predOverenim = ted();
     const kOvereni = vety.map((v) => ({ ...v, zdroj: hledani.useky[v.usek - 1].hlavicka }));
-    const overeni = await z.ai.generovat(zpravyOvereni(dotaz, kOvereni), { maxTokenu: MAX_TOKENU_OVERENI });
+    const overeni = await z.ai.generovat(zpravyOvereni(dotaz, kOvereni, datumDnes(ted())), { maxTokenu: MAX_TOKENU_OVERENI });
     technicke.overeniMs = ted() - predOverenim;
     precistOvereni(overeni, vety.length);
     return { vysledek: 'odpoved', odpoved: sestavitOdpoved(vety, hledani.useky, precistNezodpovezeno(vystup)), technicke };

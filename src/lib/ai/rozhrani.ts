@@ -24,5 +24,6 @@ export interface SluzbaAi {
   // Přeřazení nalezených úseků: ke každému textu skóre 0 až 1, jak dobře odpovídá na dotaz. Nepovinné,
   // bez něj hledání bere pořadí z vektorů a fulltextu.
   preradit?(dotaz: string, texty: string[]): Promise<number[]>;
-  generovat(zpravy: ZpravaModelu[], moznosti: { maxTokenu: number }): Promise<string>;
+  // Teplota je bez zadání 0: odpověď a ověření mají být co nejstálejší. Vyšší chce jen převyprávění mluvčím.
+  generovat(zpravy: ZpravaModelu[], moznosti: { maxTokenu: number; teplota?: number }): Promise<string>;
 }

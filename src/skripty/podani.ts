@@ -11,9 +11,13 @@ import {
   type PotvrzenyVzkaz,
 } from '../lib/podani/potvrzeni';
 import type { TechnickeUdaje, VysledekPodani } from '../lib/podani/zpracovani';
-import type { DuvodPredani, ZobrazenaOdpoved } from '../lib/odpovedi/odpoved';
-import type { VysledekDotazu } from '../lib/odpovedi/zpracovani';
+import type { DuvodPredani, VetaZobrazene, ZobrazenaOdpoved } from '../lib/odpovedi/odpoved';
+import type { UdalostDotazu, VysledekDotazu } from '../lib/odpovedi/zpracovani';
+import type { PolozkaFeedu } from '../lib/vzkazy/typy';
 import { OBLASTI, TYPY_PODNETU } from '../lib/oblasti';
+import { JMENA_STYLU, POPISY_TLACITKA, jeStyl, type KlicMluvciho, type KlicStylu } from '../lib/odpovedi/mluvci';
+import type { PodepsanyPodklad } from '../lib/odpovedi/styl';
+import { stylizovatVzkaz, ukazatelNacitani, vytvoritPrevypraveni } from './mluvci';
 
 type Pohled = 'zadost' | 'nahravani' | 'odesilani' | 'text' | 'vysledek' | 'potvrzeno' | 'chyba';
 
@@ -55,8 +59,18 @@ const DUVODY_BEZ_ODPOVEDI: Record<DuvodPredani, string> = {
   'citace-neni-v-useku': BEZ_OPORY,
   'cislo-neni-v-citaci': BEZ_OPORY,
   'neplyne-z-citace': BEZ_OPORY,
+  'soukroma-osoba': BEZ_OPORY,
 };
 const ODPOVED_SITE = 'Odpověď se nepodařilo vyhledat, spojení selhalo. Zkontrolujte připojení a zkuste to znovu.';
+// Průběh hledání (12. 11. 2026): autor vidí, na jaké části AI dotaz rozdělila a co se u které právě děje.
+const CTEME_DOTAZ = 'Čteme dotaz a zjišťujeme, na co všechno se ptáte.';
+const HLEDAME = 'Hledáme odpověď na webu obce a na webu Nezávislých pro Příšovice.';
+const STAVY_CASTI = {
+  hledani: 'Hledáme odpověď…',
+  odpoved: 'Odpověď jsme našli.',
+  zastupitelum: 'Ve zdrojích jsme odpověď nenašli.',
+} as const;
+const TYP_PRUBEHU = 'application/x-ndjson';
 const ODPOVED_LIMIT = 'Během chvilky přišlo moc požadavků. Počkejte prosím minutu a zkuste to znovu.';
 // Odkaz smí vést jen na zdroje indexu, i kdyby server vrátil něco jiného.
 const POVOLENY_ZDROJ = /^https:\/\/(?:prisovice\.cz|nezavisli-prisovice\.cz)\//;
@@ -96,12 +110,28 @@ const opakovat = prvek<HTMLButtonElement>('[data-opakovat]', panel);
 const odpoved = prvek('[data-odpoved]', panel);
 const oznaceniOdpovedi = prvek('[data-odpoved-oznaceni]', panel);
 const vetyOdpovedi = prvek('[data-odpoved-vety]', panel);
+const mluvciOdpovedi = prvek('[data-odpoved-mluvci]', panel);
 const zdrojeOdpovedi = prvek('[data-odpoved-zdroje]', panel);
 const chybiOdpovedi = prvek('[data-odpoved-chybi]', panel);
 const chybiSeznam = prvek('[data-odpoved-chybi-seznam]', panel);
 const upozorneniOdpovedi = prvek('[data-odpoved-upozorneni]', panel);
 const duvodBezOdpovedi = prvek('[data-odpoved-duvod]', panel);
 const hledatZnovu = prvek('[data-odpoved-znovu]', panel);
+const prubehPopis = prvek('[data-prubeh-popis]', panel);
+const prubeh = prvek('[data-prubeh]', panel);
+// Styl vzkazu (13. 11. 2026): sluníčko postav kolem tlačítka a stejná volba při kontrole vzkazu.
+const mikrofon = prvek<HTMLButtonElement>('[data-nahrat]');
+const ikonaMikrofonu = prvek('[data-mikrofon-ikona]');
+const popisMikrofonu = prvek('[data-mikrofon-popis]');
+const paprsky = prvek('[data-styly]');
+const puvodniIkona = ikonaMikrofonu.firstElementChild!.cloneNode(true);
+const stavStylu = prvek('[data-styl-stav]', panel);
+// Uložení do feedu a opakovaný dotaz (13. 11. 2026).
+const ulozeniText = prvek('[data-ulozeni-text]', panel);
+const ukazatVeFeedu = prvek<HTMLButtonElement>('[data-ukazat-ve-feedu]', panel);
+const podobnyBox = prvek('[data-odpoved-podobny]', panel);
+const podobnyNazev = prvek('[data-podobny-nazev]', panel);
+const ukazatPodobny = prvek<HTMLButtonElement>('[data-ukazat-podobny]', panel);
 
 let nahravani: Nahravani | null = null;
 let odeslani: AbortController | null = null;
@@ -114,6 +144,21 @@ let navrh: PotvrzenyVzkaz | null = null;
 // Potvrzený dotaz, na který se hledá odpověď. Hledat znovu ho pošle ještě jednou.
 let hledanyDotaz: PotvrzenyVzkaz | null = null;
 let hledani: AbortController | null = null;
+// Zvolený styl. Spisovně je základ. Při kontrole vzkazu je text postavy jen k přečtení a opravuje se spisovné znění,
+// podle kterého se hledá i odpověď.
+let styl: KlicStylu = 'spisovne';
+let spisovnyText = '';
+let poleUkazuje: KlicStylu = 'spisovne';
+const vzkazyPostav = new Map<KlicMluvciho, { text: string; podpis?: string }>();
+// Návrh AI úpravy s podpisem serveru. Při potvrzení se pošle s vzkazem, server podle něj vzkaz uloží (F-14).
+let posledniPodani: VysledekPodani | null = null;
+// Vzkaz a podobné téma ve feedu, na které panel nabídne skok.
+let idVeFeedu: string | null = null;
+let idPodobneho: string | null = null;
+let stylovani: AbortController | null = null;
+// Postava, která odpoví na potvrzený dotaz, a rámeček s její odpovědí.
+let stylOdpovedi: KlicStylu = 'spisovne';
+let odpovedPostavy: { zrusit: () => void } | null = null;
 
 function ukazat(pohled: Pohled, hlaseni = '') {
   aktualniPohled = pohled;
@@ -187,14 +232,82 @@ function ukazatVysledek(data: VysledekPodani) {
   popisPuvodniho.textContent = data.vstup === 'hlas' ? 'Původní přepis' : 'Původní text';
   puvodni.textContent = data.surovyText;
   ukazatTechnicke(data.technicke);
+  spisovnyText = text;
+  vzkazyPostav.clear();
+  posledniPodani = data;
   ukazat('vysledek', 'Vzkaz je upravený. Zkontrolujte ho a potvrďte.');
+  void ukazatStylVzkazu();
+}
+
+// Postava kolem tlačítka (13. 11. 2026): ťuknutí jen promění velké tlačítko, nahrávat se začne až jím.
+// Při kontrole vzkazu se stejnou volbou přepne text vzkazu.
+function nastavitStyl(novy: KlicStylu) {
+  styl = novy;
+  for (const tlacitko of document.querySelectorAll<HTMLElement>('[data-styl]')) {
+    tlacitko.setAttribute('aria-pressed', String(tlacitko.dataset.styl === novy));
+  }
+  popisMikrofonu.textContent = POPISY_TLACITKA[novy];
+  mikrofon.classList.toggle('mikrofon--postava', novy !== 'spisovne');
+  const ikona = novy === 'spisovne' ? puvodniIkona.cloneNode(true) : paprsky.querySelector(`[data-styl="${novy}"] svg`)?.cloneNode(true);
+  if (ikona instanceof SVGElement) {
+    ikona.setAttribute('width', '44');
+    ikona.setAttribute('height', '44');
+    ikonaMikrofonu.replaceChildren(ikona);
+  }
+  if (aktualniPohled === 'vysledek') void ukazatStylVzkazu();
+}
+
+function ukazatTextVzkazu(text: string, ukazuje: KlicStylu, stav = '') {
+  polePotvrzeni.text.value = text;
+  (polePotvrzeni.text as HTMLTextAreaElement).readOnly = ukazuje !== 'spisovne';
+  poleUkazuje = ukazuje;
+  stavStylu.replaceChildren(stav);
+}
+
+// Text vzkazu v zvoleném stylu. Hotové texty postav se pamatují, dokud autor nezmění spisovné znění.
+async function ukazatStylVzkazu() {
+  stylovani?.abort();
+  stylovani = null;
+  if (styl === 'spisovne') {
+    ukazatTextVzkazu(spisovnyText, 'spisovne');
+    return;
+  }
+  const mluvci = styl;
+  const jmeno = JMENA_STYLU[mluvci];
+  const popis = `Vzkaz ve stylu: ${jmeno}. Opravy dělejte ve spisovném znění, podle něj hledáme i odpověď.`;
+  const hotovy = vzkazyPostav.get(mluvci);
+  if (hotovy) {
+    ukazatTextVzkazu(hotovy.text, mluvci, popis);
+    return;
+  }
+  ukazatTextVzkazu(spisovnyText, 'spisovne');
+  (polePotvrzeni.text as HTMLTextAreaElement).readOnly = true;
+  stavStylu.replaceChildren(ukazatelNacitani(`${jmeno} si vzkaz přebírá…`));
+  const rizeni = new AbortController();
+  stylovani = rizeni;
+  let vysledek: Awaited<ReturnType<typeof stylizovatVzkaz>>;
+  try {
+    vysledek = await stylizovatVzkaz(spisovnyText, mluvci, rizeni.signal);
+  } catch {
+    return;
+  }
+  if (stylovani !== rizeni) return;
+  stylovani = null;
+  if ('text' in vysledek) {
+    vzkazyPostav.set(mluvci, { text: vysledek.text, podpis: vysledek.podpis });
+    ukazatTextVzkazu(vysledek.text, mluvci, popis);
+  } else {
+    ukazatTextVzkazu(spisovnyText, 'spisovne', `${vysledek.chyba} Vzkaz zůstává spisovně.`);
+  }
 }
 
 // Zkušební provoz: potvrzení zatím nic neodesílá, uložení přijde s přihlášením (krok 4, F-14).
 function potvrdit(udalost: SubmitEvent) {
   udalost.preventDefault();
+  // Kontroluje se a hledá spisovné znění. Text postavy je jen jeho převyprávění.
+  const zobrazeny = polePotvrzeni.text.value;
   const overeni = overitPotvrzeni({
-    text: polePotvrzeni.text.value,
+    text: spisovnyText,
     nazev: polePotvrzeni.nazev.value,
     typ: polePotvrzeni.typ.value,
     oblast: polePotvrzeni.oblast.value,
@@ -210,28 +323,77 @@ function potvrdit(udalost: SubmitEvent) {
   potvrzenyNazev.textContent = vzkaz.nazev;
   potvrzenyTyp.textContent = TYPY_PODNETU[vzkaz.typ];
   potvrzenaOblast.textContent = OBLASTI.find((o) => o.slug === vzkaz.oblast)?.nazev ?? vzkaz.oblast;
-  potvrzenyText.textContent = vzkaz.text;
+  potvrzenyText.textContent = poleUkazuje === 'spisovne' ? vzkaz.text : zobrazeny;
   const zmenene = navrh ? zmenenaPole(navrh, vzkaz) : [];
-  zmeny.textContent = zmenene.length
+  zmeny.textContent = (zmenene.length
     ? `Změny oproti návrhu AI: ${zmenene.map((pole) => NAZVY_POLI[pole]).join(', ')}.`
-    : 'Návrh AI zůstal beze změny.';
+    : 'Návrh AI zůstal beze změny.')
+    + (poleUkazuje === 'spisovne' ? '' : ` Vzkaz ve stylu: ${JMENA_STYLU[poleUkazuje]}. Odpověď hledáme podle spisovného znění.`);
+  stylOdpovedi = styl;
   ukazat('potvrzeno', 'Vzkaz je potvrzený.');
-  // F-72: návrhy, stížnosti a pochvaly se nehledají.
-  if (vzkaz.typ === 'dotaz') void hledatOdpoved(vzkaz);
-  else ukazatStavOdpovedi(null);
+  // Každý potvrzený vzkaz jde na server: uloží se do feedu. Odpověď se hledá jen u dotazu (F-72).
+  void hledatOdpoved(vzkaz);
+}
+
+// Co server potřebuje k uložení: návrh AI úpravy s podpisem, potvrzené zařazení a text postavy, pokud ho autor viděl.
+function udajeKUlozeni(vzkaz: PotvrzenyVzkaz) {
+  if (!posledniPodani?.podpis) return undefined;
+  const { vstup, surovyText, uprava, podpis } = posledniPodani;
+  const textPostavy = styl !== 'spisovne' ? vzkazyPostav.get(styl) : undefined;
+  return {
+    navrh: { vstup, surovyText, uprava },
+    podpis,
+    nazev: vzkaz.nazev,
+    oblast: vzkaz.oblast,
+    styl,
+    ...(textPostavy?.podpis ? { textStylu: textPostavy.text, podpisStylu: textPostavy.podpis } : {}),
+  };
+}
+
+function skocitNaTema(id: string) {
+  panel.close();
+  document.dispatchEvent(new CustomEvent('ucho:ukazat-tema', { detail: id }));
+}
+
+function ukazatUlozeni(vzkaz?: PolozkaFeedu) {
+  idVeFeedu = vzkaz?.id ?? null;
+  ukazatVeFeedu.hidden = !vzkaz;
+  ulozeniText.textContent = vzkaz
+    ? 'Vzkaz je zveřejněný ve feedu vedle ucha, bez vašeho jména.'
+    : 'Vzkaz se do feedu nepodařilo uložit.';
+  if (vzkaz) document.dispatchEvent(new CustomEvent('ucho:novy-vzkaz', { detail: vzkaz }));
+}
+
+function ukazatPodobne(tema: { id: string; nazev: string } | null) {
+  idPodobneho = tema?.id ?? null;
+  podobnyNazev.textContent = tema?.nazev ?? '';
+  podobnyBox.hidden = !tema;
+}
+
+// Odpověď hlasem postavy zvolené při potvrzení. Má ji odpověď z webu i dotaz bez odpovědi, když je server podepsal.
+function ukazatOdpovedPostavy(zdroj?: PodepsanyPodklad) {
+  odpovedPostavy?.zrusit();
+  odpovedPostavy = null;
+  if (!zdroj || stylOdpovedi === 'spisovne') {
+    mluvciOdpovedi.replaceChildren();
+    return;
+  }
+  const { ramecek, zrusit } = vytvoritPrevypraveni(zdroj, stylOdpovedi);
+  odpovedPostavy = { zrusit };
+  mluvciOdpovedi.replaceChildren(ramecek);
 }
 
 function ukazatStavOdpovedi(stav: 'hledani' | 'nalezena' | 'zastupitelum' | null) {
+  if (stav === null || stav === 'hledani') ukazatOdpovedPostavy();
   odpoved.hidden = stav === null;
   for (const cast of odpoved.querySelectorAll<HTMLElement>('[data-odpoved-stav]')) {
     cast.hidden = cast.dataset.odpovedStav !== stav;
   }
 }
 
-function ukazatOdpoved(data: ZobrazenaOdpoved) {
-  oznaceniOdpovedi.textContent = data.oznaceni.join(' · ');
+function odstavecVet(vety: VetaZobrazene[]) {
   const odstavec = document.createElement('p');
-  for (const veta of data.vety) {
+  for (const veta of vety) {
     const odkaz = document.createElement('a');
     odkaz.href = `#odpoved-zdroj-${veta.zdroj}`;
     odkaz.textContent = String(veta.zdroj);
@@ -240,7 +402,22 @@ function ukazatOdpoved(data: ZobrazenaOdpoved) {
     index.append(odkaz);
     odstavec.append(veta.text, index, ' ');
   }
-  vetyOdpovedi.replaceChildren(odstavec);
+  return odstavec;
+}
+
+function ukazatOdpoved(data: ZobrazenaOdpoved) {
+  oznaceniOdpovedi.textContent = data.oznaceni.join(' · ');
+  // Dotaz na víc věcí: pod každou zodpovězenou otázkou její věty.
+  if (data.casti?.length) {
+    vetyOdpovedi.replaceChildren(...data.casti.flatMap((cast) => {
+      const otazka = document.createElement('h4');
+      otazka.className = 'odpoved__cast';
+      otazka.textContent = cast.otazka;
+      return [otazka, odstavecVet(cast.vety)];
+    }));
+  } else {
+    vetyOdpovedi.replaceChildren(odstavecVet(data.vety));
+  }
   // Částečná odpověď: části dotazu, na které zdroje neodpovídají.
   chybiSeznam.replaceChildren(...data.nezodpovezeno.map((cast) => {
     const polozka = document.createElement('li');
@@ -283,35 +460,124 @@ function ukazatBezOdpovedi(duvod: string, muzeZnovu: boolean) {
   oznameni.textContent = 'Odpověď jsme na webu nenašli. Dotaz převezmou zastupitelé.';
 }
 
+// Části dotazu, jak je rozdělila AI. Jedna část se jako seznam neukazuje.
+function ukazatCasti(casti: string[]) {
+  if (casti.length < 2) {
+    prubeh.hidden = true;
+    prubehPopis.textContent = HLEDAME;
+    oznameni.textContent = HLEDAME;
+    return;
+  }
+  prubehPopis.textContent = `Dotaz má ${casti.length} části. Odpověď hledáme ke každé zvlášť.`;
+  prubeh.replaceChildren(...casti.map((otazka, i) => {
+    const polozka = document.createElement('li');
+    polozka.dataset.stav = 'hledani';
+    const znak = document.createElement('span');
+    znak.className = 'prubeh__znak';
+    znak.setAttribute('aria-hidden', 'true');
+    const toceni = document.createElement('span');
+    toceni.className = 'toceni';
+    znak.append(toceni);
+    const text = document.createElement('span');
+    text.className = 'prubeh__otazka';
+    text.textContent = `${i + 1}. ${otazka}`;
+    const stav = document.createElement('span');
+    stav.className = 'prubeh__stav';
+    stav.textContent = STAVY_CASTI.hledani;
+    polozka.append(znak, text, stav);
+    return polozka;
+  }));
+  prubeh.hidden = false;
+  oznameni.textContent = `Dotaz má ${casti.length} části. Hledáme odpověď na každou zvlášť. ${casti.map((otazka, i) => `${i + 1}. ${otazka}`).join(' ')}`;
+}
+
+function ukazatHotovouCast(cislo: number, vysledek: 'odpoved' | 'zastupitelum') {
+  const polozka = prubeh.children[cislo - 1];
+  if (prubeh.hidden || !(polozka instanceof HTMLElement)) return;
+  polozka.dataset.stav = vysledek;
+  polozka.querySelector('.prubeh__znak')?.replaceChildren(vysledek === 'odpoved' ? '✓' : '–');
+  const stav = polozka.querySelector('.prubeh__stav');
+  if (stav) stav.textContent = STAVY_CASTI[vysledek];
+  oznameni.textContent = `Část ${cislo} ze ${prubeh.children.length}: ${vysledek === 'odpoved' ? 'odpověď jsme našli' : 'odpověď ve zdrojích není'}.`;
+}
+
+// Server posílá průběh po řádcích JSON. Poslední řádek nese výsledek.
+async function cistPrubeh(telo: ReadableStream<Uint8Array>, priUdalosti: (udalost: UdalostDotazu) => void) {
+  const ctecka = telo.getReader();
+  const dekoder = new TextDecoder();
+  let zbytek = '';
+  for (;;) {
+    const { value, done } = await ctecka.read();
+    zbytek += dekoder.decode(value, { stream: !done });
+    let konec = zbytek.indexOf('\n');
+    while (konec !== -1) {
+      const radek = zbytek.slice(0, konec).trim();
+      zbytek = zbytek.slice(konec + 1);
+      if (radek) priUdalosti(JSON.parse(radek) as UdalostDotazu);
+      konec = zbytek.indexOf('\n');
+    }
+    if (done) break;
+  }
+  if (zbytek.trim()) priUdalosti(JSON.parse(zbytek) as UdalostDotazu);
+}
+
 // Krok 8.7: potvrzený dotaz projde hledáním na webu obce a v kartách webu Nezávislých (F-70 až F-76).
 async function hledatOdpoved(vzkaz: PotvrzenyVzkaz) {
   hledani?.abort();
   const rizeni = new AbortController();
   hledani = rizeni;
   hledanyDotaz = vzkaz;
-  ukazatStavOdpovedi('hledani');
-  oznameni.textContent = 'Vzkaz je potvrzený. Hledáme odpověď na webu.';
+  const jeDotaz = vzkaz.typ === 'dotaz';
+  prubeh.hidden = true;
+  prubeh.replaceChildren();
+  prubehPopis.textContent = CTEME_DOTAZ;
+  ukazatPodobne(null);
+  ukazatVeFeedu.hidden = true;
+  ulozeniText.textContent = 'Ukládáme vzkaz do feedu…';
+  if (jeDotaz) ukazatStavOdpovedi('hledani');
+  else ukazatStavOdpovedi(null);
+  oznameni.textContent = jeDotaz ? `Vzkaz je potvrzený. ${CTEME_DOTAZ}` : 'Vzkaz je potvrzený. Ukládáme ho do feedu.';
   try {
     const vysledek = await fetch(API_DOTAZU, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ text: vzkaz.text, typ: vzkaz.typ }),
+      headers: { 'content-type': 'application/json', accept: TYP_PRUBEHU },
+      body: JSON.stringify({ text: vzkaz.text, typ: vzkaz.typ, ulozit: udajeKUlozeni(vzkaz) }),
       signal: rizeni.signal,
     });
-    const data = await vysledek.json().catch(() => null) as VysledekDotazu | null;
+    const prijato: { data: VysledekDotazu | null } = { data: null };
+    if (vysledek.ok && vysledek.body && (vysledek.headers.get('content-type') ?? '').includes(TYP_PRUBEHU)) {
+      await cistPrubeh(vysledek.body, (udalost) => {
+        if (rizeni.signal.aborted) return;
+        if (udalost.udalost === 'casti') ukazatCasti(udalost.casti);
+        else if (udalost.udalost === 'cast') ukazatHotovouCast(udalost.cislo, udalost.vysledek);
+        else if (udalost.udalost === 'podobne') ukazatPodobne(udalost.tema);
+        else prijato.data = udalost.vysledek;
+      });
+    } else {
+      prijato.data = await vysledek.json().catch(() => null) as VysledekDotazu | null;
+    }
+    const { data } = prijato;
     if (rizeni.signal.aborted) return;
+    ukazatUlozeni(data?.vzkaz);
+    if (!jeDotaz) {
+      oznameni.textContent = ulozeniText.textContent;
+      return;
+    }
     if (!vysledek.ok || !data) {
       ukazatBezOdpovedi(vysledek.status === 429 ? ODPOVED_LIMIT : DUVODY_BEZ_ODPOVEDI['chyba-ai'], true);
     } else if (data.vysledek === 'odpoved') {
       ukazatOdpoved(data.odpoved);
+      ukazatOdpovedPostavy(data.prevypraveni);
     } else if (data.vysledek === 'zastupitelum') {
       ukazatBezOdpovedi(DUVODY_BEZ_ODPOVEDI[data.duvod] ?? NENALEZENO, data.duvod === 'chyba-ai');
+      ukazatOdpovedPostavy('prevypraveni' in data ? data.prevypraveni : undefined);
     } else {
       ukazatStavOdpovedi(null);
     }
   } catch (chyba) {
     if (chyba instanceof DOMException && chyba.name === 'AbortError') return;
-    ukazatBezOdpovedi(ODPOVED_SITE, true);
+    ukazatUlozeni(undefined);
+    if (jeDotaz) ukazatBezOdpovedi(ODPOVED_SITE, true);
   } finally {
     if (hledani === rizeni) hledani = null;
   }
@@ -427,6 +693,8 @@ prvek('[data-zpet-k-uprave]', panel).addEventListener('click', () => {
   ukazatStavOdpovedi(null);
   ukazat('vysledek');
 });
+ukazatVeFeedu.addEventListener('click', () => { if (idVeFeedu) skocitNaTema(idVeFeedu); });
+ukazatPodobny.addEventListener('click', () => { if (idPodobneho) skocitNaTema(idPodobneho); });
 prvek('[data-hledat-znovu]', panel).addEventListener('click', () => {
   if (hledanyDotaz) void hledatOdpoved(hledanyDotaz);
 });
@@ -435,6 +703,19 @@ opakovat.addEventListener('click', () => poOpakovani());
 for (const zrusit of panel.querySelectorAll('[data-zrusit]')) zrusit.addEventListener('click', () => panel.close());
 
 pole.addEventListener('input', () => { pocet.textContent = String(pole.value.length); });
+// Oprava spisovného znění zneplatní texty postav, ty se pak přepíšou z opraveného.
+polePotvrzeni.text.addEventListener('input', () => {
+  if (poleUkazuje !== 'spisovne') return;
+  spisovnyText = polePotvrzeni.text.value;
+  vzkazyPostav.clear();
+});
+// Sluníčko postav a volba při kontrole vzkazu. Bez skriptu zůstanou skryté.
+for (const tlacitko of document.querySelectorAll<HTMLElement>('[data-styl]')) {
+  tlacitko.addEventListener('click', () => {
+    if (jeStyl(tlacitko.dataset.styl)) nastavitStyl(tlacitko.dataset.styl);
+  });
+}
+for (const skryte of document.querySelectorAll<HTMLElement>('[data-styly], [data-styl-napoveda], [data-styly-kontroly]')) skryte.hidden = false;
 prvek<HTMLFormElement>('[data-formular]', panel).addEventListener('submit', (udalost) => void odeslatFormular(udalost));
 prvek<HTMLFormElement>('[data-formular-potvrzeni]', panel).addEventListener('submit', potvrdit);
 
@@ -451,5 +732,7 @@ panel.addEventListener('close', () => {
   nahravani = null;
   odeslani?.abort();
   hledani?.abort();
+  stylovani?.abort();
+  stylovani = null;
   ukazatStavOdpovedi(null);
 });

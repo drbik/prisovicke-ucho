@@ -270,6 +270,58 @@ describe('ověření kódem (F-75)', () => {
   });
 });
 
+describe('citace s odchylkou (12. 11. 2026)', () => {
+  const SAL = 'Sál stojí 4 000 Kč plus energie a kauce je 4 000 Kč.';
+  const BEZ_CISEL = 'Rada obce upravila cenu pronájmu sálu.';
+  const overit = (citace: string, veta = SAL) => overitKodem([{ veta, usek: 1, citace }], [USEK_SOKOLOVNA]);
+
+  it('změněnou koncovku přijme a ukáže přesné znění zdroje', () => {
+    const [veta] = overit('Rada obce upravuje výši pronájmu samotného sálu sokolovny na 4.000,--Kč + energie a vratné kauce ve výši 4.000,--Kč.');
+    expect(veta.citace).toBe('Rada obce upravuje výši pronájmu samotného sálu sokolovny na 4.000,--Kč + energie a vratná kauce ve výši 4.000,--Kč');
+    expect(veta.opravenaCitace).toBe(true);
+  });
+
+  it('přijme i interpunkci navíc, doslovnou citaci nechá, jak je', () => {
+    expect(overit('Rada obce, upravuje výši pronájmu samotného sálu sokolovny', BEZ_CISEL)[0].citace).toBe('Rada obce upravuje výši pronájmu samotného sálu sokolovny');
+    const [doslova] = overit('vratná kauce ve výši 4.000,--Kč', 'Kauce je 4 000 Kč.');
+    expect(doslova).toEqual({ veta: 'Kauce je 4 000 Kč.', usek: 1, citace: 'vratná kauce ve výši 4.000,--Kč' });
+  });
+
+  it('jiné číslo, jiné krátké slovo ani zápor neprojdou', () => {
+    expect(() => overit('upravuje výši pronájmu samotného sálu sokolovny na 3.000,--Kč + energie')).toThrow(ZamitnutaOdpoved);
+    expect(() => overit('upravuje výši pronájmu samotného sálu sokolovny za 4.000,--Kč + energie')).toThrow(ZamitnutaOdpoved);
+    expect(() => overit('Rada obce neupravuje výši pronájmu samotného sálu sokolovny', BEZ_CISEL)).toThrow(ZamitnutaOdpoved);
+  });
+
+  it('povolí nejvýš jednu odchylku na 8 slov a krátkou citaci jen doslova', () => {
+    expect(() => overit('Rada obce upravuje výši pronájmů samotného sálu sokolovny', BEZ_CISEL)).not.toThrow();
+    expect(() => overit('Rada obce upravuje výše pronájmů samotného sálu sokolovny', BEZ_CISEL)).toThrow(ZamitnutaOdpoved);
+    expect(() => overit('vratné kauce', 'Kauce je vratná.')).toThrow(ZamitnutaOdpoved);
+  });
+
+  it('výpustku v závorce bere jako hranici citace a číslo s jednotkou porovná bez mezery', () => {
+    const pozemky = usek(ZAPIS, 'zapis-1', 'z á m ě r pronajmout pozemky v katastrálním území Příšovice, který je zapsán na listu vlastnictví č. 1: • p.p.č. 217/12, orná půda, o výměře 1616 m2 • p.p.č. 213/1,orná půda, o výměře 4987m2');
+    const [veta] = overitKodem([{ veta: 'Obec chce pronajmout ornou půdu o výměře 1616 m2 a 4987 m2.', usek: 1, citace: 'pronajmout pozemky v katastrálním území Příšovice, [...] p.p.č. 217/12, orná půda, o výměře 1616 m2; p.p.č. 213/1, orná půda, o výměře 4987 m2' }], [pozemky]);
+    expect(veta.citace).toBe('pronajmout pozemky v katastrálním území Příšovice, … p.p.č. 217/12, orná půda, o výměře 1616 m2; … p.p.č. 213/1, orná půda, o výměře 4987 m2');
+    const [sOdchylkou] = overitKodem([{ veta: 'Obec chce pronajmout ornou půdu o výměře 4987 m2.', usek: 1, citace: 'p.p.č. 213/1, orné půda, o výměře 4987 m2' }], [pozemky]);
+    expect(sOdchylkou).toMatchObject({ citace: 'p.p.č. 213/1,orná půda, o výměře 4987m2', opravenaCitace: true });
+  });
+
+  it('čísla věty kontroluje proti znění zdroje', () => {
+    expect(() => overit('upravuje výši pronájmu samotného sálu sokolovny na 4.000,--Kč + energie a vratné kauce', 'Sál stojí 4 000 Kč a kauce 5 000 Kč.')).toThrow(ZamitnutaOdpoved);
+  });
+
+  it('ověřovací model dostane znění zdroje a technické údaje počet opravených citací', async () => {
+    const vety = JSON.stringify({ vety: [{ veta: 'Vratná kauce je 4 000 Kč.', usek: 1, citace: 'a vratné kauce ve výši 4.000,--Kč' }] });
+    const { api, generovani } = sestavit({ vystupyGenerovani: [vety, JSON.stringify({ vysledky: [{ cislo: 1, plyne: true }] })] });
+    const { data } = await poslat(api);
+    if (data.vysledek !== 'odpoved') throw new Error(`Čekal jsem odpověď, přišlo ${data.vysledek}.`);
+    expect(data.odpoved.zdroje[0].uryvek).toBe('a vratná kauce ve výši 4.000,--Kč');
+    expect(generovani[1][1].content).toContain('Citace: a vratná kauce ve výši 4.000,--Kč');
+    expect(data.technicke).toMatchObject({ opravenoCitaci: 1 });
+  });
+});
+
 describe('hledání', () => {
   it('z jednoho dokumentu vezme nejvýš tři úseky', async () => {
     const useky = [0, 1, 2, 3].map((i) => usek(ZAPIS, `zapis-${i}`, `Úsek ${i} o pronájmu sokolovny.`));

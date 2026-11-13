@@ -44,6 +44,12 @@
 			"name": "PODANI_RATE_LIMITER",
 			"namespace_id": "2026110601",
 			"simple": { "limit": 6, "period": 60 }
+		},
+		// Alternativní mluvčí (13. 11. 2026): přepínání postav při kontrole vzkazu je víc kliknutí za minutu než podání.
+		{
+			"name": "STYL_RATE_LIMITER",
+			"namespace_id": "2026111301",
+			"simple": { "limit": 20, "period": 60 }
 		}
 	],
 	"observability": {

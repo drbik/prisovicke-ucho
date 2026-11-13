@@ -101,3 +101,71 @@ Obě otázky tedy podle schválené sady prošly. Přeřazení na odpověď zat�
 **Návrhy, stížnost a pochvala (Q27 až Q30)** se nehledají.
 
 **Známé slabiny k dalšímu ladění:** druhá kontrola je u časových údajů přísná (Q02, Q06) a jednotlivé volání Workers AI může výjimečně trvat přes minutu (Q13).
+
+## Dotaz po částech (12. 11. 2026)
+
+Podnět: dotaz „jaké zázemí Příšovice poskytují pro sportovní vyžití a jaké jsou ceny za nájem hřiště, tělocvičny nebo Sokolovny“ skončil u zastupitelů, i když ceník Sokolovny v indexu je. Úseky o sportu ho vytlačily z šesti úseků pro model a čárka navíc v jedné citaci zahodila celou částečnou odpověď. Oprava (krok 8.13 v [plánu](plan-mvp.md)):
+
+- AI dotaz rozdělí na nejvýš 4 samostatné otázky. Každá má vlastní hledání, odpověď a ověření a stránka průběžně ukazuje stav každé části. Dotaz na jednu věc se hledá v autorově znění a jeho hledání běží souběžně s rozdělením.
+- Prompt odpovědi verze 5: až 4 věty na část, řádek tabulky se záhlavím sloupců, při rozporu novější zdroj, dnešní datum (termín, který minul, není „příští“), údaje o jiném místě se nepoužijí. Ověření navíc zamítne větu se jménem soukromé osoby (žadatel, nájemce).
+- Kontrola citace přijme záhlaví tabulky a pozdější řádek, které model napíše za sebou, a ukáže mezi nimi výpustku.
+- Text PDF odděluje sloupce tabulek znaky „ | “. Bez toho ověřovací model ceník Sokolovny zamítal: ze „4.000 Kč + energie 8.000 Kč“ nešlo poznat, že 8 000 Kč je kauce. Se sloupci ho pustil ve 4 ze 4 pokusů. Nový text úseků se do D1 a Vectorize nahraje s nasazením, běhy níže proto běžely ještě na indexu bez sloupců.
+
+| Běh | Co se měnilo | S odpovědí (automaticky) | Zastupitelům | Do 10 s |
+|---|---|---|---|---|
+| A | první znění verze 5, každý dotaz přeformulovaný | 10 ze 16 | 8 z 10 | 8 z 15 |
+| B | dotaz na jednu věc v autorově znění, dnešní datum, rozdělení zachová „teď“, „příští“ | 12 ze 16 | **10 z 10** | 9 ze 13 |
+| C | navíc hledání celku souběžně s rozdělením | 11 ze 16 | **10 z 10** | 4 ze 12 |
+| srovnání | původní kód (verze 4) týž večer | 10 ze 16 | 10 z 10 | 9 ze 12 |
+
+- **Běh A** ukázal, že přeformulovaná otázka hledá hůř (Q10, Q15 nenašly zdroj), jednou do ní model vložil cizí slovo a na „další vítání občánků“ odpověděl termínem, který už minul (Q23). Proto běh B.
+- **Ruční kontrola běhu B:** správně 12 ze 16 (75 %, práh 70 %). Q03 a Q13 jsou částečné: na jednu část odpověď, druhá jde zastupitelům. Q06 a Q11 teď zodpoví obě části (výluka a náhradní autobus, starosta i místostarosta). Q09 cituje správnou částku, ale druhou větu uvádí slovy „v jiném zápisu“, ačkoli jde o tentýž dokument. Q15 skončila na výpadku Workers AI (25 s), Q16 zamítlo ověření.
+- **Rychlost:** Workers AI byla 12. 11. večer pomalejší. Původní kód měl do 10 s jen 9 ze 12 odpovědí (10. 11. 13 ze 14). V běhu C trvalo samotné rozdělení až 5 s, proto má rozdělení limit 3 s: když nestihne, platí celý dotaz, jehož hledání už běží. Dotaz na více věcí trvá déle (Q03, Q14 9 až 25 s), autor ale vidí, která část se hledá a která je hotová. Práh 90 % do 10 s se tento večer nesplnil ani s původním kódem.
+- **Výsledky:** `vyhodnoceni-2026-11-12-17-35-54.json` (A), `-17-42-53.json` (B), `-17-49-31.json` (C), `-17-52-58.json` (srovnání) ve složce dat.
+
+### Ověření na ostré adrese (12. 11. 2026 večer)
+
+Worker verze d2dd83f1, index se sloupci tabulek (436 dokumentů, 3 070 úseků).
+
+- **Průběh:** Cloudflare řádky NDJSON nezdržuje. U Tomášova dotazu přišlo rozdělení za 1,6 s a hotové části za 3,2 s, 6,9 s, 16,5 s a 19,6 s.
+- **Tomášův dotaz** se rozdělil na 4 části (zázemí pro sport, hřiště, tělocvična, Sokolovna).
+  - Sokolovna má odpověď s ceníkem z formuláře Dohoda o pronájmu sokolovny. Cenu sálu ale uvádí 2 000 Kč z formuláře z ledna 2024. Rada usnesením UR č. 179/2025 ze 4. 9. 2025 zvýšila cenu samotného sálu na 4 000 Kč plus energie a úsek s usnesením byl mezi šesti úseky pro model.
+  - Hřiště zamítlo ověření kvůli jménu soukromé osoby. U tělocvičny model odpověď nenašel. Zázemí pro sport zamítla kontrola citace.
+- **Krátký dotaz „Jaké jsou ceny za nájem Sokolovny?“** šel na ostré adrese 3 ze 3 zastupitelům, protože citace nebyla v úseku.
+  - V rozboru tří odpovědí modelu bere model cenu sálu z novějšího usnesení rady.
+  - Ve 2 ze 3 ale citaci usnesení opíše s jedním změněným slovem: „vratné kauce“ místo „vratná kauce“, jak stojí ve zdroji.
+  - Kontrola citace pak zamítne celou část, ačkoli ostatní tři řádky ceníku prošly.
+
+## Citace s odchylkou (12. 11. 2026 večer)
+
+Oprava (krok 8.14 v [plánu](plan-mvp.md)): když citace v úseku doslova není, kód ji hledá po slovech.
+
+- **Co se toleruje:** stejný počet slov za sebou, interpunkce se nepočítá a číslo se od písmen odděluje („4987m2“ = „4987 m2“). Delší slovo se smí lišit jen koncovkou: společný začátek aspoň 3 znaky, koncovka nejvýš 3 znaky. Takové slovo smí být nejvýš jedno na 8 slov citace, nejvýš 3 v jedné citaci.
+- **Co musí sedět přesně:** čísla, slova kratší než 4 znaky a citace kratší než 4 slova.
+- **Co uvidí občan:** pod odpovědí je přesné znění zdroje. Ověřovací model i kontrola čísel věty dostanou totéž znění, ne opis modelu.
+- **Výpustka v závorce:** výpustku „[...]“ bere kontrola jako hranici mezi částmi citace, stejně jako „…“.
+
+Zkoušky se skutečnou AI na indexu se sloupci tabulek:
+
+- **„Jaké jsou ceny za nájem Sokolovny?“:** 3 ze 3 s odpovědí (na ostré adrese před opravou 3 ze 3 zastupitelům). Cenu sálu bere model pokaždé z usnesení rady z 4. 9. 2025. Ve 2 ze 3 běhů opravil kód citaci usnesení na znění zdroje.
+- **„Jaké prostory nebo venkovní prostory je možno pronajmout v Příšovicích?“** (dotaz Tomáše na ostré adrese, před opravou bez odpovědi): 3 ze 3 s odpovědí, pokaždé ale jen na jednu ze dvou částí.
+  - Druhá část jednou neprošla kvůli číslu popisnému, které v citaci nebylo, a dvakrát kvůli citaci seznamu pozemků. Citace byla delší než 300 znaků, nebo měla výpustku „[...]“ (ta teď prochází).
+  - Odpovědi tvrdí víc, než zdroje říkají: vydávají oznámení záměru pronájmu za nabídku, která platí teď, a pronájem hřiště na jeden konkrétní účel za obecnou cenu hřiště. Ověření je pustilo.
+- **Tomášův dotaz na sport a Sokolovnu:** 3 ze 4 částí s odpovědí, hřiště zamítnuto kvůli jménu soukromé osoby.
+  - Na cenu tělocvičny ale model odpověděl ceníkem Sokolovny a ověření to nezastavilo.
+  - V části o Sokolovně uvedl starou cenu sálu z formuláře, ačkoli usnesení rady s novou cenou bylo mezi úseky.
+  - Obojí s citacemi nesouvisí a zbývá vyřešit.
+
+| Běh | S odpovědí (automaticky) | Správně (ručně) | Zastupitelům | Do 10 s |
+|---|---|---|---|---|
+| D (citace s odchylkou) | 14 ze 16 | 12 ze 16 | **10 z 10** | 10 ze 14 |
+| B (pro srovnání) | 12 ze 16 | 12 ze 16 | **10 z 10** | 9 ze 13 |
+
+- **Ruční kontrola běhu D:**
+  - Lepší než v B: Q03 a Q13 jsou celé, Q15 má odpověď a Q01 uvádí novou cenu sálu 4 000 Kč.
+  - Částečné: Q06 (na „jede teď vlak“ odpovídá obecným spojením, ne výlukou, náhradní autobus správně) a Q14 (pro koho ano, kdy se začne stavět ne).
+  - Q07 zamítlo ověření, protože věta jmenovala firmy, které v citaci nebyly. Q16 zamítlo ověření jako v B.
+- **Oprava citace se v sadě nepoužila ani jednou** (`opravenoCitaci` 0 u všech otázek). Rozdíly proti běhu B jsou rozptyl modelu.
+- **Q22 (cena vody):** model zkusil odpověď z řádku kalkulace, citace ale neodpovídala zdroji ani s tolerancí, takže dotaz správně převzali zastupitelé.
+- **Výsledky:** `vyhodnoceni-2026-11-12-20-45-31.json` ve složce dat.
+- **Na ostré adrese** (Worker verze 27aec3ec, 12. 11. 2026 večer): „Jaké jsou ceny za nájem Sokolovny?“ 3 ze 3 s odpovědí a s cenou sálu 4 000 Kč z usnesení rady, jednou s citací opravenou na znění zdroje. Dotaz na prostory k pronájmu dostal odpověď na vnitřní prostory, venkovní zamítla kontrola citace.

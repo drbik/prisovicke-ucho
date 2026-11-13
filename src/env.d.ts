@@ -5,9 +5,13 @@ declare module 'cloudflare:workers' {
   export const env: {
     AI: import('./lib/ai/cloudflare').VazbaAi;
     PODANI_RATE_LIMITER: import('./lib/podani/ochrana').Limiter;
+    // Přepis vzkazu a převyprávění odpovědi postavou (13. 11. 2026), 20 požadavků za minutu.
+    STYL_RATE_LIMITER: import('./lib/podani/ochrana').Limiter;
     DB: import('./lib/odpovedi/cloudflare').VazbaD1;
     VECTORIZE: import('./lib/odpovedi/cloudflare').VazbaVectorize;
     // Jen lokálně v .dev.vars: stránka běží bez přihlášení ke Cloudflare.
     FALESNE_AI?: string;
+    // Workers Secret: podpis odpovědí pro převyprávění mluvčím. Nikdy do repozitáře ani do výpisu.
+    KLIC_PODPISU?: string;
   };
 }

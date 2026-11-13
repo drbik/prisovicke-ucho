@@ -1,12 +1,14 @@
 # Index zdrojů pro odpovědi z webu
 
-*Krok 8 z [plánu MVP](plan-mvp.md#krok-8-index-webu-a-odpověď-s-citací). Stav indexu k 10. 11. 2026, stahováno 10. 11. 2026 ráno, Word, ODT, OCR, Tlampač a podklady webu Nezávislých doplněné večer.*
+*Krok 8 z [plánu MVP](plan-mvp.md#krok-8-index-webu-a-odpověď-s-citací). Stav indexu k 12. 11. 2026 večer. Tabulka zdrojů níže je ze 10. 11. 2026.*
 
 Index drží text webu obce prisovice.cz a veřejný obsah webu Nezávislých pro Příšovice (karty projektů, Tlampač a podklady). Z něj ucho hledá odpověď na potvrzený dotaz (F-70 až F-76). Index se aktualizuje jen ručně (F-71). Pravidelný běh do MVP nepatří.
 
 ## Co v indexu je
 
-**Rozšíření z 10. 11. 2026 (se souhlasem Tomáše):** do indexu jdou i dokumenty Word a ODT a text naskenovaných PDF rozpoznaný OCR. Nahráno večer 10. 11. 2026: v D1 je 428 dokumentů a 3 003 úseků, ve Vectorize 3 003 vektorů (24 starých vektorů smazáno). Ostré ucho odpovídá z tohoto indexu.
+**Obnova 12. 11. 2026 večer:** web obce stažen znovu (5 nových souborů: 3 aktuality, 1 PDF a 1 položka úřední desky), zpracováno se sloupci tabulek v PDF a nahráno. V D1 je 436 dokumentů a 3 070 úseků, ve Vectorize 3 070 vektorů. Embeddingy se počítaly pro 1 043 nových nebo změněných úseků, odhadem asi 540 neuronů. Ostré ucho odpovídá z tohoto indexu.
+
+**Rozšíření z 10. 11. 2026 (se souhlasem Tomáše):** do indexu jdou i dokumenty Word a ODT a text naskenovaných PDF rozpoznaný OCR. Nahráno večer 10. 11. 2026: v D1 bylo 428 dokumentů a 3 003 úseků, ve Vectorize 3 003 vektorů (24 starých vektorů smazáno).
 
 | Zdroj | Dokumentů | Úseků | Znaků |
 |---|---|---|---|
@@ -67,7 +69,7 @@ Všechno běží ručně na počítači, ne ve Workeru. K Cloudflare se skripty 
 1. `npm run index:stahnout`: stáhne robots.txt, sitemapy, data z REST API, stránky, PDF a titulní stránku webu Nezávislých. Posílá nejvýš zhruba jeden požadavek za sekundu s obecným User-Agentem. První běh trval asi 27 minut a poslal 728 požadavků. Druhý běh stáhl 0 souborů a poslal 8 požadavků, protože nic se nezměnilo (datum změny v sitemapě, uložené PDF a ETag titulní stránky).
 2. `npm run index:word`: převede stažené dokumenty Word a ODT na prostý text v UTF-8. Převod dělá nainstalovaný Microsoft Word s vypnutými makry, soubory otevírá jen ke čtení a na konci se zavře. Soubor, který Word hlásí jako poškozený, zkusí otevřít s opravou. Už převedené dokumenty přeskočí.
 3. `npm run index:ocr`: strany PDF bez textové vrstvy vykreslí do obrázku (asi 300 dpi) a přečte je OCR ve Windows v češtině. Nic se neinstaluje a nic neodchází mimo počítač. Rozpoznané strany přeskočí, obrázky po OCR smaže.
-4. `npm run index:zpracovat`: vytáhne text z HTML a PDF (`pdfjs-dist`), přidá text z Wordu a z OCR, rozdělí ho na úseky (asi 1 200 znaků, překryv 150) a zapíše dokumenty, úseky a zprávu o vynechaném. Trvá asi 5 minut.
+4. `npm run index:zpracovat`: vytáhne text z HTML a PDF (`pdfjs-dist`), přidá text z Wordu a z OCR, rozdělí ho na úseky (asi 1 200 znaků, překryv 150) a zapíše dokumenty, úseky a zprávu o vynechaném. Trvá asi 5 minut. Od 12. 11. 2026 odděluje v PDF sloupce tabulek znaky „ | “ (mezera větší než trojnásobek výšky písma), stejně jako u Wordu. Bez toho splýval ceník Sokolovny („Celá sokolovna 4.000 Kč + energie 8.000 Kč“) a nešlo poznat, že 8 000 Kč je kauce. Změnilo se tím 1 014 úseků ve 186 dokumentech, hlavně rozpočty, závěrečné účty, zápisy a ceníky.
 5. `npx tsx nastroje/index/kontrola-sady.ts`: ověří, že doslovné opory typových otázek jsou v úsecích svých zdrojů. Při posledním zpracování prošly všechny.
 6. `npm run index:nahrat`: spočítá embeddingy (`@cf/baai/bge-m3`) jen pro nové nebo změněné úseky a nahraje index do D1 a Vectorize. Index na chvíli zmizí a hned se nahraje znovu, smazané úseky odstraní i z Vectorize. První nahrání stálo asi 1 000 neuronů.
 7. `npx tsx nastroje/index/kontrola-ukazek.ts`: ověří ukázková témata z přehledu na stránce ucha proti novému indexu. Citace zodpovězených ukázek musí být ve zdrojích doslova a k čekajícím dotazům index nesmí nic mít (rozhodnutí z 11. 11. 2026). Když kontrola selže, ukázku oprav nebo vyřaď dřív, než se stránka nasadí.
