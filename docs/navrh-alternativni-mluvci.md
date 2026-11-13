@@ -161,4 +161,5 @@ Proto je odpověď postavy vždy v rámečku „pro pobavení“ a věcná odpov
   - Staročeština přepsala návrh dvou laviček na první pokus za 2,0 s, číslo 2 zůstalo;
   - nový dotaz na lékárnu přišel s podpisem a Medvídek Pú ho převyprávěl na první pokus za 2,7 s;
   - převyprávění ukázky server odmítl (403) a v přehledu témat mluvčí nejsou.
+- Oprava popisu, kdo odpovídá: Worker 73d02320 z commitu 9857157, text ověřený na ostré adrese.
 - Zvuk (čtení nahlas) zatím ne. Kdyby přišel, tak jen obecným syntetickým hlasem, nikdy napodobením hlasu konkrétního herce z dabingu.
