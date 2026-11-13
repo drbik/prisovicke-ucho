@@ -215,7 +215,7 @@ form > label:not(:first-child), .dvojice { margin-top: 16px; }
 .filtr__pocet { font-variant-numeric: tabular-nums; opacity: .8; }
 .feed__seznam { display: grid; align-content: start; gap: 0; margin: 0; padding: 0; border-top: 1px solid var(--linka); list-style: none; }
 .feed__nic { margin: 10px 0 0; color: var(--ink-soft); font-size: .9rem; }
-.feed__poznamka { margin: 10px 0 0; color: var(--ink-soft); font-size: .78rem; line-height: 1.4; }
+.feed__zkusebni { margin: 0 0 10px; color: var(--ink-soft); font-size: .78rem; line-height: 1.4; }
 
 .polozka { border-bottom: 1px solid var(--linka); scroll-margin-top: 8px; }
 .polozka--zvyraznena { background: #fff3e8; transition: background-color 600ms ease; }
@@ -252,7 +252,7 @@ form > label:not(:first-child), .dvojice { margin-top: 16px; }
   .prehled__paticka { grid-column: 1; grid-row: 3; }
   .prehled__temata { grid-column: 2; grid-row: 2 / span 2; }
   /* Přehled má výšku okna a posouvá se jen seznam, takže je všechno na jedné obrazovce. */
-  .feed { display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; height: calc(100dvh - 88px); min-height: 420px; }
+  .feed { display: grid; grid-template-rows: auto auto auto minmax(0, 1fr); height: calc(100dvh - 88px); min-height: 420px; }
   .feed__seznam { padding-right: 6px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
 }
 

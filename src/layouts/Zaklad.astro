@@ -1,5 +1,8 @@
 ---
 import '../styly/zaklad.css';
+import ikona180 from '../ikony/ucho-180.png';
+
+const zaklad = import.meta.env.BASE_URL.replace(/\/?$/, '/');
 
 interface Props {
   titulek: string;
@@ -19,9 +22,18 @@ const { titulek, popis } = Astro.props;
     <meta name="robots" content="noindex" />
     <!-- Ikona je na stejné doméně a patří webu Nezávislých. -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- Aplikace na ploše telefonu (PWA, 13. 11. 2026): manifest pro Android, ikona a název pro iPhone. -->
+    <link rel="manifest" href={`${zaklad}manifest.webmanifest`} />
+    <meta name="theme-color" content="#236b60" />
+    <link rel="apple-touch-icon" href={ikona180.src} />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Ucho" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <title>{titulek}</title>
   </head>
   <body>
     <slot />
+    <script src="../skripty/pwa.ts"></script>
   </body>
 </html>

@@ -1,6 +1,6 @@
 ---
 // Feed vedle ucha (13. 11. 2026, Tomáš): jednoduchý seznam vzkazů a dotazů s filtry stavu a typu nahoře.
-// Uložené vzkazy se ukazují hned, bez schválení, od nejnovějšího. Za nimi jsou ukázky od týmu se štítkem Ukázka.
+// Uložené vzkazy se ukazují hned, bez schválení, od nejnovějšího. Za nimi jsou ukázkové dotazy se štítkem Ukázka.
 // Data jdou do stránky jako JSON, seznam staví skript src/skripty/temata.ts.
 import { TYPY_PODNETU } from '../lib/oblasti';
 import { uloziste } from '../lib/prostredi';
@@ -30,6 +30,8 @@ const TYPY_MNOZNE: Record<keyof typeof TYPY_PODNETU, string> = {
     <label class="jen-ctecka" for="feed-hledat">Hledat ve vzkazech a odpovědích</label>
     <input id="feed-hledat" class="feed__hledat" type="search" placeholder="Hledat" autocomplete="off" data-feed-hledat />
   </header>
+  <!-- Zkušební provoz heslovitě (Tomáš 13. 11. 2026): ukázky nejsou dotazy občanů ani týmu. -->
+  <p class="feed__zkusebni">Zkušební provoz · ukázkové dotazy a odpovědi · vzkazy se zveřejňují bez jména · nejde o úřední vyjádření obce</p>
 
   <div class="feed__filtry">
     <div class="feed__filtr" role="group" aria-label="Stav">
@@ -47,7 +49,6 @@ const TYPY_MNOZNE: Record<keyof typeof TYPY_PODNETU, string> = {
 
   <ul class="feed__seznam" data-feed-seznam></ul>
   <p class="feed__nic" data-feed-nic hidden>Tady nic není.</p>
-  <p class="feed__poznamka">Vzkazy se zveřejňují hned po potvrzení, bez jména autora. Ukázky připravil tým Nezávislých pro Příšovice. Odpovědi nejsou úředním vyjádřením obce.</p>
   <noscript><p class="feed__nic">Seznam vzkazů potřebuje JavaScript.</p></noscript>
   <script type="application/json" id="feed-data" set:html={feedDoStranky(polozky)}></script>
 </section>

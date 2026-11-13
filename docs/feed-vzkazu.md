@@ -15,7 +15,7 @@
 | Kdy se vzkaz ve feedu ukáže | **Hned, bez schválení.** Tomáš věděl, že moderace ani zakrývání osobních údajů v MVP nejsou. |
 | Co se ukládá | **Všechny potvrzené vzkazy:** zodpovězené i nezodpovězené dotazy, návrhy, stížnosti a pochvaly. |
 | Stavy ve filtru | **Dva:** Zodpovězené a Čekají na odpověď. Čeká vše, na co ucho odpověď nenašlo, a návrhy, stížnosti a pochvaly. |
-| Ukázky od týmu | **Zůstávají** ve feedu se štítkem Ukázka, za skutečnými vzkazy. |
+| Ukázky | **Zůstávají** ve feedu se štítkem Ukázka, za skutečnými vzkazy. Feed o nich netvrdí, že je připravil tým (Tomáš: to není pravda). Nahoře je heslovitě „Zkušební provoz · ukázkové dotazy a odpovědi · vzkazy se zveřejňují bez jména · nejde o úřední vyjádření obce“. |
 
 ## Jak to funguje
 

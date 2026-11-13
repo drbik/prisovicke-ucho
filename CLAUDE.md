@@ -28,6 +28,7 @@ Cloudová session k nim nemá přístup. V lokální session je zpřístupni jen
 - `docs/zadani-krok-8.md` – zadání kroku 8 (index webu a odpověď s citací) pro samostatnou session, včetně pravidla, kdy je hotový.
 - `docs/navrh-alternativni-mluvci.md` – alternativní mluvčí: jak převyprávění funguje, pojistky a výsledky zkoušky se skutečnou AI.
 - `docs/feed-vzkazu.md` – ukládání potvrzených vzkazů, feed vedle ucha, opakovaný dotaz a skrytí nevhodného vzkazu.
+- `docs/pwa.md` – ucho jako aplikace na ploše telefonu: manifest, service worker, ikony.
 
 Požadavky mají ID (F-01 až F-83) a prioritu MVP / Později / Zvážit. V commitech a kódu na ně odkazuj.
 
@@ -125,7 +126,9 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 - Feed je jeden jednoduchý seznam s hledáním a filtry stavu (Zodpovězené, Čekají na odpověď) a typu. Ukázky od týmu v něm zůstávají se štítkem Ukázka, za skutečnými vzkazy.
 - Opakovaný dotaz: když je embedding nového dotazu podobný zodpovězenému dotazu nebo ukázce aspoň na 0,85, panel ukáže odkaz na odpověď a ve feedu na ni jde skočit.
 - Lokální vývoj ukládá vzkazy jen do paměti, ne do ostré databáze.
+- Nahoře ve feedu je heslovitě „Zkušební provoz · ukázkové dotazy a odpovědi · vzkazy se zveřejňují bez jména · nejde o úřední vyjádření obce“. Feed netvrdí, že ukázky připravil tým (Tomáš: to není pravda).
 - Podrobnosti jsou v `docs/feed-vzkazu.md`.
+- Ucho jde přidat na plochu telefonu jako aplikace (PWA). Manifest a service worker leží pod `/ucho`, web Nezávislých se nemění. Service worker nic neukládá do mezipaměti. Podrobnosti v `docs/pwa.md`.
 
 ## MVP (prezentační verze)
 
