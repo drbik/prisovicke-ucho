@@ -142,7 +142,8 @@ describe('uložení potvrzeného vzkazu do feedu (13. 11. 2026)', () => {
     expect(uloziste.vzkazy[0]).toMatchObject({ styl: 'marvin', textStylu: null });
     await potvrdit(api, podani, { styl: 'marvin', textStylu: styl.text, podpisStylu: styl.podpis });
     expect(uloziste.vzkazy[0]).toMatchObject({ styl: 'marvin', textStylu: '(povzdech) Lavičky u hřiště. Marné.' });
-    expect(sestavitFeed(await uloziste.temataFeedu(1), [])[0]).toMatchObject({ styl: 'marvin', textStylu: '(povzdech) Lavičky u hřiště. Marné.' });
+    // Ve feedu se styl postavy neukazuje (Tomáš 13. 11. 2026), v databázi zůstává.
+    expect(sestavitFeed(await uloziste.temataFeedu(1), [])[0]).not.toHaveProperty('textStylu');
   });
 
   it('skrytý vzkaz z feedu zmizí', async () => {

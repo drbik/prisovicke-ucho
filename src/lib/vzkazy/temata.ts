@@ -88,7 +88,6 @@ export function temaDoFeedu(u: UlozeneTema, novaCastId?: string | null): TemaFee
     stav: stavTematu(u) === 'zodpovezeno-z-webu' ? 'zodpovezeno' : 'ceka',
     pocet: viditelne.length,
     zmeneno: u.tema.zmeneno.slice(0, 10),
-    ...(zakladatel ? { styl: zakladatel.styl, ...(zakladatel.textStylu ? { textStylu: zakladatel.textStylu } : {}) } : {}),
     ...(odpoved ? { odpoved } : {}),
     cekajici: [...new Set(cekajici)],
     vzkazy: viditelne.filter((v) => v !== zakladatel).map((v) => ({
@@ -96,8 +95,6 @@ export function temaDoFeedu(u: UlozeneTema, novaCastId?: string | null): TemaFee
       text: v.text,
       vztah: v.vztah,
       datum: v.vytvoreno.slice(0, 10),
-      styl: v.styl,
-      ...(v.textStylu ? { textStylu: v.textStylu } : {}),
     })),
   };
 }
