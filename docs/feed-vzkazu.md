@@ -2,6 +2,8 @@
 
 *Zadal Tomáš 13. 11. 2026 (krok 8.17 v [plan-mvp.md](plan-mvp.md)). Je to rozšíření MVP pro zkušební provoz.*
 
+**Aktualizace téhož dne:** feed od té doby ukazuje témata, ne jednotlivé vzkazy, a opakovaný dotaz řeší nabídka podobných témat s volbou autora. Platí [temata-feedu.md](temata-feedu.md). Níže zůstává původní popis feedu, odstavce o opakovaném dotazu a o položce feedu jsou tím nahrazené. Skrytí vzkazu a lokální vývoj platí dál.
+
 ## Co Tomáš chtěl
 
 - Ukládat a ukazovat dotazy, hlavně ty nezodpovězené, v seznamu vedle ucha.
@@ -77,6 +79,8 @@ Bez parametru vypíše posledních 30 vzkazů. Další příkazy:
 - `npx tsx nastroje/vzkazy.ts ukazat ID` ukáže celý vzkaz včetně surového přepisu;
 - `npx tsx nastroje/vzkazy.ts skryt ID` vzkaz z feedu skryje, v databázi zůstane;
 - `npx tsx nastroje/vzkazy.ts vratit ID` skrytý vzkaz vrátí do feedu.
+
+Skrytý poddotaz skryje i svou část odpovědi tématu, skrytý zakladatel skryje celé téma. Příkazy pro témata (`temata`, `tema`, `presunout`, `sloucit`, `skryt-tema`, `prevest`) jsou v [temata-feedu.md](temata-feedu.md).
 
 ## Rizika, o kterých Tomáš ví
 

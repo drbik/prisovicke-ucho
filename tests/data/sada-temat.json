@@ -1,0 +1,344 @@
+{
+  "verze": 1,
+  "vytvoreno": "2026-11-13",
+  "schvaleno": "2026-11-13",
+  "ucel": "Sada pro sdružování vzkazů do témat ve feedu (F-33 až F-37, fáze B úkolu v docs/zadani-temata-feedu.md). Ověřuje, že ucho autorovi nabídne správné téma a že nic nesloučí bez jeho volby.",
+  "jak_vznikla": "Vzkazy jsou napsané tak, jak by je řekli nebo napsali občané, i hovorově a bez diakritiky. Témata jsou ukázky z src/lib/temata/ukazky.json, skutečný vzkaz v-2j1g3o2u57 z feedu (potvrzené znění, zveřejněné bez jména) a tři nová témata, která založí první vzkaz skupiny. Část vzkazů vychází z typových otázek kroku 8 (tests/data/typove-otazky.json, uvedeno v poli zdroj).",
+  "vztahy": {
+    "totez": "Vzkaz se ptá na totéž co téma, nebo jen na část toho, co téma a jeho odpověď už pokrývají.",
+    "poddotaz": "Jen u dotazu. Vzkaz se týká stejné věci (stejné místo, stavba, služba nebo akce a stejný účel), ale ptá se navíc na podrobnost, kterou téma ani jeho odpověď nepokrývá.",
+    "doplneni": "Jen u návrhu, stížnosti a pochvaly. Vzkaz říká totéž co téma a něco k tomu přidává.",
+    "jine": "Vzkaz je o jiné věci, i když se týká stejného místa nebo budovy. Autor má zvolit Je to jiné téma, nebo ho ucho nemá nabídnout vůbec."
+  },
+  "vyhodnoceni": "Každý vzkaz projde AI úpravou jako na stránce (výsledek se uloží, opakovaný běh ho nepočítá znovu). Typ se bere ze sady, protože ho autor při kontrole opraví; rozdíl od úpravy se zapíše. Témata: všechny ukázky, ukazka-03 i se skutečným vzkazem v-2j1g3o2u57 a nová témata založená zakladateli skupin. Nabídnou se nejvýš 3 témata stejného typu s podobností aspoň 0,65 (vyšší z text proti textu a název proti názvu). U vztahů totéž a poddotaz se navíc spustí krok nové otázky.",
+  "prahy": {
+    "nabidka": "U vztahů totéž, poddotaz a doplnění je správné téma mezi nabídnutými aspoň v 90 % párů.",
+    "bez_volby": "Žádný vzkaz se k tématu nepřipojí bez volby autora.",
+    "jine": "U vztahů jiné téma nepadne nic do jednoho tématu bez souhlasu autora. Kolikrát se jiné téma nabídne, se zapíše (měkký cíl: nejvýš třetina).",
+    "nove_otazky": "Měkký cíl: u totéž prázdný seznam a u poddotazu neprázdný aspoň v 80 % párů.",
+    "zakladatele": "Zakladatel nového tématu nedostane nabídku, nebo jen jiná témata."
+  },
+  "temata": {
+    "ukazka-01": "Otevírací doba lékárny na zdravotním středisku",
+    "ukazka-02": "Koupání psů v Písečácích",
+    "ukazka-03": "Pronájem sálu v Sokolovně",
+    "ukazka-04": "Otevírací doba obecního úřadu",
+    "ukazka-05": "Vlaková výluka a náhradní autobus",
+    "ukazka-06": "Očkování proti chřipce",
+    "ukazka-07": "Starosta a místostarosta po volbách",
+    "ukazka-08": "Soudní spor s Logicorem o územní plán",
+    "ukazka-09": "Stavba cyklostezky od Přepeř k Jizeře",
+    "ukazka-10": "Úvěr na nové byty",
+    "ukazka-11": "Nové byty u DPS",
+    "ukazka-12": "Vodovod a kanalizace na Záhumení",
+    "ukazka-13": "Nová okna v kapli svatého Václava",
+    "ukazka-14": "Kapacita školky v Příšovicích",
+    "ukazka-15": "Svatba v Příšovicích: místo a podmínky",
+    "ukazka-16": "Dar obce při narození dítěte",
+    "ukazka-17": "Hospoda v Sokolovně",
+    "ukazka-18": "Levnější elektřina ze solárních střech",
+    "ukazka-19": "Poplatek za popelnice",
+    "ukazka-20": "Otevírací doba sběrného dvora v sobotu",
+    "ukazka-22": "Lavičky a koš u školního hřiště",
+    "ukazka-25": "Parkování na trávě u zahrádek",
+    "ukazka-28": "Výběh pro psy",
+    "ukazka-29": "Pítko pro cyklisty u Sokolovny",
+    "ukazka-32": "Termín posvícení a pouťové zábavy",
+    "G24": "Nesvítící lampa u nádraží (nové téma)",
+    "G27": "Poděkování za stezku k Písečákům (nové téma)",
+    "G28": "Nefunkční obecní rozhlas (nové téma)"
+  },
+  "skupiny": [
+    {
+      "id": "G01",
+      "tema": "ukazka-03",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G01-1", "text": "Chci se zeptat na informaci o tom, kolik se platí za pronájem Sokolovny. Chtěl bych tam udělat pořádnou party pro asi patnáct lidí, protože budu mít narozeniny. Koho se na to mám zeptat, jak o to zažádat a kolik za to zaplatím?", "vztahy": { "ukazka-03": "poddotaz", "ukazka-17": "jine", "ukazka-29": "jine" }, "nove": "koho kontaktovat, jak o pronájem zažádat", "zdroj": "skutečný vzkaz v-2j1g3o2u57" },
+        { "id": "G01-2", "text": "kolik stoji pronajem salu v sokolovne", "vztahy": { "ukazka-03": "totez" } },
+        { "id": "G01-3", "text": "Dobrý den, chceme v Sokolovně v létě udělat svatební hostinu. Kolik nás bude stát sál?", "vztahy": { "ukazka-03": "totez", "ukazka-15": "jine" } },
+        { "id": "G01-4", "text": "Je v ceně pronájmu sálu v Sokolovně i úklid, nebo se platí zvlášť?", "vztahy": { "ukazka-03": "poddotaz" }, "nove": "úklid" },
+        { "id": "G01-5", "text": "Kolik je kauce, když si půjčím sál v sokolovně?", "vztahy": { "ukazka-03": "totez" }, "poznamka": "Kauci odpověď tématu uvádí." }
+      ]
+    },
+    {
+      "id": "G02",
+      "tema": "ukazka-17",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G02-1", "text": "Otevře se v sokolovně zase nějaká hospoda?", "vztahy": { "ukazka-17": "totez", "ukazka-03": "jine" } },
+        { "id": "G02-2", "text": "Kdy by ta hospůdka v Sokolovně mohla otevřít?", "vztahy": { "ukazka-17": "poddotaz", "ukazka-03": "jine" }, "nove": "termín otevření" },
+        { "id": "G02-3", "text": "Hledá obec někoho, kdo by provozoval hospodu v Sokolovně? Rád bych se přihlásil, jak to mám udělat?", "vztahy": { "ukazka-17": "poddotaz" }, "nove": "jak se přihlásit jako provozovatel" }
+      ]
+    },
+    {
+      "id": "G03",
+      "tema": "ukazka-29",
+      "typ": "navrh",
+      "vzkazy": [
+        { "id": "G03-1", "text": "Co kdyby obec dala k Sokolovně pítko pro cyklisty? Myslím, že by se hodilo.", "vztahy": { "ukazka-29": "totez" }, "zdroj": "Q30" },
+        { "id": "G03-2", "text": "Navrhuju u sokolovny pítko a k tomu stojan na kola, ať cyklisti nemusí opírat kola o zeď.", "vztahy": { "ukazka-29": "doplneni" }, "nove": "stojan na kola" },
+        { "id": "G03-3", "text": "Navrhuji v Sokolovně zase otevřít hospodu, chybí tu místo, kde si sednout.", "vztahy": { "ukazka-29": "jine" }, "poznamka": "Hospoda je dotaz (ukazka-17), jiný typ se nenabízí. Má vzniknout nové téma." }
+      ]
+    },
+    {
+      "id": "G04",
+      "tema": "ukazka-02",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G04-1", "text": "Smí se v Písečáku koupat pes?", "vztahy": { "ukazka-02": "totez" } },
+        { "id": "G04-2", "text": "Můžu chodit se psem k vodě na Velký Písečák?", "vztahy": { "ukazka-02": "poddotaz" }, "nove": "pes u vody, ne v ní", "zdroj": "Q19" },
+        { "id": "G04-3", "text": "Jaká je pokuta, když se mi pes vykoupe v Písečáku?", "vztahy": { "ukazka-02": "poddotaz" }, "nove": "výše pokuty" },
+        { "id": "G04-4", "text": "Kolik stojí vstupné na koupaliště v Písečácích?", "vztahy": { "ukazka-02": "jine" } },
+        { "id": "G04-5", "text": "Je v Písečácích hlídané koupaliště s plavčíkem?", "vztahy": { "ukazka-02": "jine" } }
+      ]
+    },
+    {
+      "id": "G05",
+      "tema": "ukazka-28",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G05-1", "text": "Kde v Příšovicích můžu nechat psa volně proběhnout?", "vztahy": { "ukazka-28": "totez", "ukazka-02": "jine" } },
+        { "id": "G05-2", "text": "Plánuje obec udělat oplocený psí výběh?", "vztahy": { "ukazka-28": "poddotaz" }, "nove": "plán do budoucna" },
+        { "id": "G05-3", "text": "Kde jsou v obci koše na psí exkrementy?", "vztahy": { "ukazka-28": "jine" } }
+      ]
+    },
+    {
+      "id": "G06",
+      "tema": "ukazka-01",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G06-1", "text": "do kolika ma ve ctvrtek otevreno lekarna", "vztahy": { "ukazka-01": "totez" } },
+        { "id": "G06-2", "text": "Má lékárna na zdravotním středisku otevřeno i v sobotu dopoledne?", "vztahy": { "ukazka-01": "poddotaz" }, "nove": "sobota" },
+        { "id": "G06-3", "text": "Jakou otevírací dobu má lékárna na středisku v pondělí?", "vztahy": { "ukazka-01": "poddotaz" }, "nove": "pondělí" },
+        { "id": "G06-4", "text": "Kdy ordinuje zubař na zdravotním středisku?", "vztahy": { "ukazka-01": "jine" } }
+      ]
+    },
+    {
+      "id": "G07",
+      "tema": "ukazka-04",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G07-1", "text": "Kdy má obecní úřad úřední hodiny?", "vztahy": { "ukazka-04": "totez" } },
+        { "id": "G07-2", "text": "Můžu si na úřadě nechat ověřit podpis i v pátek?", "vztahy": { "ukazka-04": "totez" }, "poznamka": "Odpověď tématu říká, že v ostatní dny jde termín domluvit telefonicky." },
+        { "id": "G07-3", "text": "Kolik stojí na obecním úřadě ověření jednoho podpisu?", "vztahy": { "ukazka-04": "poddotaz" }, "nove": "poplatek" },
+        { "id": "G07-4", "text": "Kdy má otevřeno pošta v Příšovicích?", "vztahy": { "ukazka-04": "jine" } }
+      ]
+    },
+    {
+      "id": "G08",
+      "tema": "ukazka-05",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G08-1", "text": "jezdi ted vubec vlaky z prisovic nebo je porad vyluka", "vztahy": { "ukazka-05": "totez" } },
+        { "id": "G08-2", "text": "Kde staví ten náhradní autobus za vlak?", "vztahy": { "ukazka-05": "totez" } },
+        { "id": "G08-3", "text": "Jezdí náhradní autobus za vlak i o víkendu?", "vztahy": { "ukazka-05": "poddotaz" }, "nove": "víkend" },
+        { "id": "G08-4", "text": "Jezdí z Příšovic nějaký autobus do Turnova?", "vztahy": { "ukazka-05": "jine" } }
+      ]
+    },
+    {
+      "id": "G09",
+      "tema": "ukazka-06",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G09-1", "text": "Kdy se můžu nechat naočkovat proti chřipce u pana doktora?", "vztahy": { "ukazka-06": "totez" } },
+        { "id": "G09-2", "text": "Platí se za očkování proti chřipce, nebo ho hradí pojišťovna?", "vztahy": { "ukazka-06": "poddotaz" }, "nove": "kdo platí" },
+        { "id": "G09-3", "text": "Kdy bude v obci očkování psů proti vzteklině?", "vztahy": { "ukazka-06": "jine" } }
+      ]
+    },
+    {
+      "id": "G10",
+      "tema": "ukazka-07",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G10-1", "text": "Kdo je teď po volbách starostou?", "vztahy": { "ukazka-07": "totez" } },
+        { "id": "G10-2", "text": "kdo se stal mistostarostou", "vztahy": { "ukazka-07": "totez" } },
+        { "id": "G10-3", "text": "Kolik hlasů dostal nový starosta, když ho zastupitelé volili?", "vztahy": { "ukazka-07": "poddotaz" }, "nove": "počet hlasů" },
+        { "id": "G10-4", "text": "Kdy bude příští zasedání zastupitelstva?", "vztahy": { "ukazka-07": "jine" } }
+      ]
+    },
+    {
+      "id": "G11",
+      "tema": "ukazka-08",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G11-1", "text": "jak to dopadlo s tim soudem s logicorem", "vztahy": { "ukazka-08": "totez" } },
+        { "id": "G11-2", "text": "Odvolal se Logicor proti tomu rozsudku o územním plánu?", "vztahy": { "ukazka-08": "poddotaz" }, "nove": "odvolání" },
+        { "id": "G11-3", "text": "Kolik obec zaplatila za právníky ve sporu s Logicorem?", "vztahy": { "ukazka-08": "poddotaz" }, "nove": "náklady obce" },
+        { "id": "G11-4", "text": "Kdy se bude měnit územní plán kvůli novým rodinným domům?", "vztahy": { "ukazka-08": "jine" } }
+      ]
+    },
+    {
+      "id": "G12",
+      "tema": "ukazka-09",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G12-1", "text": "Kdo staví cyklostezku k Jizeře a kdy se začne?", "vztahy": { "ukazka-09": "totez" } },
+        { "id": "G12-2", "text": "Kdy bude cyklostezka od Přepeř k Jizeře hotová?", "vztahy": { "ukazka-09": "poddotaz" }, "nove": "dokončení" },
+        { "id": "G12-3", "text": "Kolik bude stát cyklostezka k Jizeře a kdo ji zaplatí?", "vztahy": { "ukazka-09": "poddotaz" }, "nove": "cena a financování" },
+        { "id": "G12-4", "text": "Kdy se opraví chodník podél silnice do Přepeř?", "vztahy": { "ukazka-09": "jine" } }
+      ]
+    },
+    {
+      "id": "G13",
+      "tema": "ukazka-10",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G13-1", "text": "Kolik si obec půjčila na stavbu těch bytů?", "vztahy": { "ukazka-10": "totez" } },
+        { "id": "G13-2", "text": "Na kolik let si obec ten úvěr na byty vzala?", "vztahy": { "ukazka-10": "poddotaz" }, "nove": "doba splácení" }
+      ]
+    },
+    {
+      "id": "G14",
+      "tema": "ukazka-11",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G14-1", "text": "Pro koho budou ty nový byty u DPS?", "vztahy": { "ukazka-11": "totez", "ukazka-10": "jine" } },
+        { "id": "G14-2", "text": "Kolik bude měsíčně stát nájem v těch nových bytech u DPS?", "vztahy": { "ukazka-11": "poddotaz", "ukazka-10": "jine" }, "nove": "výše nájmu", "zdroj": "Q21" },
+        { "id": "G14-3", "text": "Jak si můžu zažádat o byt v tom novém domě u DPS?", "vztahy": { "ukazka-11": "poddotaz" }, "nove": "jak zažádat" },
+        { "id": "G14-4", "text": "Kolik stojí pečovatelská služba pro seniory v DPS?", "vztahy": { "ukazka-11": "jine" } }
+      ]
+    },
+    {
+      "id": "G15",
+      "tema": "ukazka-12",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G15-1", "text": "Kdy konečně bude na Záhumení vodovod a kanalizace?", "vztahy": { "ukazka-12": "totez" } },
+        { "id": "G15-2", "text": "Kolik budeme platit za přípojku ke kanalizaci na Záhumení?", "vztahy": { "ukazka-12": "poddotaz" }, "nove": "cena přípojky" },
+        { "id": "G15-3", "text": "kolik u nás stoji kubik vody?", "vztahy": { "ukazka-12": "jine" }, "zdroj": "Q22" }
+      ]
+    },
+    {
+      "id": "G16",
+      "tema": "ukazka-13",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G16-1", "text": "Kdy skončí oprava kaple svatého Václava?", "vztahy": { "ukazka-13": "totez" } },
+        { "id": "G16-2", "text": "Kdo platí opravu kaple svatého Václava, obec, nebo církev?", "vztahy": { "ukazka-13": "poddotaz" }, "nove": "kdo platí" },
+        { "id": "G16-3", "text": "Kdy je v kapli svatého Václava mše?", "vztahy": { "ukazka-13": "jine" } }
+      ]
+    },
+    {
+      "id": "G17",
+      "tema": "ukazka-14",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G17-1", "text": "Kolik dětí se vejde do příšovické školky?", "vztahy": { "ukazka-14": "totez" } },
+        { "id": "G17-2", "text": "Je ve školce ještě volné místo pro tříleté dítě?", "vztahy": { "ukazka-14": "poddotaz" }, "nove": "volná místa teď" },
+        { "id": "G17-3", "text": "Kolik dětí chodí do základní školy v Příšovicích?", "vztahy": { "ukazka-14": "jine" } }
+      ]
+    },
+    {
+      "id": "G18",
+      "tema": "ukazka-15",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G18-1", "text": "Kde se dá v Příšovicích mít svatební obřad?", "vztahy": { "ukazka-15": "totez" } },
+        { "id": "G18-2", "text": "Kolik se platí za svatbu v kapli v sobotu?", "vztahy": { "ukazka-15": "poddotaz" }, "nove": "poplatek" }
+      ]
+    },
+    {
+      "id": "G19",
+      "tema": "ukazka-16",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G19-1", "text": "Dostanou rodiče od obce nějaké peníze, když se jim narodí miminko?", "vztahy": { "ukazka-16": "totez" } },
+        { "id": "G19-2", "text": "Kdy bude další vítání občánků? Máme malou.", "vztahy": { "ukazka-16": "poddotaz" }, "nove": "termín dalšího vítání", "zdroj": "Q23" },
+        { "id": "G19-3", "text": "Přispívá obec rodinám na školku?", "vztahy": { "ukazka-16": "jine" } }
+      ]
+    },
+    {
+      "id": "G20",
+      "tema": "ukazka-18",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G20-1", "text": "Je pravda, že obec bude lidem prodávat levnou elektřinu ze solárů?", "vztahy": { "ukazka-18": "totez" } },
+        { "id": "G20-2", "text": "Jak se můžu přihlásit do toho energetického společenství?", "vztahy": { "ukazka-18": "poddotaz" }, "nove": "přihláška" },
+        { "id": "G20-3", "text": "Dává obec příspěvek na fotovoltaiku na rodinný dům?", "vztahy": { "ukazka-18": "jine" } }
+      ]
+    },
+    {
+      "id": "G21",
+      "tema": "ukazka-19",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G21-1", "text": "Kolik se letos platí za odpad na jednoho člověka?", "vztahy": { "ukazka-19": "totez" } },
+        { "id": "G21-2", "text": "Do kdy se musí zaplatit poplatek za popelnice?", "vztahy": { "ukazka-19": "poddotaz" }, "nove": "splatnost" },
+        { "id": "G21-3", "text": "Kdy jezdí popeláři vyvážet popelnice?", "vztahy": { "ukazka-19": "jine" } }
+      ]
+    },
+    {
+      "id": "G22",
+      "tema": "ukazka-20",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G22-1", "text": "Má sběrný dvůr v sobotu otevřeno a od kolika?", "vztahy": { "ukazka-20": "totez", "ukazka-04": "jine" } },
+        { "id": "G22-2", "text": "Můžu do sběrného dvora odvézt staré pneumatiky?", "vztahy": { "ukazka-20": "poddotaz" }, "nove": "co se přijímá" },
+        { "id": "G22-3", "text": "Kdy bude v obci svoz velkoobjemového odpadu?", "vztahy": { "ukazka-20": "jine" } }
+      ]
+    },
+    {
+      "id": "G23",
+      "tema": "ukazka-32",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G23-1", "text": "kdy bude letos pout a posviceni", "vztahy": { "ukazka-32": "totez" } },
+        { "id": "G23-2", "text": "Kdo bude hrát na pouťové zábavě?", "vztahy": { "ukazka-32": "poddotaz" }, "nove": "kapela" },
+        { "id": "G23-3", "text": "Kdy bude rozsvícení vánočního stromu na návsi?", "vztahy": { "ukazka-32": "jine" } }
+      ]
+    },
+    {
+      "id": "G24",
+      "tema": "G24",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G24-0", "text": "Kdy obec opraví lampu u nádraží, která už měsíc nesvítí?", "zakladatel": true, "vztahy": {} },
+        { "id": "G24-1", "text": "Ta lampa u nádraží pořád nesvítí, nevíte, kdy se spraví?", "vztahy": { "G24": "totez" } },
+        { "id": "G24-2", "text": "Kdo opravuje veřejné osvětlení, obec, nebo ČEZ? U nádraží nesvítí lampa.", "vztahy": { "G24": "poddotaz" }, "nove": "kdo opravuje" },
+        { "id": "G24-3", "text": "Kdy bude nový chodník u nádraží?", "vztahy": { "G24": "jine" } }
+      ]
+    },
+    {
+      "id": "G25",
+      "tema": "ukazka-25",
+      "typ": "stiznost",
+      "vzkazy": [
+        { "id": "G25-1", "text": "U zahrádek na sídlišti zase stojí auta na trávníku, s kočárkem se tam neprojde.", "vztahy": { "ukazka-25": "totez" }, "zdroj": "Q28 jinými slovy" },
+        { "id": "G25-2", "text": "Auta u zahrádek na sídlišti parkují na trávě a navíc blokují i vjezd pro hasiče.", "vztahy": { "ukazka-25": "doplneni" }, "nove": "vjezd pro hasiče" },
+        { "id": "G25-3", "text": "Na sídlišti už měsíc nikdo neposekal trávu.", "vztahy": { "ukazka-25": "jine" } }
+      ]
+    },
+    {
+      "id": "G26",
+      "tema": "ukazka-22",
+      "typ": "navrh",
+      "vzkazy": [
+        { "id": "G26-1", "text": "Navrhuju dát k hřišti u školy pár laviček a koš na psí hovínka, maminky tam nemají kde sednout.", "vztahy": { "ukazka-22": "totez" }, "zdroj": "Q27" },
+        { "id": "G26-2", "text": "K hřišti u školy by to chtělo lavičky a taky stříšku proti slunci.", "vztahy": { "ukazka-22": "doplneni" }, "nove": "stříška" },
+        { "id": "G26-3", "text": "Navrhuji opravit povrch školního hřiště, je plný děr.", "vztahy": { "ukazka-22": "jine" } }
+      ]
+    },
+    {
+      "id": "G27",
+      "tema": "G27",
+      "typ": "pochvala",
+      "vzkazy": [
+        { "id": "G27-0", "text": "Chci moc poděkovat za stezku k Písečákům, chodíme tam s dětma skoro každý den.", "zakladatel": true, "vztahy": {}, "zdroj": "Q29" },
+        { "id": "G27-1", "text": "Díky za tu novou cestu k Písečákům, je super na procházky s kočárkem.", "vztahy": { "G27": "totez" } },
+        { "id": "G27-2", "text": "Děkuji za vánoční výzdobu na návsi, letos je moc hezká.", "vztahy": { "G27": "jine" } }
+      ]
+    },
+    {
+      "id": "G28",
+      "tema": "G28",
+      "typ": "dotaz",
+      "vzkazy": [
+        { "id": "G28-0", "text": "Proč poslední dobou není slyšet obecní rozhlas? U nás v ulici z něj nic nejde.", "zakladatel": true, "vztahy": {} },
+        { "id": "G28-1", "text": "Obecní rozhlas u nás vůbec nehraje, opraví se to?", "vztahy": { "G28": "totez" } },
+        { "id": "G28-2", "text": "Kdo má na starosti opravu obecního rozhlasu, když u nás nehraje?", "vztahy": { "G28": "poddotaz" }, "nove": "kdo opravuje" },
+        { "id": "G28-3", "text": "Kde na webu obce najdu, co se hlásilo rozhlasem?", "vztahy": { "G28": "jine" }, "poznamka": "Stejná věc (rozhlas), jiný účel: dohledat hlášení, ne oprava." }
+      ]
+    }
+  ]
+}

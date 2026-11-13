@@ -1,20 +1,21 @@
 ---
-// Feed vedle ucha (13. 11. 2026, Tomáš): jednoduchý seznam vzkazů a dotazů s filtry stavu a typu nahoře.
-// Uložené vzkazy se ukazují hned, bez schválení, od nejnovějšího. Za nimi jsou ukázkové dotazy se štítkem Ukázka.
+// Feed vedle ucha (13. 11. 2026, Tomáš): jednoduchý seznam s filtry stavu a typu nahoře. Od 13. 11. 2026 ukazuje
+// témata (F-33): jedna položka a jedna odpověď na téma, i když se ptalo víc lidí. Vzkazy se ukazují hned, bez
+// schválení. Témata jsou od poslední změny, za nimi ukázky se štítkem Ukázka.
 // Data jdou do stránky jako JSON, seznam staví skript src/skripty/temata.ts.
 import { TYPY_PODNETU } from '../lib/oblasti';
 import { uloziste } from '../lib/prostredi';
 import { POCET_VE_FEEDU, feedDoStranky, sestavitFeed } from '../lib/vzkazy/feed';
-import type { PolozkaFeedu } from '../lib/vzkazy/typy';
+import type { UlozeneTema } from '../lib/vzkazy/typy';
 
-let ulozene: PolozkaFeedu[] = [];
+let ulozene: { temata: UlozeneTema[]; ukazkyVDb: string[] } = { temata: [], ukazkyVDb: [] };
 try {
-  ulozene = await uloziste.feed(POCET_VE_FEEDU);
+  ulozene = await uloziste.temataFeedu(POCET_VE_FEEDU);
 } catch (chyba) {
   // Výpadek databáze feed nezastaví, ukážou se aspoň ukázky.
   console.error({ udalost: 'feed-selhal', hlaska: chyba instanceof Error ? chyba.message.slice(0, 200) : 'neznámá chyba' });
 }
-const polozky = sestavitFeed(ulozene);
+const temata = sestavitFeed(ulozene);
 
 const TYPY_MNOZNE: Record<keyof typeof TYPY_PODNETU, string> = {
   dotaz: 'Dotazy',
@@ -27,7 +28,7 @@ const TYPY_MNOZNE: Record<keyof typeof TYPY_PODNETU, string> = {
 <section class="feed" aria-labelledby="feed-titulek" data-feed>
   <header class="feed__hlavicka">
     <h2 id="feed-titulek">Vzkazy a dotazy</h2>
-    <label class="jen-ctecka" for="feed-hledat">Hledat ve vzkazech a odpovědích</label>
+    <label class="jen-ctecka" for="feed-hledat">Hledat v tématech, vzkazech a odpovědích</label>
     <input id="feed-hledat" class="feed__hledat" type="search" placeholder="Hledat" autocomplete="off" data-feed-hledat />
   </header>
   <!-- Zkušební provoz heslovitě (Tomáš 13. 11. 2026): ukázky nejsou dotazy občanů ani týmu. -->
@@ -50,7 +51,7 @@ const TYPY_MNOZNE: Record<keyof typeof TYPY_PODNETU, string> = {
   <ul class="feed__seznam" data-feed-seznam></ul>
   <p class="feed__nic" data-feed-nic hidden>Tady nic není.</p>
   <noscript><p class="feed__nic">Seznam vzkazů potřebuje JavaScript.</p></noscript>
-  <script type="application/json" id="feed-data" set:html={feedDoStranky(polozky)}></script>
+  <script type="application/json" id="feed-data" set:html={feedDoStranky(temata)}></script>
 </section>
 
 <script src="../skripty/temata.ts"></script>

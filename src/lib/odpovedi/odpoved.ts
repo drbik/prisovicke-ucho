@@ -28,6 +28,8 @@ export interface VetaZobrazene {
 export interface ZodpovezenaCast {
   otazka: string;
   vety: VetaZobrazene[];
+  // Část odpovědi tématu, kterou právě doplnil poddotaz (13. 11. 2026, F-37).
+  nova?: boolean;
 }
 
 export interface ZobrazenaOdpoved {

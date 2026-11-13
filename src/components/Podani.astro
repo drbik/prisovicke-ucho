@@ -53,6 +53,11 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
 
     <div class="panel__obsah">
       <p class="jen-ctecka" role="status" data-oznameni></p>
+      <!-- Doptání k tématu (F-81, 13. 11. 2026): pruh je vidět od „Chci se doptat“ do odeslání doptání. -->
+      <div class="doptani" data-doptani hidden>
+        <p>Doptáváte se k tématu <strong data-doptani-nazev></strong>. Napište nebo namluvte, co vám v odpovědi chybí.</p>
+        <button class="odkaz" type="button" data-doptani-namluvit>Raději namluvím</button>
+      </div>
 
       <section data-pohled="zadost" hidden>
         <h2 tabindex="-1" data-fokus>Povolte mikrofon</h2>
@@ -128,6 +133,12 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
             data-upraveny
           ></textarea>
           <p class="chyba" id="chyba-text" role="alert" data-chyba-pole="text" hidden></p>
+          <!-- Tomáš 13. 11. 2026: tlačítko hned pod vzkazem, po stisknutí rovnou hledat odpověď, bez mezikroku. -->
+          <div class="akce akce--pod-vzkazem">
+            <button class="tlacitko" type="submit" data-potvrdit>Vyhledat odpověď</button>
+            <button class="tlacitko tlacitko--druhe" type="button" data-zahodit>Zahodit</button>
+          </div>
+          <p class="poznamka poznamka--zverejneni">Vzkaz se zveřejní ve feedu bez vašeho jména. Nepište do něj jména, adresy ani jiné osobní údaje.</p>
 
           <label for="vzkaz-nazev">Název</label>
           <input id="vzkaz-nazev" type="text" maxlength={MAX_ZNAKU_NAZVU} autocomplete="off" aria-describedby="chyba-nazev" data-nazev />
@@ -149,12 +160,6 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
               <p class="chyba" id="chyba-oblast" role="alert" data-chyba-pole="oblast" hidden></p>
             </div>
           </div>
-
-          <p class="poznamka poznamka--zverejneni">Po potvrzení se vzkaz hned zveřejní ve feedu vedle ucha, bez vašeho jména. Nepište do něj jména, adresy ani jiné osobní údaje.</p>
-          <div class="akce">
-            <button class="tlacitko" type="submit" data-potvrdit>Potvrdit a zveřejnit</button>
-            <button class="tlacitko tlacitko--druhe" type="button" data-zahodit>Zahodit</button>
-          </div>
         </form>
         <details class="technicke">
           <summary data-popis-puvodniho>Původní přepis</summary>
@@ -165,6 +170,7 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
           <dl data-technicke-seznam></dl>
         </details>
       </section>
+
 
       <section data-pohled="potvrzeno" hidden>
         <h2 tabindex="-1" data-fokus>Vzkaz je potvrzený</h2>
@@ -183,11 +189,8 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
 
         <section class="odpoved" aria-labelledby="odpoved-titulek" data-odpoved hidden>
           <h3 id="odpoved-titulek" class="odpoved__titulek" tabindex="-1" data-odpoved-titulek>Odpověď na dotaz</h3>
-          <!-- Opakovaný dotaz (13. 11. 2026): na podobný dotaz už je odpověď, odkaz na ni ve feedu. -->
-          <div class="odpoved__podobny" data-odpoved-podobny hidden>
-            <p>Na podobný dotaz už je odpověď: <strong data-podobny-nazev></strong></p>
-            <button class="odkaz" type="button" data-ukazat-podobny>Zobrazit odpověď</button>
-          </div>
+          <!-- Odpověď tématu (F-37): totéž ukáže existující odpověď, poddotaz ji doplní. -->
+          <p class="poznamka odpoved__tema" data-odpoved-tema hidden></p>
           <!-- Odpověď hlasem zvolené postavy (13. 11. 2026). Věcná odpověď a zdroje jsou pod ní. -->
           <div data-odpoved-mluvci></div>
           <div data-odpoved-stav="hledani" hidden>
@@ -205,6 +208,15 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
             <h4 class="odpoved__zdroje-titulek">Zdroje</h4>
             <ol class="odpoved__zdroje" data-odpoved-zdroje></ol>
             <p class="poznamka" data-odpoved-upozorneni></p>
+            <!-- F-81: u každé odpovědi autor zvolí, jestli mu stačí, nebo se doptá. -->
+            <div class="potvrzeni-odpovedi" data-potvrzeni-odpovedi hidden>
+              <p class="potvrzeni-odpovedi__otazka">Stačí vám odpověď?</p>
+              <div class="akce" data-potvrzeni-volby>
+                <button class="tlacitko" type="button" data-staci>Odpověď mi stačí</button>
+                <button class="tlacitko tlacitko--druhe" type="button" data-doptat>Chci se doptat</button>
+              </div>
+              <p class="drobne" data-potvrzeni-dik hidden></p>
+            </div>
           </div>
           <div data-odpoved-stav="zastupitelum" hidden>
             <p class="odpoved__oznaceni">Odpověď jsme na webu nenašli</p>
@@ -215,6 +227,9 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
             </div>
           </div>
         </section>
+
+        <!-- Opravdu podobné téma ve feedu jen jako tichý odkaz (Tomáš 13. 11. 2026). -->
+        <p class="drobne podobna" data-podobna hidden></p>
 
         <div class="akce">
           <button class="tlacitko" type="button" data-novy>Nový vzkaz</button>

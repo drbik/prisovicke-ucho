@@ -7,8 +7,10 @@ import { hlavickaUseku } from '../src/lib/odpovedi/zdroje';
 import type { UdalostDotazu, VysledekDotazu } from '../src/lib/odpovedi/zpracovani';
 import type { VysledekPodani } from '../src/lib/podani/zpracovani';
 import { UKAZKOVA_TEMATA } from '../src/lib/temata/temata';
-import { feedDoStranky, polozkaUkazky, sestavitFeed } from '../src/lib/vzkazy/feed';
-import { kosinus, nejpodobnejsi } from '../src/lib/vzkazy/podobnost';
+import { feedDoStranky, sestavitFeed, temaZUkazky } from '../src/lib/vzkazy/feed';
+import { kosinus, podobnostVzkazu } from '../src/lib/vzkazy/podobnost';
+import { skrytVzkaz } from '../src/lib/vzkazy/temata';
+import type { TemaFeedu } from '../src/lib/vzkazy/typy';
 import { naBajty, vytvorPametoveUloziste, zBajtu } from '../src/lib/vzkazy/uloziste';
 
 const PUVOD = 'https://nezavisli-prisovice.cz';
@@ -32,8 +34,9 @@ function sestavit(moznosti: Parameters<typeof vytvorFalesneAi>[0] = {}) {
   const uloziste = vytvorPametoveUloziste();
   const log = vi.fn();
   const limiter = { limit: vi.fn(async () => ({ success: true })) };
-  const api = vytvorApi({ ai, index: vytvorFalesnyIndex([usek], () => 0.8), uloziste, limiter, log, klicPodpisu: KLIC });
-  return { api, uloziste, log, generovani };
+  // Bez ukázek: falešné embeddingy jsou všechny stejné a ukázky by se nabízely ke každému vzkazu.
+  const api = vytvorApi({ ai, index: vytvorFalesnyIndex([usek], () => 0.8), uloziste, limiter, log, klicPodpisu: KLIC, ukazky: [] });
+  return { api, uloziste, log, generovani, ai };
 }
 
 function zadost(cesta: string, telo: unknown, hlavicky: Record<string, string> = {}) {
@@ -73,18 +76,19 @@ describe('uložení potvrzeného vzkazu do feedu (13. 11. 2026)', () => {
     expect(podani.podpis).toMatch(/^[0-9a-f]{64}$/);
   });
 
-  it('návrh se uloží hned, u zodpovězeného dotazu i s odpovědí, a do logu nejde text', async () => {
+  it('potvrzený vzkaz se uloží jako nové téma i s odpovědí a do logu nejde text', async () => {
     const { api, uloziste, log } = sestavit({ vystupyUpravy: [uprava(DOTAZ)], vystupyGenerovani: [VETY, OVERENO] });
     const podani = await napsat(api, 'kdy je otevrena lekarna ve ctvrtek');
     const { status, vysledek } = await potvrdit(api, podani);
     expect(status).toBe(200);
     expect(vysledek?.vysledek).toBe('odpoved');
-    expect(vysledek?.vzkaz).toMatchObject({ ukazka: false, nazev: 'Otevírací doba lékárny', typ: 'dotaz', stav: 'zodpovezeno', text: DOTAZ });
-    expect(vysledek?.vzkaz?.odpoved?.zdroje[0].url).toBe('https://prisovice.cz/sluzby/zdravotni-stredisko/');
+    const tema = vysledek && 'tema' in vysledek ? vysledek.tema : undefined;
+    expect(tema).toMatchObject({ ukazka: false, nazev: 'Otevírací doba lékárny', typ: 'dotaz', stav: 'zodpovezeno', text: DOTAZ, pocet: 1 });
+    expect(tema?.odpoved?.zdroje[0].url).toBe('https://prisovice.cz/sluzby/zdravotni-stredisko/');
     expect(uloziste.vzkazy).toHaveLength(1);
-    expect(uloziste.vzkazy[0]).toMatchObject({ surovyText: 'kdy je otevrena lekarna ve ctvrtek', navrhText: DOTAZ, vstup: 'text', stav: 'zodpovezeno' });
-    const feed = await uloziste.feed(10);
-    expect(feed[0]).toMatchObject({ id: vysledek?.vzkaz?.id, stav: 'zodpovezeno' });
+    expect(uloziste.vzkazy[0]).toMatchObject({ surovyText: 'kdy je otevrena lekarna ve ctvrtek', navrhText: DOTAZ, vstup: 'text', stav: 'zodpovezeno', vztah: 'zakladatel' });
+    const feed = sestavitFeed(await uloziste.temataFeedu(10), []);
+    expect(feed[0]).toMatchObject({ id: tema?.id, stav: 'zodpovezeno' });
     expect(JSON.stringify(log.mock.calls)).not.toContain('lekarna');
     expect(JSON.stringify(log.mock.calls)).not.toContain('Lékárna');
   });
@@ -93,19 +97,21 @@ describe('uložení potvrzeného vzkazu do feedu (13. 11. 2026)', () => {
     const { api, uloziste, generovani } = sestavit({ vystupyUpravy: [uprava('Navrhuji lavičky u hřiště.', 'navrh')] });
     const podani = await napsat(api, 'navrhuji lavicky u hriste');
     const { vysledek } = await potvrdit(api, podani);
-    expect(vysledek).toMatchObject({ vysledek: 'nehleda', typ: 'navrh', vzkaz: { typ: 'navrh', stav: 'ceka' } });
+    expect(vysledek).toMatchObject({ vysledek: 'nehleda', typ: 'navrh', tema: { typ: 'navrh', stav: 'ceka' } });
     expect(uloziste.vzkazy).toHaveLength(1);
     expect(generovani).toHaveLength(0);
   });
 
-  it('opakované potvrzení téhož návrhu přepíše stejný vzkaz', async () => {
+  it('opakované potvrzení téhož návrhu přepíše stejný vzkaz i jeho téma', async () => {
     const { api, uloziste } = sestavit({ vystupyUpravy: [uprava('Navrhuji lavičky u hřiště.', 'navrh')] });
     const podani = await napsat(api, 'navrhuji lavicky u hriste');
     const prvni = await potvrdit(api, podani);
     const druhy = await api.fetch(zadost('/dotaz', { text: 'Navrhuji dvě lavičky u hřiště.', typ: 'navrh', ulozit: ulozit(podani) }));
     const data = await druhy.json() as VysledekDotazu;
-    expect(data.vzkaz?.id).toBe(prvni.vysledek?.vzkaz?.id);
+    expect(data.vzkazId).toBe(prvni.vysledek?.vzkazId);
+    expect(data.tema?.text).toBe('Navrhuji dvě lavičky u hřiště.');
     expect(uloziste.vzkazy).toHaveLength(1);
+    expect(uloziste.temata).toHaveLength(1);
     expect(uloziste.vzkazy[0].text).toBe('Navrhuji dvě lavičky u hřiště.');
   });
 
@@ -123,7 +129,7 @@ describe('uložení potvrzeného vzkazu do feedu (13. 11. 2026)', () => {
     const odpoved = await api.fetch(zadost('/dotaz', { text: DOTAZ, typ: 'dotaz' }));
     const data = await odpoved.json() as VysledekDotazu;
     expect(data.vysledek).toBe('odpoved');
-    expect(data.vzkaz).toBeUndefined();
+    expect('tema' in data).toBe(false);
     expect(uloziste.vzkazy).toHaveLength(0);
   });
 
@@ -136,51 +142,41 @@ describe('uložení potvrzeného vzkazu do feedu (13. 11. 2026)', () => {
     expect(uloziste.vzkazy[0]).toMatchObject({ styl: 'marvin', textStylu: null });
     await potvrdit(api, podani, { styl: 'marvin', textStylu: styl.text, podpisStylu: styl.podpis });
     expect(uloziste.vzkazy[0]).toMatchObject({ styl: 'marvin', textStylu: '(povzdech) Lavičky u hřiště. Marné.' });
-    expect((await uloziste.feed(1))[0]).toMatchObject({ styl: 'marvin', textStylu: '(povzdech) Lavičky u hřiště. Marné.' });
-  });
-
-  it('opakovaný dotaz dostane odkaz na dříve zodpovězený', async () => {
-    const { api } = sestavit({
-      vystupyUpravy: [uprava(DOTAZ), uprava('Jak dlouho má lékárna otevřeno ve čtvrtek?')],
-      vystupyGenerovani: [VETY, OVERENO, VETY, OVERENO],
-    });
-    const prvni = await potvrdit(api, await napsat(api, 'kdy je otevrena lekarna ve ctvrtek'));
-    const druhy = await potvrdit(api, await napsat(api, 'jak dlouho ma lekarna ve ctvrtek'));
-    const podobne = druhy.udalosti.find((u) => u.udalost === 'podobne');
-    expect(podobne).toEqual({ udalost: 'podobne', tema: { id: prvni.vysledek?.vzkaz?.id, nazev: 'Otevírací doba lékárny' } });
-    expect(druhy.vysledek?.vzkaz?.podobny).toEqual({ id: prvni.vysledek?.vzkaz?.id, nazev: 'Otevírací doba lékárny' });
+    expect(sestavitFeed(await uloziste.temataFeedu(1), [])[0]).toMatchObject({ styl: 'marvin', textStylu: '(povzdech) Lavičky u hřiště. Marné.' });
   });
 
   it('skrytý vzkaz z feedu zmizí', async () => {
-    const { api, uloziste } = sestavit({ vystupyUpravy: [uprava('Navrhuji lavičky u hřiště.', 'navrh')] });
+    const { api, uloziste, ai } = sestavit({ vystupyUpravy: [uprava('Navrhuji lavičky u hřiště.', 'navrh')] });
     const { vysledek } = await potvrdit(api, await napsat(api, 'navrhuji lavicky u hriste'));
-    expect(await uloziste.skryt(vysledek!.vzkaz!.id, true)).toBe(true);
-    expect(await uloziste.feed(10)).toEqual([]);
+    const id = vysledek?.vzkazId ?? '';
+    expect((await skrytVzkaz(id, true, { uloziste, ai, ukazky: [] })).vzkaz).toMatchObject({ skryto: true });
+    expect(sestavitFeed(await uloziste.temataFeedu(10), [])).toEqual([]);
   });
 });
 
+const TEMA: TemaFeedu = { id: 't-1', ukazka: false, nazev: 'N', text: 'T', typ: 'navrh', oblast: 'ostatni', stav: 'ceka', pocet: 1, cekajici: [], vzkazy: [] };
+
 describe('feed a podobnost', () => {
-  it('ukázky jsou ve feedu za uloženými vzkazy se štítkem Ukázka', () => {
-    const feed = sestavitFeed([{ id: 'v-1', ukazka: false, nazev: 'N', text: 'T', typ: 'navrh', oblast: 'ostatni', stav: 'ceka', styl: 'spisovne' }]);
-    expect(feed[0].id).toBe('v-1');
-    expect(feed.slice(1).every((p) => p.ukazka)).toBe(true);
-    expect(feed).toHaveLength(1 + UKAZKOVA_TEMATA.length);
+  it('ukázky jsou ve feedu za tématy se štítkem Ukázka, ukázka v databázi se neopakuje', () => {
+    const feed = sestavitFeed({ temata: [], ukazkyVDb: [] });
+    expect(feed).toHaveLength(UKAZKOVA_TEMATA.length);
+    expect(feed.every((t) => t.ukazka && t.pocet === 0)).toBe(true);
     const zodpovezena = UKAZKOVA_TEMATA.find((t) => t.odpoved)!;
-    expect(polozkaUkazky(zodpovezena)).toMatchObject({ id: zodpovezena.id, stav: 'zodpovezeno', ukazka: true });
+    expect(temaZUkazky(zodpovezena)).toMatchObject({ id: zodpovezena.id, stav: 'zodpovezeno', ukazka: true });
+    expect(sestavitFeed({ temata: [], ukazkyVDb: [zodpovezena.id] })).toHaveLength(UKAZKOVA_TEMATA.length - 1);
   });
 
   it('data feedu ve stránce nemohou ukončit značku script', () => {
-    const json = feedDoStranky([{ id: 'v-1', ukazka: false, nazev: '</script><script>alert(1)</script>', text: 'T', typ: 'navrh', oblast: 'ostatni', stav: 'ceka', styl: 'spisovne' }]);
+    const json = feedDoStranky([{ ...TEMA, nazev: '</script><script>alert(1)</script>' }]);
     expect(json).not.toContain('</script>');
     expect(JSON.parse(json)[0].nazev).toBe('</script><script>alert(1)</script>');
   });
 
-  it('kosinová podobnost a práh', () => {
+  it('kosinová podobnost a vyšší z podobnosti textu a názvu', () => {
     expect(kosinus([1, 0], [1, 0])).toBeCloseTo(1);
     expect(kosinus([1, 0], [0, 1])).toBeCloseTo(0);
-    const kandidati = [{ id: 'a', nazev: 'A', vektor: new Float32Array([1, 0]) }, { id: 'b', nazev: 'B', vektor: new Float32Array([0.6, 0.8]) }];
-    expect(nejpodobnejsi([1, 0.1], kandidati)?.id).toBe('a');
-    expect(nejpodobnejsi([0, 1], kandidati, 0.9)).toBeNull();
+    expect(podobnostVzkazu({ vektor: [1, 0], vektorNazvu: [0, 1] }, { vektor: [0, 1], vektorNazvu: [0, 1] })).toBeCloseTo(1);
+    expect(podobnostVzkazu({ vektor: [1, 0], vektorNazvu: null }, { vektor: [0, 1], vektorNazvu: [0, 1] })).toBeCloseTo(0);
   });
 
   it('vektor projde uložením do bajtů beze změny', () => {
