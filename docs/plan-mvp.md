@@ -1,8 +1,8 @@
 # Plán MVP po krocích
 
-*Stav k 9. 11. 2026. Kroky vychází z diagramu toku v PRD (sekce Uživatelské scénáře), písmena odkazují na jeho uzly.*
+*Stav k 13. 11. 2026. Kroky vychází z diagramu toku v PRD (sekce Uživatelské scénáře), písmena odkazují na jeho uzly.*
 
-**Plánování je uzavřené (6. 11. 2026).** Rozepsané jsou kroky 1 až 4 a krok 8 (rozpis schválený 9. 11. 2026). Další kroky se rozepíšou, až na ně přijde řada. Další fáze je testování, viz [poslední oddíl](#další-fáze-testování).
+**Plánování je uzavřené (6. 11. 2026).** Rozepsané jsou kroky 1 až 4 a krok 8 (rozpis schválený 9. 11. 2026). Krok 8 je hotový a nasazený včetně rozšíření 8.10 až 8.18. Další kroky se rozepíšou, až na ně přijde řada. Stav a co zbývá je v [posledním oddílu](#další-fáze-testování).
 
 ## Kroky
 
@@ -147,8 +147,8 @@ Cílem je, aby autor návrh AI zkontroloval, opravil a potvrdil (F-14). Teprve p
 | # | Dílčí krok | Hotovo, když |
 |---|---|---|
 | 4.1 | Formulář: upravený text, název, typ a oblast jdou opravit, pod formulářem je původní přepis k porovnání. Potvrdit ověří pole a ukáže souhrn, Zahodit se před zahozením zeptá. | Hotovo 9. 11. 2026 na ostré adrese. Potvrzení zatím nic neodesílá. |
-| 4.2 | Podpis (3.3): server podepíše surový přepis a návrh AI a při potvrzení podpis ověří. | Test ověří, že server podvržený surový přepis odmítne. |
-| 4.3 | Uložení: potvrzený podnět s polem `vstup`, surovým přepisem a textem autora do D1 (datový model z 1.4). Jestli se uloží i návrh AI, rozhodne se tady. | Podnět potřebuje autora, proto 4.2 a 4.3 přijdou s přihlášením z kroku 5. |
+| 4.2 | Podpis (3.3): server podepíše surový přepis a návrh AI a při potvrzení podpis ověří. | Test ověří, že server podvržený surový přepis odmítne. **Hotovo 13. 11. 2026 v kroku 8.17:** server podepisuje vstup, surový text a návrh úpravy (HMAC, `KLIC_PODPISU`) a vzkaz uloží, jen když podpis sedí. |
+| 4.3 | Uložení: potvrzený podnět s polem `vstup`, surovým přepisem a textem autora do D1 (datový model z 1.4). Jestli se uloží i návrh AI, rozhodne se tady. | Podnět potřebuje autora, proto 4.2 a 4.3 přijdou s přihlášením z kroku 5. **Od 13. 11. 2026 hotové bez přihlášení jako feed (8.17):** potvrzený vzkaz se surovým textem i návrhem AI jde do tabulky `vzkaz` v D1, bez autora. Vazba na autora přijde s přihlášením z kroku 5. Podrobnosti v [feed-vzkazu.md](feed-vzkazu.md). |
 
 **Jak je postavený 4.1:**
 
@@ -293,14 +293,16 @@ Testuje se od největšího rizika. Každý test může změnit plán, proto se 
 
 Testuje se lokálně a rovnou na ostré adrese nezavisli-prisovice.cz/ucho, bez neveřejných náhledů (rozhodnuto 6. 11. 2026). Web má malou návštěvnost, rozpracovaná stránka tam proto nevadí.
 
-**Stav k 9. 11. 2026:** kostra (1.2, z 1.3 zatím jen rozhraní AI), stránka podání (2.1 až 2.5), přepis (3.1), AI úprava (3.2, 3.4, z 3.3 vše kromě podpisu) a formulář k opravě a potvrzení (4.1) běží na ostré adrese. Testy 1 a 2 jsou hotové ve Windows. Na Opeře pro Android prošly tři namluvené vzkazy a jeden na 3 minuty, rám tam ještě čeká. Whisper přijal nahrávky z Chromia na počítači i z Androidu a tři minuty vcelku, takže WAV ani dělení nahrávky nejsou potřeba. Výsledky jsou v [test-zarizeni.md](test-zarizeni.md).
+**Stav k 13. 11. 2026:** na ostré adrese běží kostra, stránka podání (2.1 až 2.5), přepis (3.1), AI úprava (3.2 až 3.4), oprava a potvrzení (4.1) a celý krok 8 (8.1 až 8.18): index zdrojů, odpověď s citací po částech, přehled témat, alternativní mluvčí, feed vzkazů s uložením do D1 a ucho jako aplikace na ploše. Testy 1 a 2 jsou hotové ve Windows. Na Opeře pro Android prošly tři namluvené vzkazy a jeden na 3 minuty. Rám, odpověď s citací, feed a instalace na plochu tam ještě čekají. Whisper přijal nahrávky z Chromia na počítači i z Androidu a tři minuty vcelku, takže WAV ani dělení nahrávky nejsou potřeba. Výsledky jsou v [test-zarizeni.md](test-zarizeni.md).
 
-**Další na řadě (9. 11. 2026):** krok 8, index webu a odpověď s citací, v samostatné session. Zadání i pravidlo, kdy je krok hotový, jsou v [zadani-krok-8.md](zadani-krok-8.md). Součástí jsou ukázkové dotazy, které do kroku 11 slouží jako testovací sada (rozhodnutí v `CLAUDE.md`). Průzkum (8.1) je hotový a [rozpis kroku 8](#krok-8-index-webu-a-odpověď-s-citací) Tomáš schválil 9. 11. 2026. Sadu typových otázek (8.2) Tomáš schválil 10. 11. 2026. Index, odpověď a stránka (8.3 až 8.7) jsou hotové a od 10. 11. 2026 běží na ostré adrese. Zbývá závěrečný běh vyhodnocení (8.8) a test na Opeře pro Android.
+**Krok 8 (9. až 13. 11. 2026):** běžel v samostatné session podle [zadání](zadani-krok-8.md) a je sloučený do hlavní větve (PR #1 a #2). Vyhodnocení (8.8) je v [vyhodnoceni-odpovedi.md](vyhodnoceni-odpovedi.md). Ukázkové dotazy slouží do kroku 11 jako testovací sada (rozhodnutí v `CLAUDE.md`).
 
-Podpis výsledku (3.3, 4.2) a uložení (4.3) přijdou s přihlášením: dokud se nic neukládá, nikdo by podpis neověřoval. Autor teď návrh AI opraví a potvrdí, potvrzený vzkaz se ale nikam neuloží. Model úpravy je vybraný předběžně, krok 3.6 stále čeká na testovací sadu.
+**Co zbývá:** test na Opeře pro Android podle [test-zarizeni.md](test-zarizeni.md) a první skutečný vzkaz ve feedu (zkušební by se hned zveřejnil). Kroky 5 až 7 a 9 až 12 se rozepíšou, až na ně přijde řada.
+
+Podpis (4.2) a uložení (4.3) jsou od 13. 11. 2026 hotové bez přihlášení jako součást feedu (8.17). Vazba vzkazu na autora přijde s přihlášením (krok 5). Model úpravy je vybraný předběžně, krok 3.6 stále čeká na testovací sadu.
 
 K nasazení stačí přihlášení Wranglerem (`wrangler login`), nebo API token s oprávněním pro Workers AI a pro nasazení Workeru na doménu nezavisli-prisovice.cz. Token patří jen do proměnné prostředí, ne do repozitáře.
 
-Živé PRD v Claude Docs je od 6. 11. 2026 ve verzi 0.9 a rozhodnutí z 1. až 6. 11. 2026 obsahuje.
+Živé PRD v Claude Docs je od 6. 11. 2026 ve verzi 0.9 a rozhodnutí z 1. až 6. 11. 2026 obsahuje. Rozšíření MVP z 9. až 13. 11. 2026 (ukázky, Word a OCR, Tlampač a podklady, dotaz po částech, mluvčí, feed a aplikace na ploše) v něm k 13. 11. 2026 nejsou. Popisuje je `CLAUDE.md` a tento plán.
 
 Vzhled stránek ucha se bere z webu Nezávislých (barvy, písma, dialog), viz [Oblasti a web](oblasti-a-web.md#vzhled).

@@ -3,6 +3,8 @@
 6. 11. 2026 · verze 0.9 (návrh k revizi)
 
 > Export z Claude Docs. Živá verze, ve které se PRD dál upravuje: https://claude.ai/artifact/1uqzdxoYxj8jR45McMdo3Z. Diagramy jsou tady přepsané do Mermaid.
+>
+> Rozšíření MVP z 9. až 13. 11. 2026 (ukázky, Word a OCR, Tlampač a podklady, dotaz po částech, alternativní mluvčí, feed vzkazů a aplikace na ploše) tu ani v živé verzi zatím nejsou. Popisují je rozhodnutí v `CLAUDE.md` a [plán MVP](plan-mvp.md).
 
 ## Shrnutí
 
