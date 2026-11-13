@@ -1,8 +1,8 @@
 import os from 'node:os';
 import path from 'node:path';
 
-// Okno 2 let (rozhodnuto 9. 11. 2026, docs/plan-mvp.md, krok 8). Platí pro aktuality, úřední desku a jejich PDF.
-export const OKNO_OD = '2024-11-09';
+// Okno 4 let (2 roky rozhodnuty 9. 11. 2026, rozšířeno na 4 roky 13. 11. 2026, docs/plan-mvp.md, krok 8). Platí pro aktuality, úřední desku a jejich PDF.
+export const OKNO_OD = '2022-11-09';
 export const OKNO_OD_MESIC = OKNO_OD.slice(0, 7);
 
 // Obecný název bez osobních údajů (zadání kroku 8).

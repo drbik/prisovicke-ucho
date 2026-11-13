@@ -1,5 +1,5 @@
 // Krok 8.3: ruční stažení zdrojů pro index (npm run index:stahnout). Pravidelný běh do MVP nepatří (F-71).
-// Bere prisovice.cz v okně 2 let a karty projektů z ostrého webu Nezávislých. Stažené soubory ukládá mimo git.
+// Bere prisovice.cz v okně 4 let a karty projektů z ostrého webu Nezávislých. Stažené soubory ukládá mimo git.
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';

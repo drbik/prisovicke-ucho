@@ -87,7 +87,7 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 - Další je krok 8: index webu a odpověď s citací. Běží v samostatné session podle `docs/zadani-krok-8.md`. (Hotový a sloučený do hlavní větve 13. 11. 2026, PR #1 a #2.)
 - Zdroje odpovědí: prisovice.cz včetně PDF a publikované karty projektů z webu Nezávislých. `akce-prisovice-timeline.md` se do indexu nikdy nedostane. Odpověď z webu Nezávislých se označí „Podle webu Nezávislých pro Příšovice“, ne „Odpověď z webu obce“.
 - Ukázkové dotazy: jen jasně označené ukázky od týmu, bez vymyšlených autorů a hlasů, s odpověďmi ze skutečných zdrojů. Do té doby, než bude veřejný seznam témat (krok 11), slouží jako testovací sada kroku 8. Je to rozšíření MVP se souhlasem Tomáše.
-- Stahování i index prisovice.cz zatím jen za poslední 2 roky, od 9. 11. 2024. Platí to pro aktuality, úřední desku a PDF. Jak okno platí pro stálé stránky, řeší rozpis kroku 8 v `docs/plan-mvp.md`.
+- Stahování i index prisovice.cz zatím jen za poslední 2 roky, od 9. 11. 2024. Platí to pro aktuality, úřední desku a PDF. Jak okno platí pro stálé stránky, řeší rozpis kroku 8 v `docs/plan-mvp.md`. (Od 13. 11. 2026 okno 4 roky, viz rozhodnutí 13. 11. 2026, index.)
 
 ## Rozhodnutí (10. 11. 2026)
 
@@ -132,6 +132,10 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 - Nahoře ve feedu je heslovitě „Zkušební provoz · ukázkové dotazy a odpovědi · vzkazy se zveřejňují bez jména · nejde o úřední vyjádření obce“. Feed netvrdí, že ukázky připravil tým (Tomáš: to není pravda).
 - Podrobnosti jsou v `docs/feed-vzkazu.md`.
 - Ucho jde přidat na plochu telefonu jako aplikace (PWA). Manifest a service worker leží pod `/ucho`, web Nezávislých se nemění. Service worker nic neukládá do mezipaměti. Podrobnosti v `docs/pwa.md`.
+
+## Rozhodnutí (13. 11. 2026, index)
+
+- Okno stahování a indexu prisovice.cz je 4 roky, od 9. 11. 2022 (`OKNO_OD` v `nastroje/index/nastaveni.ts`). Platí pro aktuality, úřední desku a jejich PDF, stálé stránky se berou celé jako dosud. Zadal Tomáš 13. 11. 2026, protože na ostré adrese chyběly informace o vánočních trzích a rozsvícení stromu. Ostatní výjimky platí dál, `akce-prisovice-timeline.md` do indexu nikdy nepatří. Počty jsou v `docs/index-zdroju.md`.
 
 ## MVP (prezentační verze)
 

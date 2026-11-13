@@ -1,10 +1,26 @@
 # Index zdrojů pro odpovědi z webu
 
-*Krok 8 z [plánu MVP](plan-mvp.md#krok-8-index-webu-a-odpověď-s-citací). Stav indexu k 12. 11. 2026 večer. Tabulka zdrojů níže je ze 10. 11. 2026.*
+*Krok 8 z [plánu MVP](plan-mvp.md#krok-8-index-webu-a-odpověď-s-citací). Stav indexu k 13. 11. 2026 (okno 4 roky). Tabulka zdrojů níže je ze 13. 11. 2026.*
 
 Index drží text webu obce prisovice.cz a veřejný obsah webu Nezávislých pro Příšovice (karty projektů, Tlampač a podklady). Z něj ucho hledá odpověď na potvrzený dotaz (F-70 až F-76). Index se aktualizuje jen ručně (F-71). Pravidelný běh do MVP nepatří.
 
 ## Co v indexu je
+
+**Okno 4 roky (13. 11. 2026, zadal Tomáš):** okno pro aktuality, úřední desku a jejich PDF je od 9. 11. 2022 místo od 9. 11. 2024. Stahování poslalo 241 požadavků a stáhlo 225 souborů: 11 aktualit, 92 položek úřední desky a 122 příloh. Mezi nimi jsou i aktuality zveřejněné 12. 11. 2026. Word převedl 7 nových dokumentů, OCR přečetlo 65 nových stran. Mimo okno teď nezůstalo nic: nejstarší aktualita a položka desky v sitemapě jsou z 22. 11. 2022, takže 4 roky pokrývají vše, co obec ve WordPressu zveřejnila.
+
+| | Před (12. 11. 2026) | Po (13. 11. 2026) |
+|---|---|---|
+| Dokumenty v D1 | 436 | 552 |
+| Úseky v D1 | 3 070 | 5 069 |
+| Vektory ve Vectorize | 3 070 | 5 069 |
+| Embeddingy spočítané při nahrání | 1 043 | 2 004 |
+| Odhad neuronů | asi 540 | asi 1 040 |
+
+Odhad neuronů vychází z poměru předchozích nahrání (zhruba 0,52 neuronu na úsek). Opory všech typových otázek zůstaly v úsecích svých zdrojů (`kontrola-sady.ts`).
+
+**Co okno 4 let nepřineslo:** pozvánky na vánoční jarmark 21. a 22. 11. 2026, rozsvícení vánočního stromečku 27. 11. 2026 a koncert My Gospel 5. 12. 2026 jsou aktuality z 12. 11. 2026, které mají jen nadpis a obrázek pozvánky (JPG a PNG). Bez vlastního textu jdou mezi obálky a do indexu se nedostanou, stejně jako starší aktuality Vánoční prodejní trhy 2023 a Rozsvícení vánočního stromečku (únor 2024). Hledání „Kdy budou vánoční trhy?“ proto najde jen zmínky v zápisech rady, ne pozvánku. Text obrázků by dodalo OCR obrázků v aktualitách, to je rozšíření MVP a čeká na rozhodnutí Tomáše.
+
+**Kontrola ukázek po rozšíření:** dvě čekající ukázky teď v indexu něco najdou, protože do okna přibyly zápisy rady z roku 2024. „Výdejní box na balíky“ najde usnesení rady č. 199/2024 o rozšíření Z-boxu Zásilkovny (zápis 16/2024 z 9. 10. 2024). „Nabíječka na elektroauto v obci“ najde žádosti o nabíjecí stanice v zápisech rady 1/2024 a 3/2024. Ukázky se nezměnily, rozhodne Tomáš.
 
 **Obnova 12. 11. 2026 večer:** web obce stažen znovu (5 nových souborů: 3 aktuality, 1 PDF a 1 položka úřední desky), zpracováno se sloupci tabulek v PDF a nahráno. V D1 je 436 dokumentů a 3 070 úseků, ve Vectorize 3 070 vektorů. Embeddingy se počítaly pro 1 043 nových nebo změněných úseků, odhadem asi 540 neuronů. Ostré ucho odpovídá z tohoto indexu.
 
@@ -12,14 +28,14 @@ Index drží text webu obce prisovice.cz a veřejný obsah webu Nezávislých pr
 
 | Zdroj | Dokumentů | Úseků | Znaků |
 |---|---|---|---|
-| Stálé stránky prisovice.cz | 51 | 101 | 82 314 |
-| Aktuality | 33 | 48 | 33 739 |
-| Přílohy: PDF, Word a ODT (úřední deska, aktuality, stálé stránky) | 320 | 2 829 | 2 585 037 |
+| Stálé stránky prisovice.cz | 55 | 115 | 95 333 |
+| Aktuality | 39 | 56 | 38 566 |
+| Přílohy: PDF, Word a ODT (úřední deska, aktuality, stálé stránky) a Tlampač a podklady webu Nezávislých | 434 | 4 873 | 4 528 543 |
 | Karty projektů z webu Nezávislých | 24 | 25 | 12 945 |
-| Tlampač a podklady webu Nezávislých | 7 | 18 | 15 602 |
-| **Celkem** | **435** | **3 021** | **2 729 637** |
+| **Celkem** | **552** | **5 069** | **4 675 387** |
 
-- Z příloh je 30 dokumentů Word a ODT (34 stažených, 4 duplicitní) a 48 PDF s textem z OCR (188 stran). Takový zdroj má v názvu „text rozpoznaný ze skenu“, nebo „část textu rozpoznaná ze skenu“, protože rozpoznání může obsahovat chyby. V odpovědi rozhoduje znění dokumentu.
+- Tlampač a podklady (7 dokumentů) skript počítá mezi přílohy. Do 12. 11. 2026 tabulka uváděla stav z 10. 11. 2026: 435 dokumentů a 3 021 úseků.
+- Z příloh je 41 dokumentů Word a ODT a 67 PDF s textem z OCR (241 stran, 41 stran nečitelných). Do 12. 11. 2026 to bylo 30 dokumentů Word a ODT a 48 PDF s OCR (188 stran). Takový zdroj má v názvu „text rozpoznaný ze skenu“, nebo „část textu rozpoznaná ze skenu“, protože rozpoznání může obsahovat chyby. V odpovědi rozhoduje znění dokumentu.
 - Nahrání spočítalo embeddingy jen pro 617 nových nebo změněných úseků, odhadem asi 320 neuronů. Vectorize hlásil plný počet vektorů zhruba 3 minuty po nahrání.
 - Před rozšířením bylo v D1 357 dokumentů a 2 435 úseků, ve Vectorize 2 435 vektorů.
 - Tlampač a podklady (rozšíření z 10. 11. 2026 večer, nahráno: D1 435 dokumentů a 3 021 úseků, Vectorize 3 021 vektorů, embeddingy jen pro 18 nových úseků):
@@ -29,22 +45,24 @@ Index drží text webu obce prisovice.cz a veřejný obsah webu Nezávislých pr
   - **Co se nečte nikdy:** `akce-prisovice-timeline.md` z projektu webu s neveřejnými záměry a neověřenými údaji, a vůbec žádný soubor ze složky projektu webu. Všechno se stahuje z veřejného webu stejně jako karty. Stránka Archiv voleb se neindexuje, protože uvádí profese soukromých osob.
   - **robots.txt:** web Nezávislých povoluje všem robotům vyhledávání a čtení (`Content-Signal: search=yes, ai-train=no`) a skript ho respektuje. Obsah slouží jen k hledání odpovědí, k žádnému učení modelů.
 - Stránky úřední desky jsou samostatně v indexu 0krát. Na webu obce jsou jen obálkou s odkazem na PDF a jejich název a datum nese PDF.
-- Okno: aktuality, úřední deska a jejich PDF zveřejněné od 9. 11. 2024. Stálé stránky se berou celé, i se staršími PDF, na která odkazují (rozhodnuto 9. 11. 2026).
+- Okno: aktuality, úřední deska a jejich PDF zveřejněné od 9. 11. 2022 (4 roky, rozhodnuto 13. 11. 2026, do té doby 2 roky od 9. 11. 2024). Stálé stránky se berou celé, i se staršími PDF, na která odkazují (rozhodnuto 9. 11. 2026).
 - Karty: všech 24 karet z titulní stránky nezavisli-prisovice.cz. Text se bere z ostrého webu. Skript kontroluje, že slugy karet souhlasí se soubory `src/content/projects/` v projektu webu, a ten projekt jen čte. `akce-prisovice-timeline.md` se nečte vůbec.
 
 ## Co v indexu není (známá omezení)
 
 | Co | Počet | Proč |
 |---|---|---|
-| Aktuality a položky úřední desky zveřejněné před 9. 11. 2024 | 11 aktualit, 94 položek desky | Okno 2 let |
+| Aktuality a položky úřední desky zveřejněné před 9. 11. 2022 | 0 | Okno 4 let. Nejstarší položky v sitemapě jsou z 22. 11. 2022, okno tak zatím nic nevynechává. Při okně 2 let mimo zůstávalo 11 aktualit a 94 položek desky. |
+| Aktuality, jejichž obsah je jen obrázek | 35 stránek bez textu, mezi nimi pozvánky na vánoční jarmark, rozsvícení stromečku a koncert | Text v obrázku index nečte, OCR obrázků čeká na rozhodnutí |
 | Řízení soukromých osob na úřední desce | 15 položek a 15 PDF | Dražby, exekuce, stavební řízení o rodinných domech, přístavbách, tůních a dělení pozemků (rozhodnuto 9. 11. 2026). Názvy se sem kvůli osobním údajům nezapisují. |
 | Výpisové stránky | 5 | Aktuality, Aktuálně, Úřední deska, Archiv úřední desky a Mapa stránek jen opakují texty položek |
-| Stránky bez vlastního textu | 292 | Rozcestníky, galerie a obálky úřední desky. Kde odkazují na PDF, je v indexu PDF. |
-| Skeny, ze kterých OCR nepřečte nic použitelného | 7 PDF po 1 straně | Mapy, ocenění, plánek směny pozemků a dvě oznámení o vstupu na pozemky se samými výkresy |
-| Strany bez použitelného textu v jinak čitelných PDF | 34 stran v 16 PDF | Výkresy, mapy, grafy a přílohy havarijního plánu. OCR z nich dá jen útržky (do 25 slov), filtr je do indexu nepustí. |
-| Dokumenty v jiném formátu | 27 (21 xlsx, 4 xls, 2 zip) | Excel a zip zůstávají mimo index (rozhodnuto 10. 11. 2026). Patří sem návrh rozpočtu v Excelu. |
-| Odkazy na jiné weby | 23 | Stará úřední deska prisovice.e-obec.cz (nesleduje se, rozhodnuto 24. 10. 2026) a portál CENIA |
-| Duplicitní PDF | 24 | Obec stejný dokument zveřejnila dvakrát pod jinou adresou. V indexu je jedna kopie. |
+| Stránky bez vlastního textu | 398 | Rozcestníky, galerie a obálky úřední desky. Kde odkazují na PDF, je v indexu PDF. |
+| Skeny, ze kterých OCR nepřečte nic použitelného | 9 PDF | Mapy, ocenění, plánek směny pozemků a dvě oznámení o vstupu na pozemky se samými výkresy |
+| Strany bez použitelného textu v jinak čitelných PDF | 41 stran nečitelných pro OCR, 21 PDF se stranami bez textu | Výkresy, mapy, grafy a přílohy havarijního plánu. OCR z nich dá jen útržky (do 25 slov), filtr je do indexu nepustí. |
+| Dokumenty v jiném formátu | 32 | Excel a zip zůstávají mimo index (rozhodnuto 10. 11. 2026). Patří sem návrh rozpočtu v Excelu. |
+| Odkazy na jiné weby | 22 | Stará úřední deska prisovice.e-obec.cz (nesleduje se, rozhodnuto 24. 10. 2026) a portál CENIA |
+| PDF, které web vrací s chybou 404 | 1 | Informace o GDPR odkázaná z odpovědi podle zákona 106 z listopadu 2022 |
+| Duplicitní PDF | 36 | Obec stejný dokument zveřejnila dvakrát pod jinou adresou. V indexu je jedna kopie. |
 
 **Skeny, které ucho díky OCR nově přečte.** Před rozšířením byly mimo index, odpovědi na ně končily u zastupitelů. Nejdůležitější z nich:
 
