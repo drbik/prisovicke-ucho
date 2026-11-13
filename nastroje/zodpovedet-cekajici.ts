@@ -1,6 +1,7 @@
 // Čekající dotazy po obnově indexu (Tomáš 13. 11. 2026): vzkazy ve feedu a čekající ukázky znovu projdou stejným
 // hledáním, odpovědí a ověřením jako na stránce. Kde index teď odpověď má, je to odpověď z webu se zdroji, ne odpověď úřadu.
-//   npx tsx nastroje/zodpovedet-cekajici.ts   vypíše odpovědi, výsledek uloží do složky dat
+//   npx tsx nastroje/zodpovedet-cekajici.ts              vypíše odpovědi, výsledek uloží do složky dat
+//   npx tsx nastroje/zodpovedet-cekajici.ts ukazka-24    jen vybrané ukázky nebo témata
 // Nic nezapisuje. Čekající témata čte z tabulky tema ostré D1 (témata ve feedu, PR #4). Odpověď k tématu se zapíše
 // jako platná část odpovědi z webu (řádek odpoved, puvod web) a téma dostane stav zodpovezeno-z-webu, viz docs/index-zdroju.md.
 // Ukázky v src/lib/temata/ukazky.json se nemění samy, výstup slouží k ruční úpravě a kontrole.
@@ -40,7 +41,8 @@ try {
     ...ukazky.temata.filter((t) => t.typ === 'dotaz' && t.stav === 'ceka-na-spravce')
       .map((t) => ({ druh: 'ukazka' as const, id: t.id, nazev: t.nazev, text: t.text })),
   ];
-  for (const dotaz of cekajici) {
+  const vybrane = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+  for (const dotaz of cekajici.filter((d) => !vybrane.length || vybrane.includes(d.id))) {
     const zacatek = Date.now();
     let vysledek: VysledekOdpovedi;
     try {
