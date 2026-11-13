@@ -322,6 +322,14 @@ Práh 0,65 zůstává. Práh 0,68 by měkký cíl skoro splnil, ale u povinného
 
 **Čas a cena.** Nabídka trvala v mediánu 0,22 s (embedding a úložiště v paměti, D1 přidá čtení vektorů). Běh stál asi 1 800 neuronů, z toho 1 540 AI úprava 95 vzkazů a 230 nové otázky.
 
+## Nasazení (13. 11. 2026)
+
+- Tomáš schválil migraci a nasazení 13. 11. 2026.
+- Migrace `0003_temata.sql` na ostré D1 a nasazení Workeru `prisovicke-ucho`, verze **9c80fdb6** z commitu c8c34e3.
+- Převod: `npx tsx nastroje/vzkazy.ts prevest --provest` založil téma `t-580m151b2i` pro `v-2j1g3o2u57`, potom `presunout v-2j1g3o2u57 ukazka-03 poddotaz` vzkaz připojil k ukázce o Sokolovně. Téma `t-580m151b2i` je sloučené do `ukazka-03`. Odpověď tématu má 3 věty a 2 zdroje: cena sálu je jen jednou (z ukázky), kontakt na správce a věk 18 let doplnil vzkaz.
+- Na ostré adrese ověřeno: feed se načte po tématech (32 položek), Sokolovna je jedno téma s jednou odpovědí a jedním připojeným vzkazem, Hospoda a Pítko u Sokolovny jsou samostatná témata, konzole je bez chyb.
+- Zkušební vzkaz na ostré adrese se neposílal (zveřejnil by se).
+
 ## Rizika
 
 - **Nabídka jiných témat.** Na stejném místě bývají různá témata s podobností až 0,76. Autor je odmítne jedním klikem. Kdyby jich bylo moc, jde před nabídku přidat jazykový model, který v měření jiná témata poznal všechna (stojí ale 2 až 7 s a 10 neuronů).

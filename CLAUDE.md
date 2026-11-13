@@ -31,6 +31,8 @@ Cloudová session k nim nemá přístup. V lokální session je zpřístupni jen
 - `docs/vyhodnoceni-odpovedi.md` – výsledky běhů vyhodnocení odpovědí nad typovými otázkami.
 - `docs/navrh-alternativni-mluvci.md` – alternativní mluvčí: jak převyprávění funguje, pojistky a výsledky zkoušky se skutečnou AI.
 - `docs/feed-vzkazu.md` – ukládání potvrzených vzkazů, feed vedle ucha, opakovaný dotaz a skrytí nevhodného vzkazu.
+- `docs/temata-feedu.md` – témata ve feedu: návrh, měření, vyhodnocení na sadě a nasazení.
+- `docs/sada-temat.md` – schválená sada pro sdružování vzkazů do témat (strojově v `tests/data/sada-temat.json`).
 - `docs/pwa.md` – ucho jako aplikace na ploše telefonu: manifest, service worker, ikony.
 
 Požadavky mají ID (F-01 až F-83) a prioritu MVP / Později / Zvážit. V commitech a kódu na ně odkazuj.
@@ -131,6 +133,13 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 - Lokální vývoj ukládá vzkazy jen do paměti, ne do ostré databáze.
 - Nahoře ve feedu je heslovitě „Zkušební provoz · ukázkové dotazy a odpovědi · vzkazy se zveřejňují bez jména · nejde o úřední vyjádření obce“. Feed netvrdí, že ukázky připravil tým (Tomáš: to není pravda).
 - Podrobnosti jsou v `docs/feed-vzkazu.md`.
+## Rozhodnutí (13. 11. 2026, témata)
+
+- Feed ukazuje témata, ne jednotlivé vzkazy (F-33 až F-37, F-81). Téma má hlavní dotaz, jednu odpověď složenou z ověřených vět, poddotazy a připojené vzkazy. Je to rozšíření MVP pro zkušební provoz, zadal ho Tomáš.
+- Po potvrzení ucho nabídne nejvýš 3 podobná témata stejného typu (embedding textu i názvu, práh 0,65). Autor zvolí „Je to totéž“, „Ptám se na víc“ (u návrhů „Doplňuji to“), nebo „Je to jiné téma“. Nic se nesloučí samo a před volbou se nic neukládá (F-14).
+- Odpověď tématu se skládá z částí, AI ji nepřepisuje. Kód nepustí opakovanou větu, rozpor zdrojů posoudí model a novější zdroj vyhraje. Starší část jde ke kontrole, nic se nemaže. Ukázky jsou témata. Tým témata opravuje příkazy v `nastroje/vzkazy.ts` (úprava v rozhraní je Později, F-38).
+- Podrobnosti, měření a výsledky jsou v `docs/temata-feedu.md`.
+
 - Ucho jde přidat na plochu telefonu jako aplikace (PWA). Manifest a service worker leží pod `/ucho`, web Nezávislých se nemění. Service worker nic neukládá do mezipaměti. Podrobnosti v `docs/pwa.md`.
 
 ## MVP (prezentační verze)
