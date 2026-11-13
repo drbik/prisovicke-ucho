@@ -61,3 +61,14 @@ export function jeCitelnyOcr(text: string) {
   const slova = utrzky.filter((utrzek) => /^[„"(]?\p{L}{3,}[.,;:!?)"“]*$/u.test(utrzek));
   return slova.length >= MIN_SLOV_OCR && slova.length / utrzky.length >= MIN_PODIL_SLOV;
 }
+
+// Pozvánka nebo plakát má málo slov (jarmark 20, koncert 15), stránka skenu stovky. Mapy a fotografie dají
+// útržky s nízkým podílem slov (mapa objízdné trasy 7 z 34). Podle OCR 17 obrázků z 13. 11. 2026.
+export const MIN_SLOV_OCR_OBRAZKU = 10;
+const MIN_PODIL_SLOV_OBRAZKU = 0.4;
+
+export function jeCitelnyObrazek(text: string) {
+  const utrzky = text.split(/\s+/).filter(Boolean);
+  const slova = utrzky.filter((utrzek) => /^[„"(]?\p{L}{3,}[.,;:!?)"“]*$/u.test(utrzek));
+  return slova.length >= MIN_SLOV_OCR_OBRAZKU && slova.length / utrzky.length >= MIN_PODIL_SLOV_OBRAZKU;
+}

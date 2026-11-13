@@ -1,11 +1,12 @@
 // Krok 8.3: ruční stažení zdrojů pro index (npm run index:stahnout). Pravidelný běh do MVP nepatří (F-71).
-// Bere prisovice.cz v okně 2 let a karty projektů z ostrého webu Nezávislých. Stažené soubory ukládá mimo git.
+// Bere prisovice.cz v okně 4 let a karty projektů z ostrého webu Nezávislých. Stažené soubory ukládá mimo git.
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { precistKarty } from './karty';
 import {
+  MAX_OBRAZKU_CLANKU,
   OKNO_OD,
   OKNO_OD_MESIC,
   SLOZKA_DAT,
@@ -21,6 +22,7 @@ import {
   formatPrilohy,
   mesicNahrani,
   nacistJson,
+  souborObrazku,
   souborPrilohy,
   souborStavu,
   ulozitJson,
@@ -40,6 +42,7 @@ const pocty = { stazeno: 0, bezeZmeny: 0 };
 await fs.mkdir(path.join(SLOZKA_DAT, 'html'), { recursive: true });
 await fs.mkdir(path.join(SLOZKA_DAT, 'pdf'), { recursive: true });
 await fs.mkdir(path.join(SLOZKA_DAT, 'word'), { recursive: true });
+await fs.mkdir(path.join(SLOZKA_DAT, 'obrazky'), { recursive: true });
 
 async function stahnoutText(url: string) {
   const vysledek = await stahovac.stahnout(url);
@@ -74,6 +77,8 @@ await ulozitJson(path.join(SLOZKA_DAT, 'rest.json'), Object.fromEntries(datumRes
 // 4. Stránky, aktuality a položky úřední desky.
 interface Rodic { url: string; typ: TypPolozky; datum: string | null; soukrome: boolean }
 const odkazy = new Map<string, { text: string; rodice: Rodic[] }>();
+// Obrázky pozvánek a plakátů pro OCR a článek, ve kterém jsou (rozšíření z 13. 11. 2026).
+const obrazky = new Map<string, string>();
 
 for (const [poradi, polozka] of polozky.entries()) {
   const { url, lastmod, typ } = polozka;
@@ -128,6 +133,9 @@ for (const [poradi, polozka] of polozky.entries()) {
   if (soukrome) {
     zaznam.stav = 'vynechano';
     zaznam.duvod = 'řízení soukromé osoby';
+  }
+  if (typ !== 'stranka' && !soukrome && clanek.obrazky.length <= MAX_OBRAZKU_CLANKU) {
+    for (const obrazek of clanek.obrazky) if (!obrazky.has(obrazek)) obrazky.set(obrazek, url);
   }
   for (const dokument of clanek.dokumenty) {
     const odkaz = odkazy.get(dokument.url) ?? { text: dokument.text, rodice: [] };
@@ -184,6 +192,36 @@ for (const [url, { rodice }] of odkazy) {
   stav.pdf[url] = { soubor, stazeno: ted(), velikostB: vysledek.bajty.byteLength };
   pocty.stazeno += 1;
   if (pocty.stazeno % 25 === 0) await ulozitJson(souborStavu(), stav);
+}
+
+// 5b. Obrázky pozvánek a plakátů z aktualit a úřední desky v okně (rozšíření z 13. 11. 2026). Jen z webu obce.
+stav.obrazky ??= {};
+for (const [url, rodic] of obrazky) {
+  const zaznam: ZaznamSeznamu = { url, typ: 'obrazek', stav: 'stazeno', rodic };
+  seznam.push(zaznam);
+  if (new URL(url).hostname !== new URL(WEB_OBCE).hostname) {
+    zaznam.stav = 'cizi-domena';
+    continue;
+  }
+  if (!jePovoleno(url)) {
+    zaznam.stav = 'robots';
+    continue;
+  }
+  const soubor = souborObrazku(url);
+  if (stav.obrazky[url] && existsSync(path.join(SLOZKA_DAT, soubor))) {
+    zaznam.stav = 'beze-zmeny';
+    pocty.bezeZmeny += 1;
+    continue;
+  }
+  const vysledek = await stahovac.stahnout(url);
+  if (vysledek.status !== 200) {
+    zaznam.stav = 'chyba';
+    zaznam.duvod = `HTTP ${vysledek.status}`;
+    continue;
+  }
+  await fs.writeFile(path.join(SLOZKA_DAT, soubor), vysledek.bajty);
+  stav.obrazky[url] = { soubor, stazeno: ted(), velikostB: vysledek.bajty.byteLength };
+  pocty.stazeno += 1;
 }
 
 // 6. Karty projektů z ostrého webu Nezávislých. Soubory projektu webu slouží jen ke kontrole.

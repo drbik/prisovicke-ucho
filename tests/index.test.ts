@@ -4,7 +4,7 @@ import { precistKarty } from '../nastroje/index/karty';
 import { jeRizeniSoukromeOsoby } from '../nastroje/index/nastaveni';
 import { odstranitOpakovane, slozitStranu, spojitRadky } from '../nastroje/index/pdf';
 import { odkazyPodkladu, precistPodklad, precistTlampac } from '../nastroje/index/nezavisli';
-import { jeCitelnyOcr, textOcr, textWordu } from '../nastroje/index/prevod';
+import { jeCitelnyObrazek, jeCitelnyOcr, textOcr, textWordu } from '../nastroje/index/prevod';
 import { precistRobots } from '../nastroje/index/sit';
 import { formatPrilohy, souborPrilohy } from '../nastroje/index/spolecne';
 import { DELKA_USEKU, PREKRYV, prekryv, rozdelitNaMisto, rozdelitNaUseky } from '../nastroje/index/useky';
@@ -33,6 +33,19 @@ describe('stránky webu obce (8.4)', () => {
     expect(clanek?.text).not.toContain('Drbohlav');
     expect(clanek?.text).not.toContain('alert');
     expect(clanek?.dokumenty).toEqual([{ url: 'https://prisovice.cz/wp-content/uploads/2026/10/vyluka.pdf', text: 'Jízdní řád' }]);
+  });
+
+  it('najde obrázky v obsahu v plné velikosti (OCR pozvánek, 13. 11. 2026)', () => {
+    const html = `<article id="post-1" class="art-post"><h1 class="entry-title">Jarmark</h1><div class="art-postcontent">
+      <a href="https://prisovice.cz/wp-content/uploads/2026/11/jarmark.jpg"><img src="https://prisovice.cz/wp-content/uploads/2026/11/jarmark-267x400.jpg"></a>
+      <img src="/wp-content/uploads/2026/11/pozvanka-710x1065.png?ver=2">
+      <img src="https://prisovice.cz/wp-content/uploads/2026/11/jarmark-768x1152.jpg">
+    </div></article>`;
+    expect(rozebratClanek(html, 'https://prisovice.cz/2026/11/jarmark/')?.obrazky).toEqual([
+      'https://prisovice.cz/wp-content/uploads/2026/11/jarmark.jpg',
+      'https://prisovice.cz/wp-content/uploads/2026/11/pozvanka.png',
+    ]);
+    expect(rozebratClanek(CLANEK, 'https://prisovice.cz/2026/10/vlakova-vyluka/')?.obrazky).toEqual([]);
   });
 
   it('přečte sitemapu a její druh', () => {
@@ -201,6 +214,14 @@ describe('rozšíření indexu o Word, ODT a OCR (10. 11. 2026)', () => {
     expect(jeCitelnyOcr(parcely)).toBe(true);
     expect(jeCitelnyOcr('472/70 1:500 A3 PS-01 2,40 ±0,000 S1 S2 Ing. 12.3.2025 M 1:200 X Y')).toBe(false);
     expect(jeCitelnyOcr('Starosta obce razítko podpis')).toBe(false);
+  });
+
+  it('pozná čitelnou pozvánku z obrázku a odmítne útržky z mapy (13. 11. 2026)', () => {
+    const pozvanka = 'ADVENTNÍ KONCERT\nSBORU\nMl//űospd\nSOBOTA\n05.12.2026\nod 18 hodin\nSOKOLOVNA čp. 145\nv Příšovicích\nS podporou\nobce Příšovice\nVýtěžek bude věnován\nna charitativní účel.';
+    expect(jeCitelnyObrazek(pozvanka)).toBe(true);
+    expect(jeCitelnyOcr(pozvanka)).toBe(false);
+    expect(jeCitelnyObrazek('J/hSko /rsko T/ /099 4ô/7Sk Je?C/ Qav /J?/7Ský očítk /Jany přisovkci ///Qž99 pinč inský p. Qpvř S/7ô” /tao Vice')).toBe(false);
+    expect(jeCitelnyObrazek('NEALKO TEPLÝ SVAŘÁK MOŠT')).toBe(false);
   });
 });
 

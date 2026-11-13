@@ -12,6 +12,8 @@ export interface StavStazeni {
   karty: { stazeno: string; etag?: string | null } | null;
   // Tlampač a podklady webu Nezávislých (rozšíření z 10. 11. 2026). Otisk je sha1 stažené podoby.
   nezavisli?: { soubory: Record<string, { soubor: string; stazeno: string; otisk: string }> };
+  // Obrázky pozvánek a plakátů v aktualitách a na úřední desce pro OCR (rozšíření z 13. 11. 2026).
+  obrazky?: Record<string, { soubor: string; stazeno: string; velikostB: number }>;
   posledniBeh?: string;
 }
 
@@ -22,7 +24,7 @@ export type StavPolozky =
 export interface ZaznamSeznamu {
   url: string;
   // „pdf“ je přiložený soubor, tedy PDF, Word nebo ODT. „nezavisli“ je Tlampač nebo soubor podkladů webu Nezávislých.
-  typ: TypPolozky | 'pdf' | 'karty' | 'nezavisli';
+  typ: TypPolozky | 'pdf' | 'karty' | 'nezavisli' | 'obrazek';
   stav: StavPolozky;
   duvod?: string;
   nazev?: string;
@@ -56,6 +58,10 @@ export function souborPrilohy(url: string) {
 // Text vytažený Wordem a text rozpoznaný OCR leží vedle stažených souborů.
 export const souborTextuWordu = (url: string) => path.join('word', `${sha1(url)}.txt`);
 export const souborOcr = (url: string, strana: number) => path.join('ocr', `${sha1(url)}-${strana}.txt`);
+// Obrázek z článku a jeho text z OCR (rozšíření z 13. 11. 2026).
+export const souborObrazku = (url: string) =>
+  path.join('obrazky', `${sha1(url)}.${/\.(jpe?g|png)$/i.exec(new URL(url).pathname)?.[1].toLowerCase() ?? 'bin'}`);
+export const souborOcrObrazku = (url: string) => path.join('ocr', `${sha1(url)}-obrazek.txt`);
 
 export async function nacistJson<T>(soubor: string, vychozi: T): Promise<T> {
   if (!existsSync(soubor)) return vychozi;

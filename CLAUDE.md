@@ -89,7 +89,7 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 - Další je krok 8: index webu a odpověď s citací. Běží v samostatné session podle `docs/zadani-krok-8.md`. (Hotový a sloučený do hlavní větve 13. 11. 2026, PR #1 a #2.)
 - Zdroje odpovědí: prisovice.cz včetně PDF a publikované karty projektů z webu Nezávislých. `akce-prisovice-timeline.md` se do indexu nikdy nedostane. Odpověď z webu Nezávislých se označí „Podle webu Nezávislých pro Příšovice“, ne „Odpověď z webu obce“.
 - Ukázkové dotazy: jen jasně označené ukázky od týmu, bez vymyšlených autorů a hlasů, s odpověďmi ze skutečných zdrojů. Do té doby, než bude veřejný seznam témat (krok 11), slouží jako testovací sada kroku 8. Je to rozšíření MVP se souhlasem Tomáše.
-- Stahování i index prisovice.cz zatím jen za poslední 2 roky, od 9. 11. 2024. Platí to pro aktuality, úřední desku a PDF. Jak okno platí pro stálé stránky, řeší rozpis kroku 8 v `docs/plan-mvp.md`.
+- Stahování i index prisovice.cz zatím jen za poslední 2 roky, od 9. 11. 2024. Platí to pro aktuality, úřední desku a PDF. Jak okno platí pro stálé stránky, řeší rozpis kroku 8 v `docs/plan-mvp.md`. (Od 13. 11. 2026 okno 4 roky, viz rozhodnutí 13. 11. 2026, index.)
 
 ## Rozhodnutí (10. 11. 2026)
 
@@ -141,6 +141,12 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 - Podrobnosti, měření a výsledky jsou v `docs/temata-feedu.md`.
 
 - Ucho jde přidat na plochu telefonu jako aplikace (PWA). Manifest a service worker leží pod `/ucho`, web Nezávislých se nemění. Service worker nic neukládá do mezipaměti. Podrobnosti v `docs/pwa.md`.
+
+## Rozhodnutí (13. 11. 2026, index)
+
+- Okno stahování a indexu prisovice.cz je 4 roky, od 9. 11. 2022 (`OKNO_OD` v `nastroje/index/nastaveni.ts`). Platí pro aktuality, úřední desku a jejich PDF, stálé stránky se berou celé jako dosud. Zadal Tomáš 13. 11. 2026, protože na ostré adrese chyběly informace o vánočních trzích a rozsvícení stromu. Ostatní výjimky platí dál, `akce-prisovice-timeline.md` do indexu nikdy nepatří. Počty jsou v `docs/index-zdroju.md`.
+- Index čte i text obrázků pozvánek a plakátů v aktualitách a na úřední desce (OCR ve Windows, nejvýš 3 obrázky v článku, bez fotogalerií a snímků výsledků voleb). Schválil Tomáš 13. 11. 2026, protože pozvánka na vánoční jarmark byla jen obrázek. Takový zdroj má v názvu „text rozpoznaný z obrázku“.
+- Čekající dotaz, na který po obnově indexu ucho najde odpověď, dostane odpověď z webu se zdrojem (`nastroje/zodpovedet-cekajici.ts`), nikdy odpověď vydávanou za vyjádření úřadu (pokyn Tomáše 13. 11. 2026).
 
 ## MVP (prezentační verze)
 

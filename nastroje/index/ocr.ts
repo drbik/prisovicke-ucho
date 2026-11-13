@@ -8,7 +8,16 @@ import path from 'node:path';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { SLOZKA_DAT } from './nastaveni';
 import { cMapUrl, iccUrl, MIN_ZNAKU_STRANY, standardFontDataUrl, textPdf, wasmUrl } from './pdf';
-import { formatPrilohy, nacistJson, sha1, souborOcr, souborStavu, type StavStazeni, type ZaznamSeznamu } from './spolecne';
+import {
+  formatPrilohy,
+  nacistJson,
+  sha1,
+  souborOcr,
+  souborOcrObrazku,
+  souborStavu,
+  type StavStazeni,
+  type ZaznamSeznamu,
+} from './spolecne';
 
 // Delší strana obrázku zhruba odpovídá 300 dpi u A4. OCR ve Windows bere nejvýš 10 000 px.
 const CILOVY_ROZMER = 3500;
@@ -84,7 +93,18 @@ for (const [poradi, zaznam] of pdf.entries()) {
 }
 
 console.log(`Stran bez textu ${stranBezTextu}, nově vykresleno ${vykresleno}.`);
-if (vykresleno) {
+
+// Obrázky pozvánek a plakátů z aktualit a úřední desky (rozšíření z 13. 11. 2026). OCR je čte rovnou,
+// kopie leží v ocr/ pod jménem, ze kterého vznikne soubor s textem obrázku.
+let obrazku = 0;
+for (const zaznam of seznam.filter((z) => z.typ === 'obrazek' && stav.obrazky?.[z.url])) {
+  if (existsSync(path.join(SLOZKA_DAT, souborOcrObrazku(zaznam.url)))) continue;
+  const zdroj = stav.obrazky![zaznam.url].soubor;
+  await fs.copyFile(path.join(SLOZKA_DAT, zdroj), path.join(slozka, `${sha1(zaznam.url)}-obrazek${path.extname(zdroj)}`));
+  obrazku += 1;
+}
+console.log(`Obrázků k OCR ${obrazku}.`);
+if (vykresleno || obrazku) {
   const vystup = execFileSync('powershell.exe', [
     '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
     '-File', path.join(import.meta.dirname, 'ocr.ps1'), '-Slozka', slozka,
@@ -93,5 +113,6 @@ if (vykresleno) {
 }
 // Obrázky jsou velké a po OCR je už nic nepotřebuje.
 for (const soubor of await fs.readdir(slozka)) {
-  if (soubor.endsWith('.png') && existsSync(path.join(slozka, soubor.replace(/\.png$/, '.txt')))) await fs.rm(path.join(slozka, soubor));
+  const obrazek = /\.(png|jpe?g)$/i;
+  if (obrazek.test(soubor) && existsSync(path.join(slozka, soubor.replace(obrazek, '.txt')))) await fs.rm(path.join(slozka, soubor));
 }
