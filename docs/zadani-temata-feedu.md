@@ -192,7 +192,7 @@ Ke každé větvi toku napiš testy bez sítě: totéž, poddotaz, jiné téma, 
 | C. Stavba | Hotovo | 13. 11. 2026 | Migrace `0003_temata.sql`, úložiště (paměť i D1), nabídka témat, skládání odpovědi, feed po tématech, příkazy pro tým, 23 nových testů. |
 | D. Ověření | Hotovo | 13. 11. 2026 | `npm test` 271 testů, `npm run check` bez chyb. Sada: správné téma nabídnuto u 62 z 67 párů (92,5 %), práh 90 % platí. Měkký cíl „jiné téma nejvýš u třetiny“ neplatí (19 z 34). Prohlížeč na počítači i na šířce 375 px: nabídka, všechny tři volby, doplnění poddotazem, filtry, hledání, klávesnice, konzole bez chyb. |
 | E. Nasazení | Hotovo | 13. 11. 2026 | Tomáš souhlasil. Migrace 0003 na ostré D1, Worker verze 9c80fdb6. Převod proběhl, na ostré adrese Sokolovna jedno téma, Hospoda a Pítko zvlášť, konzole bez chyb. Zkušební vzkaz se neposílal. |
-| F. Dokumentace a předání | Probíhá | 13. 11. 2026 | Dokumentace hotová, zbývá sloučit hlavní větev a otevřít PR. |
+| F. Dokumentace a předání | Hotovo | 13. 11. 2026 | Dokumentace aktuální, hlavní větev neměla nové commity. PR #4 je otevřený, sloučení jen na pokyn Tomáše. |
 
 **Body „Kdy je hotovo“:**
 
@@ -206,4 +206,4 @@ Ke každé větvi toku napiš testy bez sítě: totéž, poddotaz, jiné téma, 
 - [x] 8. Testy, kontrola typů a ověření v prohlížeči
 - [x] 9. Migrace a nasazení se souhlasem, ověřeno na ostré adrese (verze 9c80fdb6)
 - [x] 10. Dokumentace
-- [ ] 11. Commit a PR
+- [x] 11. Commit a PR (PR #4)
