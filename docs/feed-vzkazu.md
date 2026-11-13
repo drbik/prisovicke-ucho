@@ -84,6 +84,12 @@ Bez parametru vypíše posledních 30 vzkazů. Další příkazy:
 - Kdo bude správce osobních údajů podle GDPR, je pořád otevřená otázka (`CLAUDE.md`). Uložené texty vzkazů jsou osobní údaje, pokud je v nich autor uvede.
 - Přihlášení před nahráváním (rozhodnutí z 2. 11. 2026) zatím není. Vzkaz se ukládá bez přihlášení.
 
+## Nasazení
+
+- 13. 11. 2026: migrace `0002_vzkazy.sql` na ostré D1, Worker verze c144cde9 z commitu 07c6c98.
+- Na ostré adrese se feed načte z databáze s filtry a počty. Tabulky jsou zatím prázdné.
+- Uložení skutečného vzkazu před nasazením nikdo nezkoušel, protože by se zveřejnil. První skutečný vzkaz je zároveň zkouška.
+
 ## Lokální vývoj
 
 Lokální server ukládá vzkazy jen do paměti (`vytvorPametoveUloziste`), protože D1 je i lokálně vzdálená a zkušební vzkazy by šly do ostrého feedu. Po restartu serveru zmizí.

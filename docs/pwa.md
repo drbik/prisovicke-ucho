@@ -29,6 +29,10 @@ Po změně `src/ikony/ucho.svg` je vykreslí Edge v Git Bash, bez dalších bal�
 EDGE="/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"; for r in 512 192 180; do "$EDGE" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=$(node -e "console.log($r/512)") --window-size=512,512 --screenshot="$(cygpath -w "$PWD/src/ikony")\\ucho-$r.png" "file:///$(cygpath -m "$PWD/src/ikony/ucho.svg")"; done
 ```
 
+## Nasazení
+
+Worker verze c144cde9 z 13. 11. 2026. Na ostré adrese se manifest načte jako `application/manifest+json`, ikony jako PNG a service worker je aktivní s rozsahem `/ucho/`.
+
 ## Co zbývá ověřit
 
 - Instalaci na Opeře pro Android a na Edge ve Windows, podle testovacích zařízení projektu. Safari na iOS se v MVP netestuje (rozhodnutí z 2. 11. 2026).
