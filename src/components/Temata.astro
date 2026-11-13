@@ -31,6 +31,8 @@ const bezOdpovedi = (tema: UkazkoveTema) => (tema.typ === 'dotaz'
 
   <p class="temata__ukazka">
     <strong>Ukázky od týmu.</strong> Dotazy připravil tým Nezávislých pro Příšovice, odpovědi k nim vybralo ucho ze skutečných zdrojů. Vaše vzkazy se zatím neukládají. Odpovědi nejsou úředním vyjádřením obce.
+    <!-- Alternativní mluvčí jsou jen se skriptem, proto nápověda i štítek čekají skryté, až je skript odkryje. -->
+    <span class="temata__mluvci" data-mluvci-napoveda hidden><strong>Pro pobavení:</strong> rozklikněte zodpovězený dotaz a nechte si odpověď převyprávět jako Bart Simpson, Malý princ, Medvídek Pú, Sokrates, Marvin, suchý úředník nebo staročesky.</span>
   </p>
 
   <input class="temata__prepinac jen-ctecka" type="radio" name="temata-seznam" id="temata-ukazat-zodpovezena" checked />
@@ -55,6 +57,7 @@ const bezOdpovedi = (tema: UkazkoveTema) => (tema.typ === 'dotaz'
                   <span class="stitek">{TYPY_PODNETU[tema.typ]}</span>
                   {tema.oblast !== 'ostatni' && <span class="stitek">{nazevOblasti(tema.oblast)}</span>}
                   <span class="stitek stitek--ukazka">Ukázka</span>
+                  <span class="stitek stitek--mluvci" data-mluvci-napoveda hidden>Převyprávění</span>
                 </span>
               </summary>
               <div class="tema__telo">

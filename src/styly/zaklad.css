@@ -172,6 +172,8 @@ form > label:not(:first-child), .dvojice { margin-top: 16px; }
 .temata__hledat { min-height: 44px; padding-block: 8px; }
 .temata__ukazka { margin: 0 0 12px; padding: 8px 12px; border: 1px dashed #18332e73; border-radius: 7px; color: var(--ink-soft); font-size: .84rem; line-height: 1.45; }
 .temata__ukazka strong { color: var(--ink); }
+.temata__mluvci { display: block; margin-top: 4px; color: var(--accent); font-weight: 650; }
+.temata__mluvci strong { color: var(--accent); }
 .temata__prepinac { min-height: 0; border: 0; }
 .temata__zalozky { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
 .temata__zalozky label { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; margin: 0; border: 1px solid var(--past); border-radius: 10px; color: var(--past); font-weight: 750; cursor: pointer; }
@@ -200,6 +202,7 @@ form > label:not(:first-child), .dvojice { margin-top: 16px; }
 .stitek--zodpovezeno { border-color: var(--past); color: #fff; background: var(--past); }
 .stitek--ceka { border-color: #f6e7d3; color: #7a4416; background: #f6e7d3; }
 .stitek--ukazka { border-style: dashed; }
+.stitek--mluvci { border-color: var(--accent); color: var(--accent); border-style: dashed; }
 .tema__telo { padding: 12px 12px 14px; border-top: 1px solid var(--linka); }
 .tema__telo .prepis { margin-bottom: 12px; font-size: .9rem; }
 .tema__telo .odpoved__zdroje { margin-bottom: 10px; }

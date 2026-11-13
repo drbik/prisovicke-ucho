@@ -36,3 +36,5 @@ for (const misto of document.querySelectorAll<HTMLElement>('[data-mluvci-ukazka]
   const id = misto.dataset.mluvciUkazka;
   if (id) misto.replaceChildren(vytvoritMluvci({ ukazka: id }));
 }
+// Tlačítka jsou až v rozbalené ukázce. Nápověda nad seznamem a štítek u ukázky říkají, že tam jsou.
+for (const napoveda of document.querySelectorAll<HTMLElement>('[data-mluvci-napoveda]')) napoveda.hidden = false;
