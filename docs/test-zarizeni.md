@@ -123,6 +123,8 @@ Skript prošel 24 kontrol v Edge při běžné velikosti okna a v Opeře při ve
 
 ## Co zbývá: Opera na Androidu
 
+**Pozor:** od 13. 11. 2026 se každý potvrzený vzkaz hned zveřejní ve feedu vedle ucha (krok 8.17). Zkušební vzkaz po testu skryjte příkazem `npx tsx nastroje/vzkazy.ts skryt ID`, viz [feed-vzkazu.md](feed-vzkazu.md).
+
 Stačí telefon a asi 15 minut. Po každém pokusu rozbalte na stránce „Technické údaje pro test“ a opište formát, velikost a dobu přepisu i úpravy. Rozbalte i „Původní přepis“ a porovnejte ho s upraveným textem. Hlavně sledujte, jestli úprava něco nepřidala nebo nevynechala.
 
 1. Na https://nezavisli-prisovice.cz/ucho namluvit krátký vzkaz s místními názvy a opsat údaje. Tři vzkazy prošly, údaje z nich ale chybí.
@@ -133,6 +135,7 @@ Stačí telefon a asi 15 minut. Po každém pokusu rozbalte na stránce „Techn
 6. Na upraveném vzkazu opravit text a třeba oblast a potvrdit. Potom na dalším vzkazu zkusit gesto zpět: stránka se má zeptat, jestli vzkaz zahodit.
 7. Podle chuti: Bluetooth sluchátka, příchozí hovor, pomalá síť.
 8. Krok 8: napsat nebo namluvit dotaz, třeba „Do kolika má ve čtvrtek otevřeno lékárna?“, nechat typ Dotaz a potvrdit. Má se ukázat odpověď s citací a odkaz na zdroj se má otevřít. Potom dotaz „Plánuje se v Příšovicích bankomat?“: stránka má napsat, že dotaz převezmou zastupitelé.
+9. Krok 8.18 (aplikace na ploše): v nabídce Opery zvolit „Přidat na plochu“ nebo „Instalovat aplikaci“. Na ploše se má objevit ikona „Ucho“ a ucho se má otevřít bez adresního řádku. Mikrofon se má zeptat na oprávnění stejně jako v prohlížeči. Podrobnosti v [pwa.md](pwa.md).
 
 ## Na ostré adrese ověřeno
 

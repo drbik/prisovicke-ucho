@@ -23,9 +23,12 @@ Cloudová session k nim nemá přístup. V lokální session je zpřístupni jen
 - `docs/research-hlasove-podnety.md` – rešerše hotových řešení, hostingu a všech zdrojů.
 - `docs/oblasti-a-web.md` – projekty a témata z webu nezavisli-prisovice.cz, mapa znalostí v projektu webu, oblasti a technika webu pro F-09.
 - `docs/hlasove-modely.md` – zjištění o hlasových modelech z jiného projektu a co z nich plyne pro výběr modelu přepisu.
-- `docs/plan-mvp.md` – MVP rozdělené na postupné kroky, rozpis kroků 1 až 4 a pořadí testů.
+- `docs/plan-mvp.md` – MVP rozdělené na postupné kroky, rozpis kroků 1 až 4 a 8, stav a co zbývá.
 - `docs/test-zarizeni.md` – výsledky testů na zařízeních a co zbývá ověřit.
 - `docs/zadani-krok-8.md` – zadání kroku 8 (index webu a odpověď s citací) pro samostatnou session, včetně pravidla, kdy je hotový.
+- `docs/index-zdroju.md` – co index zdrojů obsahuje, jak se stahuje, zpracuje a nahraje.
+- `docs/typove-otazky.md` – sada typových otázek kroku 8 (strojově v `tests/data/typove-otazky.json`).
+- `docs/vyhodnoceni-odpovedi.md` – výsledky běhů vyhodnocení odpovědí nad typovými otázkami.
 - `docs/navrh-alternativni-mluvci.md` – alternativní mluvčí: jak převyprávění funguje, pojistky a výsledky zkoušky se skutečnou AI.
 - `docs/feed-vzkazu.md` – ukládání potvrzených vzkazů, feed vedle ucha, opakovaný dotaz a skrytí nevhodného vzkazu.
 - `docs/pwa.md` – ucho jako aplikace na ploše telefonu: manifest, service worker, ikony.
@@ -81,7 +84,7 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 
 ## Rozhodnutí (9. 11. 2026)
 
-- Další je krok 8: index webu a odpověď s citací. Běží v samostatné session podle `docs/zadani-krok-8.md`.
+- Další je krok 8: index webu a odpověď s citací. Běží v samostatné session podle `docs/zadani-krok-8.md`. (Hotový a sloučený do hlavní větve 13. 11. 2026, PR #1 a #2.)
 - Zdroje odpovědí: prisovice.cz včetně PDF a publikované karty projektů z webu Nezávislých. `akce-prisovice-timeline.md` se do indexu nikdy nedostane. Odpověď z webu Nezávislých se označí „Podle webu Nezávislých pro Příšovice“, ne „Odpověď z webu obce“.
 - Ukázkové dotazy: jen jasně označené ukázky od týmu, bez vymyšlených autorů a hlasů, s odpověďmi ze skutečných zdrojů. Do té doby, než bude veřejný seznam témat (krok 11), slouží jako testovací sada kroku 8. Je to rozšíření MVP se souhlasem Tomáše.
 - Stahování i index prisovice.cz zatím jen za poslední 2 roky, od 9. 11. 2024. Platí to pro aktuality, úřední desku a PDF. Jak okno platí pro stálé stránky, řeší rozpis kroku 8 v `docs/plan-mvp.md`.
@@ -97,7 +100,7 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 
 ## Rozhodnutí (11. 11. 2026)
 
-- Stránka ucha ukazuje na jedné obrazovce ucho, zodpovězené dotazy a témata čekající na zastupitele. Dokud se vzkazy neukládají, jsou to ukázky od týmu podle rozhodnutí z 9. 11. 2026: každá má štítek „Ukázka“, bez vymyšlených autorů, hlasů a dat podání, odpovědi jsou skutečný výstup ucha se zdroji. Data jsou v `src/lib/temata/ukazky.json`.
+- Stránka ucha ukazuje na jedné obrazovce ucho, zodpovězené dotazy a témata čekající na zastupitele. Dokud se vzkazy neukládají, jsou to ukázky od týmu podle rozhodnutí z 9. 11. 2026: každá má štítek „Ukázka“, bez vymyšlených autorů, hlasů a dat podání, odpovědi jsou skutečný výstup ucha se zdroji. Data jsou v `src/lib/temata/ukazky.json`. (Od 13. 11. 2026 se potvrzené vzkazy ukládají a ukázky jsou ve feedu za nimi, viz rozhodnutí 13. 11. 2026, feed.)
 - Mezi čekající ukázky smí jen dotaz, ke kterému index zdrojů opravdu nic nemá. Dotaz, ke kterému index má aspoň související údaj (cena vody za loňský rok, nájem ve stávajících bytech, minulý termín akce), mezi čekající nepatří. Každý čekající dotaz má v datech hlídané vzory a `npx tsx nastroje/index/kontrola-ukazek.ts` selže, když některý v indexu něco najde. Spouští se po každé změně ukázek a po každé obnově indexu.
 
 ## Rozhodnutí (12. 11. 2026)
