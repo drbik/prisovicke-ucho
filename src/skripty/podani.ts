@@ -132,6 +132,7 @@ const ulozeniText = prvek('[data-ulozeni-text]', panel);
 const ukazatVeFeedu = prvek<HTMLButtonElement>('[data-ukazat-ve-feedu]', panel);
 // Témata ve feedu (13. 11. 2026, F-34 až F-37, F-81).
 const nabidka = prvek('[data-nabidka]', panel);
+const vyberTitulek = prvek('[data-vyber-titulek]', panel);
 const jineTema = prvek<HTMLButtonElement>('[data-jine-tema]', panel);
 const odpovedTema = prvek('[data-odpoved-tema]', panel);
 const potvrzeniOdpovedi = prvek('[data-potvrzeni-odpovedi]', panel);
@@ -405,6 +406,8 @@ function ukazatNabidku(temata: TemaFeedu[], vzkaz: PotvrzenyVzkaz) {
     li.append(akce);
     return li;
   }));
+  // Návrh, stížnost a pochvala se na nic neptají.
+  vyberTitulek.textContent = vzkaz.typ === 'dotaz' ? 'Ptal se už někdo na totéž?' : 'Psal už někdo o tomtéž?';
   jineTema.onclick = () => zvolitTema(vzkaz, { nove: true });
   const pocet = temata.length === 1 ? 'jedno podobné téma' : `${temata.length} podobná témata`;
   ukazat('vyber', `Ve feedu je ${pocet}. Vyberte, jak s nimi váš vzkaz souvisí.`);
@@ -670,6 +673,7 @@ function ukazatPoznamkuTematu(data: Extract<VysledekDotazu, { vysledek: 'odpoved
   const doplneno = data.odpoved.casti?.some((cast) => cast.nova);
   let poznamka = '';
   if (data.nicNoveho) poznamka = 'Odpověď tématu na váš dotaz už odpovídá. Když vám nestačí, doptejte se konkrétněji.';
+  else if (data.zTematu && data.tema && data.odpoved.nezodpovezeno.length) poznamka = `Na to, na co se ptáte navíc, jsme ve zdrojích odpověď nenašli. Níže je odpověď tématu „${data.tema.nazev}“.`;
   else if (data.zTematu && data.tema) poznamka = `Na téma „${data.tema.nazev}“ už odpověď je. Původní dotaz: „${data.tema.text}“`;
   else if (doplneno) poznamka = 'Odpověď tématu jsme doplnili o to, na co se ptáte.';
   odpovedTema.textContent = poznamka;

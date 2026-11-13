@@ -189,21 +189,21 @@ Ke každé větvi toku napiš testy bez sítě: totéž, poddotaz, jiné téma, 
 |---|---|---|---|
 | A. Průzkum a návrh | Hotovo | 13. 11. 2026 | Tomáš návrh schválil 13. 11. 2026 beze změn, včetně všech 13 doporučení. Návrh a měření v [temata-feedu.md](temata-feedu.md), 13 otevřených otázek s doporučením. Měřicí skript `nastroje/mereni-temat.ts`, měření stálo asi 390 neuronů. Sokolovna má podobnost 0,80 (práh byl 0,85), správné téma je ale u všech 18 dvojic mezi 3 nejbližšími. |
 | B. Sada pro sdružování | Hotovo | 13. 11. 2026 | Tomáš sadu schválil 13. 11. 2026 včetně pěti sporných párů. Sada v [sada-temat.md](sada-temat.md) a `tests/data/sada-temat.json`: 28 skupin, 95 vzkazů, 67 párů ke spojení (33 totéž, 31 poddotaz, 3 doplnění) a 34 párů jiné téma. Stavbu sady hlídá `tests/sada-temat.test.ts`. Pět sporných párů ke kontrole. |
-| C. Stavba | Probíhá | 13. 11. 2026 | |
-| D. Ověření | Nezačato | | |
-| E. Nasazení | Nezačato | | |
+| C. Stavba | Hotovo | 13. 11. 2026 | Migrace `0003_temata.sql`, úložiště (paměť i D1), nabídka témat, skládání odpovědi, feed po tématech, příkazy pro tým, 23 nových testů. |
+| D. Ověření | Hotovo | 13. 11. 2026 | `npm test` 271 testů, `npm run check` bez chyb. Sada: správné téma nabídnuto u 62 z 67 párů (92,5 %), práh 90 % platí. Měkký cíl „jiné téma nejvýš u třetiny“ neplatí (19 z 34). Prohlížeč na počítači i na šířce 375 px: nabídka, všechny tři volby, doplnění poddotazem, filtry, hledání, klávesnice, konzole bez chyb. |
+| E. Nasazení | Čeká na Tomáše | 13. 11. 2026 | Čeká na souhlas s migrací ostré D1 a s nasazením. |
 | F. Dokumentace a předání | Nezačato | | |
 
 **Body „Kdy je hotovo“:**
 
 - [x] 1. Návrh schválený (13. 11. 2026)
 - [x] 2. Sada schválená (13. 11. 2026)
-- [ ] 3. Prahy na sadě splněné
-- [ ] 4. Jedna odpověď na téma, bez duplicit, s citacemi
-- [ ] 5. Tři volby autora s testy
+- [x] 3. Prahy na sadě splněné (62 z 67, žádné samovolné sloučení)
+- [x] 4. Jedna odpověď na téma, bez duplicit, s citacemi (testy, ověřeno v prohlížeči)
+- [x] 5. Tři volby autora s testy
 - [ ] 6. Převod vzkazů, Sokolovna v jednom tématu
-- [ ] 7. Příkazy pro tým
-- [ ] 8. Testy, kontrola typů a ověření v prohlížeči
+- [x] 7. Příkazy pro tým (implementováno, na ostré D1 zatím nezkoušeno)
+- [x] 8. Testy, kontrola typů a ověření v prohlížeči
 - [ ] 9. Migrace a nasazení se souhlasem, ověřeno na ostré adrese
 - [ ] 10. Dokumentace
 - [ ] 11. Commit a PR
