@@ -109,10 +109,12 @@ Cesty jsou relativní ke složce `WEB_Prisovice`. Podrobná mapa je v `docs/obla
 
 ## Rozhodnutí (13. 11. 2026)
 
-- Ucho má alternativní mluvčí: Bart Simpson, Malý princ, Medvídek Pú, Sokrates, Marvin, Suchý úředník a Staročeština. Pod zodpovězenou odpovědí a u zodpovězených ukázek je řada tlačítek a kliknutí nechá AI převyprávět odpověď hlasem postavy. Cílem je, aby z webu nečpěla úředničina a byl přívětivý a lehce humorný pro toho, kdo o to stojí. Je to rozšíření MVP a výjimka z hlasu textů, Tomáš ho zadal 13. 11. 2026.
-- Ve zkušebním a vývojovém provozu mají postavy skutečná jména a zadání stylu se drží postavy bez ohledu na web, jeho účel a obsah otázky (pokyn Tomáše: „toto není politický a absolutně korektní prezentace“). Ověřovací model posměch ani tón nehlídá.
-- Věcná odpověď, citace, zdroje a upozornění zůstávají vždy vidět. Převyprávění je v rámečku se štítkem „Pro pobavení“. Kód hlídá jen čísla: všechna z odpovědi zůstanou a žádné nepřibude. Číslovku smí mluvčí napsat číslicí a naopak, jedničku jen číslicí.
-- Převypráví se jen odpověď, kterou server sám vydal a podepsal (HMAC, klíč `KLIC_PODPISU` ve Workers Secrets), nebo ukázka podle id. Převyprávění má vlastní počítadlo limitu požadavků a nic se neukládá.
+- Ucho má alternativní mluvčí: Bart Simpson, Malý princ, Medvídek Pú, Sokrates, Marvin, Suchý úředník a Staročeština. Cílem je, aby z webu nečpěla úředničina a byl přívětivý a lehce humorný pro toho, kdo o to stojí. Je to rozšíření MVP a výjimka z hlasu textů, Tomáš ho zadal 13. 11. 2026.
+- Styl patří k přímému namlouvání, ne ke starým odpovědím (pokyn Tomáše): u ukázek v přehledu témat mluvčí nejsou. Kolem velkého tlačítka je sluníčko malých kulatých ikon. Základ je Spisovně, kolem jsou postavy. Ťuknutí na ikonu nahrávání nespustí, jen promění velké tlačítko v postavu (ikona, barva, „Namluvit jako Marvin“). Nahrávat se začne až velkým tlačítkem. Stejně funguje „Raději napíšu“.
+- Při kontrole vzkazu postava přepíše autorův vzkaz svým hlasem a styl jde přepnout zpět na Spisovně nebo na jinou postavu. Text postavy je jen k přečtení, opravuje se spisovné znění. Podle spisovného znění se hledá i odpověď a kontroluje potvrzení. Zvolená postava pak převypráví odpověď na dotaz, i zprávu, že odpověď na webu není.
+- Ve zkušebním a vývojovém provozu mají postavy skutečná jména a zadání stylu se drží postavy bez ohledu na web, jeho účel a obsah otázky (pokyn Tomáše: „toto není politický a absolutně korektní prezentace“). Ikony jsou vlastní čárové kresby (skateboard, planetka, hrnec medu, sloup, robot, razítko, brk), ne obrázky postav. Ověřovací model posměch ani tón nehlídá.
+- Věcná odpověď, citace, zdroje a upozornění zůstávají vždy vidět. Odpověď postavy je v rámečku „pro pobavení“ nad nimi. Kód hlídá jen čísla: všechna z textu zůstanou a žádné nepřibude. Číslovku smí postava napsat číslicí a naopak, jedničku jen číslicí.
+- Odpověď postava převypráví, jen když ji server sám vydal a podepsal (HMAC, klíč `KLIC_PODPISU` ve Workers Secrets). Vzkaz přepisuje z textu od autora, stejně jako AI úprava. Postavy mají vlastní limit požadavků (`STYL_RATE_LIMITER`, 20 za minutu) a nic se neukládá.
 - Podrobnosti a výsledky zkoušky jsou v `docs/navrh-alternativni-mluvci.md`.
 
 ## MVP (prezentační verze)

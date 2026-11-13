@@ -15,6 +15,6 @@ const ai = falesne ? vytvorFalesneAi({ ozvena: true, zpozdeniMs: 1500 }).ai : vy
 const index = falesne ? vytvorFalesnyIndex() : vytvorIndexCloudflare(env.DB, env.VECTORIZE);
 // Podpis odpovědí pro převyprávění mluvčím. Klíč je ve Workers Secrets, lokální vývoj má pevný.
 const klicPodpisu = env.KLIC_PODPISU || (vyvoj ? 'jen-lokalni-vyvoj' : undefined);
-const api = vytvorApi({ ai, index, limiter: env.PODANI_RATE_LIMITER, vyvoj, klicPodpisu });
+const api = vytvorApi({ ai, index, limiter: env.PODANI_RATE_LIMITER, limiterStylu: env.STYL_RATE_LIMITER, vyvoj, klicPodpisu });
 
 export const ALL: APIRoute = ({ request }) => api.fetch(request);

@@ -14,7 +14,9 @@ import type { TechnickeUdaje, VysledekPodani } from '../lib/podani/zpracovani';
 import type { DuvodPredani, VetaZobrazene, ZobrazenaOdpoved } from '../lib/odpovedi/odpoved';
 import type { UdalostDotazu, VysledekDotazu } from '../lib/odpovedi/zpracovani';
 import { OBLASTI, TYPY_PODNETU } from '../lib/oblasti';
-import { vytvoritMluvci } from './mluvci';
+import { JMENA_STYLU, POPISY_TLACITKA, jeStyl, type KlicMluvciho, type KlicStylu } from '../lib/odpovedi/mluvci';
+import type { PodepsanyPodklad } from '../lib/odpovedi/styl';
+import { stylizovatVzkaz, ukazatelNacitani, vytvoritPrevypraveni } from './mluvci';
 
 type Pohled = 'zadost' | 'nahravani' | 'odesilani' | 'text' | 'vysledek' | 'potvrzeno' | 'chyba';
 
@@ -116,6 +118,13 @@ const duvodBezOdpovedi = prvek('[data-odpoved-duvod]', panel);
 const hledatZnovu = prvek('[data-odpoved-znovu]', panel);
 const prubehPopis = prvek('[data-prubeh-popis]', panel);
 const prubeh = prvek('[data-prubeh]', panel);
+// Styl vzkazu (13. 11. 2026): sluníčko postav kolem tlačítka a stejná volba při kontrole vzkazu.
+const mikrofon = prvek<HTMLButtonElement>('[data-nahrat]');
+const ikonaMikrofonu = prvek('[data-mikrofon-ikona]');
+const popisMikrofonu = prvek('[data-mikrofon-popis]');
+const paprsky = prvek('[data-styly]');
+const puvodniIkona = ikonaMikrofonu.firstElementChild!.cloneNode(true);
+const stavStylu = prvek('[data-styl-stav]', panel);
 
 let nahravani: Nahravani | null = null;
 let odeslani: AbortController | null = null;
@@ -128,6 +137,16 @@ let navrh: PotvrzenyVzkaz | null = null;
 // Potvrzený dotaz, na který se hledá odpověď. Hledat znovu ho pošle ještě jednou.
 let hledanyDotaz: PotvrzenyVzkaz | null = null;
 let hledani: AbortController | null = null;
+// Zvolený styl. Spisovně je základ. Při kontrole vzkazu je text postavy jen k přečtení a opravuje se spisovné znění,
+// podle kterého se hledá i odpověď.
+let styl: KlicStylu = 'spisovne';
+let spisovnyText = '';
+let poleUkazuje: KlicStylu = 'spisovne';
+const vzkazyPostav = new Map<KlicMluvciho, string>();
+let stylovani: AbortController | null = null;
+// Postava, která odpoví na potvrzený dotaz, a rámeček s její odpovědí.
+let stylOdpovedi: KlicStylu = 'spisovne';
+let odpovedPostavy: { zrusit: () => void } | null = null;
 
 function ukazat(pohled: Pohled, hlaseni = '') {
   aktualniPohled = pohled;
@@ -201,14 +220,81 @@ function ukazatVysledek(data: VysledekPodani) {
   popisPuvodniho.textContent = data.vstup === 'hlas' ? 'Původní přepis' : 'Původní text';
   puvodni.textContent = data.surovyText;
   ukazatTechnicke(data.technicke);
+  spisovnyText = text;
+  vzkazyPostav.clear();
   ukazat('vysledek', 'Vzkaz je upravený. Zkontrolujte ho a potvrďte.');
+  void ukazatStylVzkazu();
+}
+
+// Postava kolem tlačítka (13. 11. 2026): ťuknutí jen promění velké tlačítko, nahrávat se začne až jím.
+// Při kontrole vzkazu se stejnou volbou přepne text vzkazu.
+function nastavitStyl(novy: KlicStylu) {
+  styl = novy;
+  for (const tlacitko of document.querySelectorAll<HTMLElement>('[data-styl]')) {
+    tlacitko.setAttribute('aria-pressed', String(tlacitko.dataset.styl === novy));
+  }
+  popisMikrofonu.textContent = POPISY_TLACITKA[novy];
+  mikrofon.classList.toggle('mikrofon--postava', novy !== 'spisovne');
+  const ikona = novy === 'spisovne' ? puvodniIkona.cloneNode(true) : paprsky.querySelector(`[data-styl="${novy}"] svg`)?.cloneNode(true);
+  if (ikona instanceof SVGElement) {
+    ikona.setAttribute('width', '44');
+    ikona.setAttribute('height', '44');
+    ikonaMikrofonu.replaceChildren(ikona);
+  }
+  if (aktualniPohled === 'vysledek') void ukazatStylVzkazu();
+}
+
+function ukazatTextVzkazu(text: string, ukazuje: KlicStylu, stav = '') {
+  polePotvrzeni.text.value = text;
+  (polePotvrzeni.text as HTMLTextAreaElement).readOnly = ukazuje !== 'spisovne';
+  poleUkazuje = ukazuje;
+  stavStylu.replaceChildren(stav);
+}
+
+// Text vzkazu v zvoleném stylu. Hotové texty postav se pamatují, dokud autor nezmění spisovné znění.
+async function ukazatStylVzkazu() {
+  stylovani?.abort();
+  stylovani = null;
+  if (styl === 'spisovne') {
+    ukazatTextVzkazu(spisovnyText, 'spisovne');
+    return;
+  }
+  const mluvci = styl;
+  const jmeno = JMENA_STYLU[mluvci];
+  const popis = `Vzkaz ve stylu: ${jmeno}. Opravy dělejte ve spisovném znění, podle něj hledáme i odpověď.`;
+  const hotovy = vzkazyPostav.get(mluvci);
+  if (hotovy) {
+    ukazatTextVzkazu(hotovy, mluvci, popis);
+    return;
+  }
+  ukazatTextVzkazu(spisovnyText, 'spisovne');
+  (polePotvrzeni.text as HTMLTextAreaElement).readOnly = true;
+  stavStylu.replaceChildren(ukazatelNacitani(`${jmeno} si vzkaz přebírá…`));
+  const rizeni = new AbortController();
+  stylovani = rizeni;
+  let vysledek: Awaited<ReturnType<typeof stylizovatVzkaz>>;
+  try {
+    vysledek = await stylizovatVzkaz(spisovnyText, mluvci, rizeni.signal);
+  } catch {
+    return;
+  }
+  if (stylovani !== rizeni) return;
+  stylovani = null;
+  if ('text' in vysledek) {
+    vzkazyPostav.set(mluvci, vysledek.text);
+    ukazatTextVzkazu(vysledek.text, mluvci, popis);
+  } else {
+    ukazatTextVzkazu(spisovnyText, 'spisovne', `${vysledek.chyba} Vzkaz zůstává spisovně.`);
+  }
 }
 
 // Zkušební provoz: potvrzení zatím nic neodesílá, uložení přijde s přihlášením (krok 4, F-14).
 function potvrdit(udalost: SubmitEvent) {
   udalost.preventDefault();
+  // Kontroluje se a hledá spisovné znění. Text postavy je jen jeho převyprávění.
+  const zobrazeny = polePotvrzeni.text.value;
   const overeni = overitPotvrzeni({
-    text: polePotvrzeni.text.value,
+    text: spisovnyText,
     nazev: polePotvrzeni.nazev.value,
     typ: polePotvrzeni.typ.value,
     oblast: polePotvrzeni.oblast.value,
@@ -224,18 +310,34 @@ function potvrdit(udalost: SubmitEvent) {
   potvrzenyNazev.textContent = vzkaz.nazev;
   potvrzenyTyp.textContent = TYPY_PODNETU[vzkaz.typ];
   potvrzenaOblast.textContent = OBLASTI.find((o) => o.slug === vzkaz.oblast)?.nazev ?? vzkaz.oblast;
-  potvrzenyText.textContent = vzkaz.text;
+  potvrzenyText.textContent = poleUkazuje === 'spisovne' ? vzkaz.text : zobrazeny;
   const zmenene = navrh ? zmenenaPole(navrh, vzkaz) : [];
-  zmeny.textContent = zmenene.length
+  zmeny.textContent = (zmenene.length
     ? `Změny oproti návrhu AI: ${zmenene.map((pole) => NAZVY_POLI[pole]).join(', ')}.`
-    : 'Návrh AI zůstal beze změny.';
+    : 'Návrh AI zůstal beze změny.')
+    + (poleUkazuje === 'spisovne' ? '' : ` Vzkaz ve stylu: ${JMENA_STYLU[poleUkazuje]}. Odpověď hledáme podle spisovného znění.`);
+  stylOdpovedi = styl;
   ukazat('potvrzeno', 'Vzkaz je potvrzený.');
   // F-72: návrhy, stížnosti a pochvaly se nehledají.
   if (vzkaz.typ === 'dotaz') void hledatOdpoved(vzkaz);
   else ukazatStavOdpovedi(null);
 }
 
+// Odpověď hlasem postavy zvolené při potvrzení. Má ji odpověď z webu i dotaz bez odpovědi, když je server podepsal.
+function ukazatOdpovedPostavy(zdroj?: PodepsanyPodklad) {
+  odpovedPostavy?.zrusit();
+  odpovedPostavy = null;
+  if (!zdroj || stylOdpovedi === 'spisovne') {
+    mluvciOdpovedi.replaceChildren();
+    return;
+  }
+  const { ramecek, zrusit } = vytvoritPrevypraveni(zdroj, stylOdpovedi);
+  odpovedPostavy = { zrusit };
+  mluvciOdpovedi.replaceChildren(ramecek);
+}
+
 function ukazatStavOdpovedi(stav: 'hledani' | 'nalezena' | 'zastupitelum' | null) {
+  if (stav === null || stav === 'hledani') ukazatOdpovedPostavy();
   odpoved.hidden = stav === null;
   for (const cast of odpoved.querySelectorAll<HTMLElement>('[data-odpoved-stav]')) {
     cast.hidden = cast.dataset.odpovedStav !== stav;
@@ -269,8 +371,6 @@ function ukazatOdpoved(data: ZobrazenaOdpoved) {
   } else {
     vetyOdpovedi.replaceChildren(odstavecVet(data.vety));
   }
-  // Alternativní mluvčí: jen u odpovědi, kterou server podepsal.
-  mluvciOdpovedi.replaceChildren(...(data.prevypraveni ? [vytvoritMluvci(data.prevypraveni)] : []));
   // Částečná odpověď: části dotazu, na které zdroje neodpovídají.
   chybiSeznam.replaceChildren(...data.nezodpovezeno.map((cast) => {
     const polozka = document.createElement('li');
@@ -409,8 +509,10 @@ async function hledatOdpoved(vzkaz: PotvrzenyVzkaz) {
       ukazatBezOdpovedi(vysledek.status === 429 ? ODPOVED_LIMIT : DUVODY_BEZ_ODPOVEDI['chyba-ai'], true);
     } else if (data.vysledek === 'odpoved') {
       ukazatOdpoved(data.odpoved);
+      ukazatOdpovedPostavy(data.prevypraveni);
     } else if (data.vysledek === 'zastupitelum') {
       ukazatBezOdpovedi(DUVODY_BEZ_ODPOVEDI[data.duvod] ?? NENALEZENO, data.duvod === 'chyba-ai');
+      ukazatOdpovedPostavy('prevypraveni' in data ? data.prevypraveni : undefined);
     } else {
       ukazatStavOdpovedi(null);
     }
@@ -540,6 +642,19 @@ opakovat.addEventListener('click', () => poOpakovani());
 for (const zrusit of panel.querySelectorAll('[data-zrusit]')) zrusit.addEventListener('click', () => panel.close());
 
 pole.addEventListener('input', () => { pocet.textContent = String(pole.value.length); });
+// Oprava spisovného znění zneplatní texty postav, ty se pak přepíšou z opraveného.
+polePotvrzeni.text.addEventListener('input', () => {
+  if (poleUkazuje !== 'spisovne') return;
+  spisovnyText = polePotvrzeni.text.value;
+  vzkazyPostav.clear();
+});
+// Sluníčko postav a volba při kontrole vzkazu. Bez skriptu zůstanou skryté.
+for (const tlacitko of document.querySelectorAll<HTMLElement>('[data-styl]')) {
+  tlacitko.addEventListener('click', () => {
+    if (jeStyl(tlacitko.dataset.styl)) nastavitStyl(tlacitko.dataset.styl);
+  });
+}
+for (const skryte of document.querySelectorAll<HTMLElement>('[data-styly], [data-styl-napoveda], [data-styly-kontroly]')) skryte.hidden = false;
 prvek<HTMLFormElement>('[data-formular]', panel).addEventListener('submit', (udalost) => void odeslatFormular(udalost));
 prvek<HTMLFormElement>('[data-formular-potvrzeni]', panel).addEventListener('submit', potvrdit);
 
@@ -556,5 +671,7 @@ panel.addEventListener('close', () => {
   nahravani = null;
   odeslani?.abort();
   hledani?.abort();
+  stylovani?.abort();
+  stylovani = null;
   ukazatStavOdpovedi(null);
 });

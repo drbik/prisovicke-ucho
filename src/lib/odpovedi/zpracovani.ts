@@ -6,7 +6,7 @@ import { zakladniTyp, zkontrolovatPozadavek, type ZavislostiPodani } from '../po
 import { LIMIT_CASTI_MS, odpovedetPoCastech, type PrubehOdpovedi } from './casti';
 import type { TechnickeOdpovedi, VysledekOdpovedi } from './odpoved';
 import type { IndexZdroju } from './rozhrani';
-import { podepsatPodklad, podkladOdpovedi } from './styl';
+import { TEXT_BEZ_ODPOVEDI, podepsatPodklad, podkladOdpovedi, podkladZpravy, type PodepsanyPodklad, type PodkladPrevypraveni } from './styl';
 
 // Když hledání a oba modely nestihnou odpovědět na část dotazu do té doby, převezmou ji zastupitelé (PRD, Rychlost).
 export const LIMIT_ODPOVEDI_MS = LIMIT_CASTI_MS;
@@ -15,13 +15,15 @@ export interface ZavislostiDotazu extends ZavislostiPodani {
   index?: IndexZdroju;
   limitOdpovediMs?: number;
   prahPodobnosti?: number;
-  // Klíč pro podpis odpovědi, kterou pak smí stránka nechat převyprávět mluvčím (13. 11. 2026).
+  // Klíč pro podpis toho, co pak smí stránka nechat převyprávět mluvčím (13. 11. 2026).
   klicPodpisu?: string;
 }
 
+// prevypraveni: co smí stránka nechat převyprávět mluvčím, s podpisem serveru. Má ho odpověď i dotaz bez odpovědi
+// (13. 11. 2026). Chybí u výpadku AI a když server nemá klíč.
 export type VysledekDotazu =
   | { vysledek: 'nehleda'; typ: TypPodnetu }
-  | (VysledekOdpovedi & { celkemMs: number })
+  | (VysledekOdpovedi & { celkemMs: number; prevypraveni?: PodepsanyPodklad })
   | { vysledek: 'zastupitelum'; duvod: 'chyba-ai'; celkemMs: number; technicke?: TechnickeOdpovedi };
 
 // Průběžné zprávy pro stránku, poslední z nich nese výsledek. Posílají se po řádcích JSON (NDJSON).
@@ -54,6 +56,10 @@ export async function pripravitDotaz(request: Request, z: ZavislostiDotazu): Pro
   const dotaz = await precistDotaz(request);
   if (dotaz.typ === 'dotaz' && !z.index) throw new ChybaPodani('nedostupne');
   return dotaz;
+}
+
+async function podepsat(podklad: PodkladPrevypraveni, klic?: string): Promise<{ prevypraveni?: PodepsanyPodklad }> {
+  return klic ? { prevypraveni: { podklad, podpis: await podepsatPodklad(podklad, klic) } } : {};
 }
 
 // Potvrzený vzkaz typu dotaz (krok 8.6). Do logu jdou jen časy, počty, model a verze promptu, nikdy text.
@@ -95,11 +101,11 @@ export async function odpovedetNaPripraveny(
       znakuDotazu: text.length,
       hlaska: hlasky.length ? hlasky.join(' | ') : undefined,
     });
-    if (vysledek.vysledek === 'odpoved' && z.klicPodpisu) {
-      const podklad = podkladOdpovedi(text, vysledek.odpoved);
-      vysledek.odpoved.prevypraveni = { podklad, podpis: await podepsatPodklad(podklad, z.klicPodpisu) };
-    }
-    return { ...vysledek, celkemMs };
+    // Výpadek AI mluvčí nepřevypráví: autor má hledat znovu, ne se bavit.
+    const podklad = vysledek.vysledek === 'odpoved'
+      ? podkladOdpovedi(text, vysledek.odpoved)
+      : vysledek.duvod !== 'chyba-ai' ? podkladZpravy(text, TEXT_BEZ_ODPOVEDI) : null;
+    return { ...vysledek, celkemMs, ...(podklad ? await podepsat(podklad, z.klicPodpisu) : {}) };
   } catch (chyba) {
     const celkemMs = ted() - zacatek;
     log({

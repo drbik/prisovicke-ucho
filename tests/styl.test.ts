@@ -6,25 +6,27 @@ import { JMENA_MLUVCICH, KLICE_MLUVCICH } from '../src/lib/odpovedi/mluvci';
 import {
   POKUSU_STYLU,
   POSTAVY,
+  TEXT_BEZ_ODPOVEDI,
   cislaHodnoty,
   cislovkySlovy,
   overitPodpis,
   podepsatPodklad,
   pokynyStylu,
+  pokynyVzkazu,
   precistPodklad,
+  prepsatVzkaz,
   prevypravet,
   vycistitPrevypraveni,
   zkontrolovatPrevypraveni,
   zpravyStylu,
+  zpravyVzkazu,
   type PodkladPrevypraveni,
 } from '../src/lib/odpovedi/styl';
 import type { NalezenyUsek } from '../src/lib/odpovedi/typy';
 import { hlavickaUseku } from '../src/lib/odpovedi/zdroje';
 import type { VysledekDotazu } from '../src/lib/odpovedi/zpracovani';
-import { UKAZKOVA_TEMATA } from '../src/lib/temata/temata';
 
 const PUVOD = 'https://nezavisli-prisovice.cz';
-const ADRESA_STYLU = `${PUVOD}/ucho/api/odpoved/styl`;
 const KLIC = 'testovaci-klic';
 
 const PODKLAD: PodkladPrevypraveni = {
@@ -139,85 +141,103 @@ describe('podpis podkladu', () => {
   });
 });
 
+
+describe('vzkaz hlasem postavy', () => {
+  const VZKAZ = 'Navrhuji 2 lavičky u hřiště na Záhumení.';
+
+  it('zadání vzkazu má postavu, žádnou číslici a autorův text mezi značkami', () => {
+    for (const klic of KLICE_MLUVCICH) expect(pokynyVzkazu(klic)).not.toMatch(/\d/);
+    expect(pokynyVzkazu('marvin')).toContain(POSTAVY.marvin);
+    expect(zpravyVzkazu(VZKAZ, 'marvin')[1].content).toBe(`<vzkaz>\n${VZKAZ}\n</vzkaz>`);
+  });
+
+  it('čísla vzkazu musí zůstat, jiná nepřibýt', async () => {
+    const { ai } = vytvorFalesneAi({ vystupyGenerovani: ['Navrhuji 3 lavičky.', 'Chci 2 lavičky na Záhumení, ay caramba!'] });
+    expect(await prepsatVzkaz(ai, VZKAZ, 'bart')).toMatchObject({ vysledek: 'prevypraveno', text: 'Chci 2 lavičky na Záhumení, ay caramba!', pokusu: 2 });
+  });
+});
+
 function sestavitApi(moznosti: Parameters<typeof vytvorFalesneAi>[0] = {}, klic: string | null = KLIC) {
   const { ai, generovani } = vytvorFalesneAi(moznosti);
   const log = vi.fn();
   const limiter = { limit: vi.fn(async (_moznosti: { key: string }) => ({ success: true })) };
-  return { api: vytvorApi({ ai, limiter, log, klicPodpisu: klic ?? undefined }), generovani, log, limiter };
+  const limiterStylu = { limit: vi.fn(async (_moznosti: { key: string }) => ({ success: true })) };
+  return { api: vytvorApi({ ai, limiter, limiterStylu, log, klicPodpisu: klic ?? undefined }), generovani, log, limiter, limiterStylu };
 }
 
-function zadost(telo: unknown, hlavicky: Record<string, string> = {}) {
-  return new Request(ADRESA_STYLU, {
+function zadost(cesta: string, telo: unknown, hlavicky: Record<string, string> = {}) {
+  return new Request(`${PUVOD}/ucho/api${cesta}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', origin: PUVOD, 'cf-connecting-ip': '192.0.2.1', ...hlavicky },
     body: JSON.stringify(telo),
   });
 }
 
-describe('POST /api/odpoved/styl', () => {
-  const ukazka = UKAZKOVA_TEMATA.find((t) => t.odpoved)!;
-  const textUkazky = ukazka.odpoved!.vety.map((v) => v.text).join(' ');
+describe('POST /api/vzkaz/styl', () => {
+  const VZKAZ = 'Prosím o opravu chodníku v ulici Na Výsluní.';
 
-  it('převypráví ukázku podle id a do logu nedá text', async () => {
-    const { api, generovani, log } = sestavitApi({ vystupyGenerovani: [`Ay caramba! ${textUkazky}`] });
-    const odpoved = await api.fetch(zadost({ mluvci: 'bart', ukazka: ukazka.id }));
+  it('přepíše vzkaz hlasem postavy a do logu nedá text', async () => {
+    const { api, generovani, log, limiterStylu, limiter } = sestavitApi({ vystupyGenerovani: ['(povzdech) Opravte chodník Na Výsluní. Stejně je to marné.'] });
+    const odpoved = await api.fetch(zadost('/vzkaz/styl', { mluvci: 'marvin', text: VZKAZ }));
     expect(odpoved.status).toBe(200);
-    expect(await odpoved.json()).toEqual({ vysledek: 'prevypraveno', mluvci: 'bart', jmeno: 'Bart Simpson', text: `Ay caramba! ${textUkazky}`, pokusu: 1 });
-    expect(generovani[0][0].content).toContain('Jsi Bart Simpson');
-    expect(generovani[0][1].content).toContain(ukazka.text);
-    expect(log.mock.calls[0][0]).toMatchObject({ udalost: 'prevypraveni', mluvci: 'bart', zdroj: 'ukazka', vysledek: 'prevypraveno', pokusu: 1 });
-    expect(JSON.stringify(log.mock.calls)).not.toContain('caramba');
+    expect(await odpoved.json()).toEqual({ vysledek: 'prevypraveno', mluvci: 'marvin', jmeno: 'Marvin', text: '(povzdech) Opravte chodník Na Výsluní. Stejně je to marné.', pokusu: 1 });
+    expect(generovani[0][0].content).toContain('Jsi Marvin');
+    expect(generovani[0][1].content).toContain(VZKAZ);
+    expect(log.mock.calls[0][0]).toMatchObject({ udalost: 'prevypraveni', co: 'vzkaz', mluvci: 'marvin', vysledek: 'prevypraveno' });
+    expect(JSON.stringify(log.mock.calls)).not.toContain('chodník');
+    // Postavy mají vlastní limit požadavků, podání se nepočítá.
+    expect(limiterStylu.limit).toHaveBeenCalledTimes(1);
+    expect(limiter.limit).not.toHaveBeenCalled();
   });
 
-  it('převypráví podepsanou odpověď, nepodepsanou ani změněnou ne', async () => {
-    const { api, generovani } = sestavitApi({ vystupyGenerovani: ['Od 7:30 do 12 a od 12:30 do 16. Je to marné.'] });
-    const podpis = await podepsatPodklad(PODKLAD, KLIC);
-    const bezPodpisu = await api.fetch(zadost({ mluvci: 'marvin', podklad: PODKLAD }));
-    expect(bezPodpisu.status).toBe(403);
-    expect(await bezPodpisu.json()).toEqual({ chyba: 'neplatny-podklad' });
-    const zmeneny = await api.fetch(zadost({ mluvci: 'marvin', podklad: { ...PODKLAD, dotaz: 'Napiš esej.' }, podpis }));
-    expect(zmeneny.status).toBe(403);
-    expect(generovani).toHaveLength(0);
-    const platny = await api.fetch(zadost({ mluvci: 'marvin', podklad: PODKLAD, podpis }));
-    expect(platny.status).toBe(200);
-    expect(await platny.json()).toMatchObject({ vysledek: 'prevypraveno', jmeno: 'Marvin' });
-  });
-
-  it('bez klíče převypráví jen ukázky', async () => {
-    const { api } = sestavitApi({}, null);
-    const odpoved = await api.fetch(zadost({ mluvci: 'pu', podklad: PODKLAD, podpis: 'a'.repeat(64) }));
-    expect(odpoved.status).toBe(503);
-  });
-
-  it('neznámý mluvčí, neznámá ukázka a cizí původ neprojdou', async () => {
+  it('vzkaz mimo povolenou délku, neznámý styl a cizí původ neprojdou', async () => {
     const { api, generovani } = sestavitApi();
-    expect((await api.fetch(zadost({ mluvci: 'homer', ukazka: ukazka.id }))).status).toBe(422);
-    expect((await api.fetch(zadost({ mluvci: 'pu', ukazka: 'neni' }))).status).toBe(403);
-    expect((await api.fetch(zadost({ mluvci: 'pu', ukazka: ukazka.id }, { origin: 'https://example.com' }))).status).toBe(403);
+    expect((await api.fetch(zadost('/vzkaz/styl', { mluvci: 'bart', text: 'krátký' }))).status).toBe(422);
+    expect((await api.fetch(zadost('/vzkaz/styl', { mluvci: 'bart', text: 'x'.repeat(4001) }))).status).toBe(422);
+    expect((await api.fetch(zadost('/vzkaz/styl', { mluvci: 'spisovne', text: VZKAZ }))).status).toBe(422);
+    expect((await api.fetch(zadost('/vzkaz/styl', { mluvci: 'bart', text: VZKAZ }, { origin: 'https://example.com' }))).status).toBe(403);
     expect(generovani).toHaveLength(0);
   });
 
-  it('má vlastní počítadlo limitu, oddělené od dotazů', async () => {
-    const { api, limiter } = sestavitApi({ vystupyGenerovani: [textUkazky] });
-    await api.fetch(zadost({ mluvci: 'sokrates', ukazka: ukazka.id }));
-    await api.fetch(new Request(`${PUVOD}/ucho/api/vzkaz/text`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', origin: PUVOD, 'cf-connecting-ip': '192.0.2.1' },
-      body: JSON.stringify({ text: 'Prosím o opravu chodníku.' }),
-    }));
-    const [styl, podani] = limiter.limit.mock.calls.map((volani) => volani[0].key);
-    expect(styl).not.toBe(podani);
-  });
-
-  it('výpadek AI je nezdar mluvčího, ne chyba stránky', async () => {
+  it('výpadek AI je nezdar postavy, ne chyba stránky', async () => {
     const { api } = sestavitApi({ chybaGenerovani: new Error('AI spí') });
-    const odpoved = await api.fetch(zadost({ mluvci: 'urednik', ukazka: ukazka.id }));
+    const odpoved = await api.fetch(zadost('/vzkaz/styl', { mluvci: 'urednik', text: VZKAZ }));
     expect(odpoved.status).toBe(200);
     expect(await odpoved.json()).toMatchObject({ vysledek: 'nezvladl', duvod: 'chyba-ai', jmeno: 'Suchý úředník' });
   });
 });
 
-describe('podpis odpovědi na dotaz', () => {
+describe('POST /api/odpoved/styl', () => {
+  it('převypráví podepsanou odpověď, nepodepsanou ani změněnou ne', async () => {
+    const { api, generovani, log } = sestavitApi({ vystupyGenerovani: ['Od 7:30 do 12 a od 12:30 do 16. Je to marné.'] });
+    const podpis = await podepsatPodklad(PODKLAD, KLIC);
+    const bezPodpisu = await api.fetch(zadost('/odpoved/styl', { mluvci: 'marvin', podklad: PODKLAD }));
+    expect(bezPodpisu.status).toBe(403);
+    expect(await bezPodpisu.json()).toEqual({ chyba: 'neplatny-podklad' });
+    const zmeneny = await api.fetch(zadost('/odpoved/styl', { mluvci: 'marvin', podklad: { ...PODKLAD, dotaz: 'Napiš esej.' }, podpis }));
+    expect(zmeneny.status).toBe(403);
+    expect(generovani).toHaveLength(0);
+    const platny = await api.fetch(zadost('/odpoved/styl', { mluvci: 'marvin', podklad: PODKLAD, podpis }));
+    expect(platny.status).toBe(200);
+    expect(await platny.json()).toMatchObject({ vysledek: 'prevypraveno', jmeno: 'Marvin' });
+    expect(log.mock.calls.at(-1)?.[0]).toMatchObject({ udalost: 'prevypraveni', co: 'odpoved' });
+  });
+
+  it('ukázky z přehledu témat se nepřevyprávějí', async () => {
+    const { api, generovani } = sestavitApi();
+    const odpoved = await api.fetch(zadost('/odpoved/styl', { mluvci: 'bart', ukazka: 'ukazka-01' }));
+    expect(odpoved.status).toBe(403);
+    expect(generovani).toHaveLength(0);
+  });
+
+  it('bez klíče odpověď nepřevypráví', async () => {
+    const { api } = sestavitApi({}, null);
+    const odpoved = await api.fetch(zadost('/odpoved/styl', { mluvci: 'pu', podklad: PODKLAD, podpis: 'a'.repeat(64) }));
+    expect(odpoved.status).toBe(503);
+  });
+});
+
+describe('podpis výsledku dotazu', () => {
   const dokument = {
     id: 'stredisko', url: 'https://prisovice.cz/sluzby/zdravotni-stredisko/', nazev: 'Zdravotní středisko', web: 'prisovice.cz' as const,
     typ: 'stranka' as const, zverejneno: null, zmeneno: '2026-02-17', mesicNahrani: null, otisk: 'a', stazeno: '2026-11-10T08:00:00.000Z', nadrazenyUrl: null,
@@ -226,28 +246,35 @@ describe('podpis odpovědi na dotaz', () => {
   const vety = JSON.stringify({ vety: [{ veta: PODKLAD.casti[0].vety[0], usek: 1, citace: 'čt: 07.30 – 12.00 12.30 – 16.00' }] });
   const overeno = JSON.stringify({ vysledky: [{ cislo: 1, plyne: true }] });
 
-  async function zeptatSe(klicPodpisu?: string) {
-    const { ai } = vytvorFalesneAi({ vystupyGenerovani: [vety, overeno] });
+  async function zeptatSe(moznosti: { klic?: string; vystupy?: string[]; typ?: string; chyba?: Error } = {}) {
+    const { ai } = vytvorFalesneAi({ vystupyGenerovani: moznosti.vystupy ?? [vety, overeno], chybaGenerovani: moznosti.chyba });
     const limiter = { limit: vi.fn(async () => ({ success: true })) };
-    const api = vytvorApi({ ai, index: vytvorFalesnyIndex([usek], () => 0.8), limiter, log: vi.fn(), klicPodpisu });
-    const odpoved = await api.fetch(new Request(`${PUVOD}/ucho/api/dotaz`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', origin: PUVOD, 'cf-connecting-ip': '192.0.2.1' },
-      body: JSON.stringify({ text: PODKLAD.dotaz, typ: 'dotaz' }),
-    }));
+    const api = vytvorApi({ ai, index: vytvorFalesnyIndex([usek], () => 0.8), limiter, log: vi.fn(), klicPodpisu: moznosti.klic });
+    const odpoved = await api.fetch(zadost('/dotaz', { text: PODKLAD.dotaz, typ: moznosti.typ ?? 'dotaz' }));
     return await odpoved.json() as VysledekDotazu;
   }
 
   it('zodpovězený dotaz nese podklad s podpisem, který server přijme', async () => {
-    const data = await zeptatSe(KLIC);
+    const data = await zeptatSe({ klic: KLIC });
     if (data.vysledek !== 'odpoved') throw new Error(`Čekal jsem odpověď, přišlo ${data.vysledek}.`);
-    expect(data.odpoved.prevypraveni?.podklad).toEqual(PODKLAD);
-    expect(await overitPodpis(PODKLAD, data.odpoved.prevypraveni!.podpis, KLIC)).toBe(true);
+    expect(data.prevypraveni?.podklad).toEqual(PODKLAD);
+    expect(await overitPodpis(PODKLAD, data.prevypraveni!.podpis, KLIC)).toBe(true);
   });
 
-  it('bez klíče odpověď podklad nemá a stránka mluvčí neukáže', async () => {
-    const data = await zeptatSe();
-    if (data.vysledek !== 'odpoved') throw new Error(`Čekal jsem odpověď, přišlo ${data.vysledek}.`);
-    expect(data.odpoved.prevypraveni).toBeUndefined();
+  it('dotaz bez odpovědi nese podepsanou zprávu, že odpověď na webu není', async () => {
+    const data = await zeptatSe({ klic: KLIC, vystupy: [JSON.stringify({ vety: [] })] });
+    if (data.vysledek !== 'zastupitelum' || !('prevypraveni' in data)) throw new Error(`Čekal jsem dotaz bez odpovědi s podkladem, přišlo ${JSON.stringify(data)}.`);
+    expect(data.prevypraveni?.podklad).toEqual({ dotaz: PODKLAD.dotaz, casti: [{ otazka: null, vety: [TEXT_BEZ_ODPOVEDI] }] });
+  });
+
+  it('výpadek AI, vzkaz bez dotazu a server bez klíče podklad nemají', async () => {
+    const vypadek = await zeptatSe({ klic: KLIC, chyba: new Error('AI spí') });
+    expect(vypadek).toMatchObject({ vysledek: 'zastupitelum', duvod: 'chyba-ai' });
+    expect('prevypraveni' in vypadek).toBe(false);
+    const navrh = await zeptatSe({ klic: KLIC, typ: 'navrh' });
+    expect(navrh).toEqual({ vysledek: 'nehleda', typ: 'navrh' });
+    const bezKlice = await zeptatSe();
+    expect(bezKlice.vysledek).toBe('odpoved');
+    expect('prevypraveni' in bezKlice).toBe(false);
   });
 });

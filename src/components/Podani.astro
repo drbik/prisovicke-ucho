@@ -2,18 +2,43 @@
 import { MAX_DELKA_NAHRAVKY_S, MAX_ZNAKU_NAZVU, MAX_ZNAKU_TEXTU, MAX_ZNAKU_UPRAVY, MIN_ZNAKU_TEXTU } from '../lib/podani/limity';
 import { formatovatCas } from '../lib/nahravani/casovac';
 import { OBLASTI, TYPY_PODNETU } from '../lib/oblasti';
+import { IKONY_STYLU } from '../lib/odpovedi/ikony-stylu';
+import { JMENA_STYLU, STYLY } from '../lib/odpovedi/mluvci';
 
 const formatZnaku = new Intl.NumberFormat('cs-CZ');
 ---
 
 <div class="podani">
-  <button class="mikrofon" type="button" data-nahrat>
-    <svg viewBox="0 0 24 24" width="44" height="44" aria-hidden="true">
-      <path fill="currentColor" d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-6a3.5 3.5 0 0 0-7 0v6A3.5 3.5 0 0 0 12 15Z" />
-      <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3.2M8.6 21.2h6.8" />
-    </svg>
-    <span>Namluvit vzkaz</span>
-  </button>
+  <!-- Sluníčko stylů (13. 11. 2026): kolem tlačítka jsou postavy. Ťuknutí na postavu jen promění tlačítko,
+       nahrávat se začne až jím. Bez skriptu zůstane jen tlačítko. -->
+  <div class="slunce" data-slunce>
+    <div class="slunce__paprsky" role="group" aria-label="Kdo vzkaz a odpověď řekne" data-styly hidden>
+      {STYLY.map((styl) => (
+        <button type="button" class="paprsek" aria-pressed={styl === 'spisovne' ? 'true' : 'false'} aria-label={JMENA_STYLU[styl]} title={JMENA_STYLU[styl]} data-styl={styl}>
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" set:html={IKONY_STYLU[styl]} />
+        </button>
+      ))}
+    </div>
+    <button class="mikrofon" type="button" data-nahrat>
+      <span class="mikrofon__ikona" data-mikrofon-ikona>
+        <svg viewBox="0 0 24 24" width="44" height="44" aria-hidden="true">
+          <path fill="currentColor" d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-6a3.5 3.5 0 0 0-7 0v6A3.5 3.5 0 0 0 12 15Z" />
+          <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3.2M8.6 21.2h6.8" />
+        </svg>
+      </span>
+      <span data-mikrofon-popis>Namluvit vzkaz</span>
+    </button>
+  </div>
+  <div class="podani__napoveda" data-styl-napoveda hidden>
+    <p>Ťukněte na postavu kolem tlačítka a vzkaz i odpověď převypráví svým hlasem.</p>
+    <!-- Popis podle Tomáše (13. 11. 2026): styl je podprahový vzkaz o náladě autora, nic vážného. -->
+    <details class="podani__jak">
+      <summary>Jak to funguje?</summary>
+      <p>Ucho váš vzkaz vždy převede do spisovné češtiny. Zvolená postava ho pak převypráví svým hlasem a stejným hlasem vám převypráví i odpověď. Věcná odpověď se zdroji zůstane vždy vidět.</p>
+      <p>Zastupitelé si vzkaz budou moci přepnout do kteréhokoli stylu. Styl, ve kterém ho pošlete, jim ale napoví, s jakou náladou nebo v jaké roli ho píšete.</p>
+      <p>Nic vážného, jen pro zpestření všedního dne. Nebojte se experimentovat. Zastupitelé jsou lidé jako vy a také rádi vykročí za hranice všedních dní.</p>
+    </details>
+  </div>
   <button class="odkaz" type="button" data-napsat>Raději napíšu</button>
   <noscript><p class="drobne">Nahrávání i odeslání potřebuje JavaScript. Zapněte ho prosím v prohlížeči.</p></noscript>
 </div>
@@ -80,6 +105,18 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
         <h2 tabindex="-1" data-fokus>Zkontrolujte vzkaz</h2>
         <p>AI vzkaz převedla do spisovné češtiny a navrhla název a zařazení. Zkontrolujte, jestli všechno sedí, a cokoli opravte.</p>
         <form data-formular-potvrzeni novalidate>
+          <div class="styly-kontroly" data-styly-kontroly hidden>
+            <p class="styly-kontroly__titulek" id="styly-kontroly-titulek">Kdo vzkaz řekne</p>
+            <div class="styly-kontroly__volby" role="group" aria-labelledby="styly-kontroly-titulek">
+              {STYLY.map((styl) => (
+                <button type="button" class="styl-volba" aria-pressed={styl === 'spisovne' ? 'true' : 'false'} aria-controls="vzkaz-upraveny" data-styl={styl}>
+                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" set:html={IKONY_STYLU[styl]} />
+                  {JMENA_STYLU[styl]}
+                </button>
+              ))}
+            </div>
+            <p class="drobne styly-kontroly__stav" role="status" data-styl-stav></p>
+          </div>
           <label for="vzkaz-upraveny">Text vzkazu</label>
           <textarea
             id="vzkaz-upraveny"
@@ -140,6 +177,8 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
 
         <section class="odpoved" aria-labelledby="odpoved-titulek" data-odpoved hidden>
           <h3 id="odpoved-titulek" class="odpoved__titulek" tabindex="-1" data-odpoved-titulek>Odpověď na dotaz</h3>
+          <!-- Odpověď hlasem zvolené postavy (13. 11. 2026). Věcná odpověď a zdroje jsou pod ní. -->
+          <div data-odpoved-mluvci></div>
           <div data-odpoved-stav="hledani" hidden>
             <p><span class="toceni" aria-hidden="true"></span> <span data-prubeh-popis></span></p>
             <ol class="prubeh" data-prubeh hidden></ol>
@@ -147,7 +186,6 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
           <div data-odpoved-stav="nalezena" hidden>
             <p class="odpoved__oznaceni" data-odpoved-oznaceni></p>
             <div class="odpoved__text" data-odpoved-vety></div>
-            <div data-odpoved-mluvci></div>
             <div class="odpoved__chybi" data-odpoved-chybi hidden>
               <h4 class="odpoved__chybi-titulek">Tohle jsme ve zdrojích nenašli</h4>
               <ul data-odpoved-chybi-seznam></ul>

@@ -4,7 +4,6 @@ import { oddilCitace } from './misto';
 import { ZamitnutaOdpoved, jeTextVUseku, overitKodem, precistNezodpovezeno, precistOdpoved, precistOvereni, type DuvodZamitnuti } from './overeni';
 import { VERZE_PROMPTU_ODPOVEDI, datumDnes, zpravyOdpovedi, zpravyOvereni } from './prompt-odpovedi';
 import type { IndexZdroju } from './rozhrani';
-import type { PodkladPrevypraveni } from './styl';
 import type { NalezenyUsek, WebZdroje } from './typy';
 import { OZNACENI_ZDROJE, UPOZORNENI, datumZdroje, odkazNaZdroj } from './zdroje';
 
@@ -40,9 +39,6 @@ export interface ZobrazenaOdpoved {
   nezodpovezeno: string[];
   oznaceni: string[];
   upozorneni: string;
-  // Alternativní mluvčí (13. 11. 2026): co smí stránka nechat převyprávět, s podpisem serveru.
-  // Chybí, když server nemá klíč pro podpis.
-  prevypraveni?: { podklad: PodkladPrevypraveni; podpis: string };
 }
 
 export type DuvodPredani =

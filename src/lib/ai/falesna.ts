@@ -1,5 +1,5 @@
 import { POKYNY_ROZDELENI } from '../odpovedi/prompt-odpovedi';
-import { ZACATEK_POKYNU_STYLU } from '../odpovedi/styl';
+import { ZACATEK_POKYNU_STYLU, ZACATEK_POKYNU_VZKAZU } from '../odpovedi/styl';
 import type { ZpravaModelu } from './prompt-upravy';
 import type { SluzbaAi, VysledekPrepisu, VysledekUpravy } from './rozhrani';
 import { VERZE_PROMPTU } from './prompt-upravy';
@@ -97,10 +97,11 @@ export function vytvorFalesneAi({
       generovani.push(zpravy);
       await pockat(zpozdeniMs);
       if (chybaGenerovani) throw chybaGenerovani;
-      // Lokální vývoj: převyprávění mluvčím vrátí odpověď beze změny se jménem mluvčího na začátku.
-      if (ozvena && !zbyvajiciVystupy.length && zpravy[0]?.content.startsWith(ZACATEK_POKYNU_STYLU)) {
-        const odpoved = /<odpoved>\n([\s\S]*)\n<\/odpoved>/.exec(zpravy[1]?.content ?? '')?.[1] ?? '';
-        return `(Falešná AI, styl se lokálně nezkouší.) ${odpoved}`;
+      // Lokální vývoj: postava vrátí odpověď nebo vzkaz beze změny s poznámkou na začátku.
+      const pokyny = zpravy[0]?.content ?? '';
+      if (ozvena && !zbyvajiciVystupy.length && (pokyny.startsWith(ZACATEK_POKYNU_STYLU) || pokyny.startsWith(ZACATEK_POKYNU_VZKAZU))) {
+        const text = /<(odpoved|vzkaz)>\n([\s\S]*)\n<\/\1>/.exec(zpravy[1]?.content ?? '')?.[2] ?? '';
+        return `(Falešná AI, styl se lokálně nezkouší.) ${text}`;
       }
       return zbyvajiciVystupy.shift() ?? NEVIM;
     },

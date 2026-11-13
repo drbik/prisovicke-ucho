@@ -1,10 +1,11 @@
 // Zkouška alternativních mluvčích se skutečnou AI (13. 11. 2026): každá vybraná odpověď u každého mluvčího.
 // Spouští se ručně: npx tsx nastroje/zkouska-mluvcich.ts [id ukázky …]. Bez id vezme pět ukázek a dotaz na dvě věci.
+// S přepínačem --vzkazy přepíše postava čtyři vzkazy autorů, jako při kontrole vzkazu.
 // Výsledky jdou do složky dat mimo repozitář, na obrazovku jen souhrn a texty k přečtení.
 import path from 'node:path';
 import { vytvorCloudflareAi } from '../src/lib/ai/cloudflare';
 import { KLICE_MLUVCICH } from '../src/lib/odpovedi/mluvci';
-import { VERZE_PROMPTU_STYLU, podkladOdpovedi, prevypravet, type PodkladPrevypraveni } from '../src/lib/odpovedi/styl';
+import { VERZE_PROMPTU_STYLU, podkladOdpovedi, prepsatVzkaz, prevypravet, type PodkladPrevypraveni } from '../src/lib/odpovedi/styl';
 import { UKAZKOVA_TEMATA } from '../src/lib/temata/temata';
 import { pripojitCloudflare } from './index/cloudflare';
 import { SLOZKA_DAT } from './index/nastaveni';
@@ -33,6 +34,40 @@ if (!vybrane.length) {
 
 const { env, ukoncit } = await pripojitCloudflare();
 const radky: Record<string, unknown>[] = [];
+
+// Přepínač --vzkazy: místo odpovědí přepíše postava vzkazy autorů (texty ukázek po AI úpravě), jako při kontrole vzkazu.
+if (process.argv.includes('--vzkazy')) {
+  const VZKAZY = ['ukazka-03', 'ukazka-22', 'ukazka-25', 'ukazka-16'];
+  try {
+    const ai = vytvorCloudflareAi(env.AI);
+    for (const id of VZKAZY) {
+      const text = UKAZKOVA_TEMATA.find((t) => t.id === id)!.text;
+      const vysledky = await Promise.all(KLICE_MLUVCICH.map(async (mluvci) => {
+        const zacatek = Date.now();
+        const zamitnute: { chyba: string; text: string }[] = [];
+        const vysledek = await prepsatVzkaz(ai, text, mluvci, (t, chyba) => { if (chyba) zamitnute.push({ chyba, text: t }); });
+        return { ...vysledek, ms: Date.now() - zacatek, zamitnute };
+      }));
+      console.log(`\n=== ${id}: ${text}`);
+      for (const v of vysledky) {
+        radky.push({ id, ...v });
+        console.log(`\n--- ${v.mluvci} (${v.vysledek === 'prevypraveno' ? `pokus ${v.pokusu}` : `nezvládl: ${v.duvod}`}, ${v.ms} ms)`);
+        if (v.vysledek === 'prevypraveno') console.log(v.text);
+        for (const z of v.zamitnute) console.log(`  [zamítnuto: ${z.chyba}] ${z.text.slice(0, 300).replace(/\s+/g, ' ')}…`);
+      }
+    }
+  } finally {
+    await ukoncit();
+  }
+  const prosly = radky.filter((r) => r.vysledek === 'prevypraveno');
+  const casy = prosly.map((r) => r.ms as number).sort((a, b) => a - b);
+  console.log(`\nVzkazy: prošlo ${prosly.length}/${radky.length}, medián ${casy[Math.floor(casy.length / 2)] ?? 0} ms, nejdéle ${casy.at(-1) ?? 0} ms.`);
+  const soubor = path.join(SLOZKA_DAT, `mluvci-vzkazy-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.json`);
+  await ulozitJson(soubor, { verzePromptu: VERZE_PROMPTU_STYLU, radky });
+  console.log(`Výsledky: ${soubor}`);
+  process.exit(0);
+}
+
 try {
   const ai = vytvorCloudflareAi(env.AI);
   for (const { id, podklad } of podklady) {
