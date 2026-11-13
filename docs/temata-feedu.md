@@ -276,6 +276,52 @@ Navrhuji ponechat prahy ze zadání a doplnit dva měkké cíle:
 
 Práh nabídky 0,65 se doladí na sadě z fáze B tak, aby platil první řádek.
 
+## Vyhodnocení na schválené sadě (13. 11. 2026)
+
+Skript `npx tsx nastroje/vyhodnotit-temata.ts` nad sadou z [sada-temat.md](sada-temat.md) (28 skupin, 95 vzkazů). Každý vzkaz prošel AI úpravou (Gemma 4 26B, prompt úpravy verze 3). Nabídka podobných témat a nové otázky šly stejným kódem jako v aplikaci (`najitPodobnaTemata`, `najitNoveOtazky`, prompt témat verze 1). Témata byla všechny ukázky, `ukazka-03` se skutečným vzkazem na Sokolovnu a tři nová témata od zakladatelů. Celý výstup je v `vyhodnoceni-temat.json` ve složce dat. Ručně jsem prošla každý nenabídnutý pár, každé nabídnuté jiné téma a každý výsledek nových otázek mimo očekávání.
+
+| Práh | Výsledek | Splněno |
+|---|---|---|
+| Totéž, poddotaz a doplnění: správné téma mezi nabídnutými, aspoň 90 % | **62 z 67 (92,5 %)**: totéž 33 z 33, poddotaz 26 z 31, doplnění 3 z 3. V pořadí podobnosti na prvním místě 64 z 67. | ano |
+| Sloučení bez volby autora | žádné: kód vzkaz bez volby k tématu nepřipojí (testy v `tests/temata-feedu.test.ts`) | ano |
+| Jiné téma v jednom tématu bez souhlasu autora | nic: jiné téma se jen nabídne a autor zvolí „Je to jiné téma“ | ano |
+| Nové otázky (měkký cíl 80 %) | u totéž s odpovědí prázdné 21 z 23, u poddotazu neprázdné 31 z 31 | ano |
+| Jiné téma se nabídne nejvýš u třetiny párů (měkký cíl) | **19 z 34 (56 %)** | ne |
+| Zakladatel nového tématu nedostane nabídku | 0 z 3 | ano |
+| Cena zařazení nejvýš dvojnásobek | embedding textu a názvu 0,06 neuronu na vzkaz, nové otázky u poddotazu asi 4 neurony | ano |
+
+**Nenabídnuté poddotazy (5).** Všechny mají podobnost pod prahem 0,65:
+
+| Pár | Podobnost | Pořadí |
+|---|---|---|
+| G17-2 volné místo ve školce × kapacita školky | 0,60 | 1. |
+| G22-2 pneumatiky ve sběrném dvoře × sobotní otevírací doba | 0,63 | 1. |
+| G18-2 poplatek za svatbu v kapli × svatba v Příšovicích | 0,53 | 3. |
+| G20-2 přihláška do energetického společenství × levnější elektřina | 0,48 | 2. |
+| G19-2 další vítání občánků × dar při narození | 0,46 | 18. |
+
+Autor v těchto případech dostane nové téma a tým ho může k tématu přesunout příkazem.
+
+**Nabídnutá jiná témata (19 z 34).** Sada je úmyslně složená ze záludných párů na stejném místě: sál a hospoda v Sokolovně, koupání psů a koupaliště, lékárna a zubař, děti ve školce a ve škole (0,86). Autor je odmítne jedním klikem „Je to jiné téma“. Ve výchozím stavu se k vzkazu nabídne průměrně 1,0 tématu, 14 z 92 vzkazů nedostane nabídku žádnou.
+
+**Jiné prahy nabídky** na stejných datech:
+
+| Práh | Správné téma nabídnuto | Jiné téma nabídnuto |
+|---|---|---|
+| 0,60 | 63 z 67 (94,0 %) | 26 z 34 |
+| **0,65** | **62 z 67 (92,5 %)** | **19 z 34** |
+| 0,68 | 61 z 67 (91,0 %) | 13 z 34 |
+| 0,70 | 59 z 67 (88,1 %) | 10 z 34 |
+| 0,75 | 52 z 67 (77,6 %) | 4 z 34 |
+
+Práh 0,65 zůstává. Práh 0,68 by měkký cíl skoro splnil, ale u povinného prahu 90 % by zbyla rezerva jediného páru. Kdyby nabídka v provozu obtěžovala, jde před ni přidat jazykový model, který ve fázi A jiná témata poznal všechna (rizika níže).
+
+**Nové otázky mimo očekávání (2).** Oba páry jsou mezi sporným, které Tomáš potvrdil jako totéž. U G01-3 (svatební hostina v sále) AI vrátila otázku na cenu sálu pro hostinu v létě. U G07-2 (ověření podpisu v pátek) otázku na ověření v pátek. Kdyby autor zvolil „Ptám se na víc“, ucho by hledalo znovu a skládání by případnou opakovanou větu zahodilo.
+
+**Typ z AI úpravy.** U 1 z 95 vzkazů dala úprava jiný typ než sada: G24-0 (lampa u nádraží) jako stížnost. Na stránce ho autor při kontrole opraví, vyhodnocení bralo typ ze sady.
+
+**Čas a cena.** Nabídka trvala v mediánu 0,22 s (embedding a úložiště v paměti, D1 přidá čtení vektorů). Běh stál asi 1 800 neuronů, z toho 1 540 AI úprava 95 vzkazů a 230 nové otázky.
+
 ## Rizika
 
 - **Nabídka jiných témat.** Na stejném místě bývají různá témata s podobností až 0,76. Autor je odmítne jedním klikem. Kdyby jich bylo moc, jde před nabídku přidat jazykový model, který v měření jiná témata poznal všechna (stojí ale 2 až 7 s a 10 neuronů).

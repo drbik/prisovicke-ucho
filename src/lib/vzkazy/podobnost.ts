@@ -67,6 +67,7 @@ export async function najitPodobnaTemata(
   z: { uloziste: UlozisteVzkazu; ai: SluzbaAi; ukazky: UkazkoveTema[] },
   vyloucitVzkaz?: string,
   prah = PRAH_NABIDKY,
+  pocet = MAX_NABIDKY,
 ): Promise<PodobneTema[]> {
   const { clenove, vyloucena } = await z.uloziste.vektoryTemat(typ);
   const zakazana = new Set(vyloucena);
@@ -79,6 +80,6 @@ export async function najitPodobnaTemata(
   return [...skore]
     .filter(([id, podobnost]) => !zakazana.has(id) && podobnost >= prah)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, MAX_NABIDKY)
+    .slice(0, pocet)
     .map(([id, podobnost]) => ({ id, podobnost: Math.round(podobnost * 1000) / 1000 }));
 }
