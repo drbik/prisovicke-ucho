@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { stream } from 'hono/streaming';
 import { ChybaPodani } from '../podani/chyby';
-import { odpovedetNaPripraveny, pripravitDotaz, zpracovatDotaz, type UdalostDotazu, type ZavislostiDotazu } from '../odpovedi/zpracovani';
+import { odpovedetNaPripraveny, pripravitDotaz, zpracovatDotaz, zpracovatPotvrzeni, type UdalostDotazu, type ZavislostiDotazu } from '../odpovedi/zpracovani';
 import { zpracovatPrevypraveni, zpracovatStylVzkazu, type ZavislostiStylu } from '../odpovedi/zpracovani-stylu';
 import { zpracovatHlas, zpracovatText } from '../podani/zpracovani';
 
@@ -22,6 +22,8 @@ export function vytvorApi(z: ZavislostiDotazu & ZavislostiStylu) {
   api.post('/vzkaz/text', async (c) => c.json(await zpracovatText(c.req.raw, z)));
   api.post('/vzkaz/styl', async (c) => c.json(await zpracovatStylVzkazu(c.req.raw, z)));
   api.post('/odpoved/styl', async (c) => c.json(await zpracovatPrevypraveni(c.req.raw, z)));
+  // F-81: autor potvrdí, že mu odpověď stačí, nebo že se chce doptat.
+  api.post('/vzkaz/potvrzeni', async (c) => c.json(await zpracovatPotvrzeni(c.req.raw, z)));
   api.post('/dotaz', async (c) => {
     if (!(c.req.header('accept') ?? '').includes(TYP_PRUBEHU)) return c.json(await zpracovatDotaz(c.req.raw, z));
     // Chyby požadavku (původ, limit, text) přijdou jako HTTP chyba dřív, než začne průběh.

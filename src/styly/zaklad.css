@@ -182,9 +182,25 @@ form > label:not(:first-child), .dvojice { margin-top: 16px; }
 .ulozeni { margin: 0 0 14px; padding: 10px 14px; border-left: 3px solid var(--past); border-radius: 0 7px 7px 0; background: #edf2e8; }
 .ulozeni p { margin: 0; }
 .ulozeni__odkaz { min-height: 36px; padding: 4px 0; }
-.odpoved__podobny { margin: 0 0 14px; padding: 10px 14px; border: 1px solid var(--past); border-radius: 12px; background: #fff; }
-.odpoved__podobny p { margin: 0; }
-.odpoved__podobny .odkaz { min-height: 36px; padding: 4px 0; }
+/* Témata ve feedu (13. 11. 2026, F-34 až F-37, F-81): nabídka podobných témat, odpověď tématu a doptání. */
+.nabidka { display: grid; gap: 14px; margin: 0 0 18px; padding: 0; list-style: none; }
+.nabidka__tema { padding: 14px 16px; border: 1px solid var(--linka); border-radius: 12px; background: #fff; }
+.nabidka__nazev { margin: 0 0 2px; font-size: 1rem; overflow-wrap: anywhere; }
+.nabidka__tema .polozka__meta { margin-bottom: 10px; }
+.nabidka__tema .prepis { margin-bottom: 10px; font-size: .9rem; }
+.nabidka__tema .akce { margin-top: 12px; }
+.odpoved__sbalene-zdroje { margin: 0 0 8px; font-size: .88rem; }
+.odpoved__sbalene-zdroje summary { min-height: 32px; color: var(--past); font-weight: 700; cursor: pointer; }
+.odpoved__sbalene-zdroje .odpoved__zdroje { margin-top: 8px; }
+.odpoved__tema { margin: 0 0 14px; padding: 10px 14px; border-left: 3px solid var(--past); border-radius: 0 7px 7px 0; background: #edf2e8; overflow-wrap: anywhere; }
+.odpoved__cast--nova { color: var(--past); }
+.odpoved__nove { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; color: #fff; background: var(--past); font-size: .72rem; font-weight: 760; letter-spacing: .04em; vertical-align: 1px; }
+.potvrzeni-odpovedi { margin: 18px 0 0; padding-top: 14px; border-top: 1px solid var(--linka); }
+.potvrzeni-odpovedi__otazka { margin: 0 0 8px; font-weight: 700; }
+.potvrzeni-odpovedi .akce { margin-top: 0; }
+.doptani { margin: 0 0 16px; padding: 10px 14px; border: 1px solid var(--past); border-radius: 12px; background: #fff; }
+.doptani p { margin: 0; overflow-wrap: anywhere; }
+.doptani .odkaz { min-height: 36px; padding: 4px 0; }
 .mluvci__ramecek { margin: 0 0 14px; padding: 12px 14px; border: 1px dashed var(--accent); border-radius: 12px; background: #fff; }
 .mluvci__stitek { margin: 0 0 6px; color: var(--accent); font-size: .74rem; font-weight: 760; letter-spacing: .06em; text-transform: uppercase; }
 .mluvci__text { margin: 0 0 8px; white-space: pre-line; overflow-wrap: anywhere; }
@@ -234,8 +250,15 @@ form > label:not(:first-child), .dvojice { margin-top: 16px; }
 .polozka__styl { margin: 0 0 10px; font-size: .88rem; }
 .polozka__styl summary { color: var(--accent); font-weight: 700; cursor: pointer; }
 .polozka__text-stylu { margin: 6px 0 0; padding: 8px 12px; border: 1px dashed var(--accent); border-radius: 7px; white-space: pre-line; overflow-wrap: anywhere; }
-.polozka__podobny { margin: 0 0 10px; padding: 8px 12px; border-left: 3px solid var(--past); background: #edf2e8; font-size: .88rem; }
-.polozka__podobny a { color: var(--past); font-weight: 700; }
+.polozka__cekajici { margin: 0 0 10px; padding: 8px 12px; border-left: 3px solid var(--fokus); border-radius: 0 7px 7px 0; background: #fff6ec; font-size: .88rem; }
+.polozka__cekajici h4 { margin: 0 0 4px; font-size: .86rem; }
+.polozka__cekajici ul { margin: 0; padding-left: 20px; }
+.polozka__vzkazy { margin: 0 0 6px; font-size: .88rem; }
+.polozka__vzkazy summary { min-height: 32px; color: var(--past); font-weight: 700; cursor: pointer; }
+.polozka__vzkazy ul { margin: 8px 0 0; padding: 0; list-style: none; }
+.polozka__vzkazy li { margin-bottom: 10px; }
+.polozka__vztah { margin: 0 0 4px; color: var(--ink-soft); font-size: .8rem; }
+.polozka__vzkazy .prepis { margin-bottom: 6px; padding: 10px 12px; font-size: .86rem; }
 
 @media (max-width: 699px) {
   .prehled__ucho .podani { gap: 8px; margin-top: 20px; }

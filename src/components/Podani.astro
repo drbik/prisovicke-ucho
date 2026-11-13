@@ -53,6 +53,11 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
 
     <div class="panel__obsah">
       <p class="jen-ctecka" role="status" data-oznameni></p>
+      <!-- Doptání k tématu (F-81, 13. 11. 2026): pruh je vidět od „Chci se doptat“ do odeslání doptání. -->
+      <div class="doptani" data-doptani hidden>
+        <p>Doptáváte se k tématu <strong data-doptani-nazev></strong>. Napište nebo namluvte, co vám v odpovědi chybí.</p>
+        <button class="odkaz" type="button" data-doptani-namluvit>Raději namluvím</button>
+      </div>
 
       <section data-pohled="zadost" hidden>
         <h2 tabindex="-1" data-fokus>Povolte mikrofon</h2>
@@ -166,6 +171,17 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
         </details>
       </section>
 
+      <!-- Podobná témata (F-34, F-35): autor zvolí, jak s nimi vzkaz souvisí. Uloží se až potom (F-14). -->
+      <section data-pohled="vyber" hidden>
+        <h2 tabindex="-1" data-fokus>Ptal se už někdo na totéž?</h2>
+        <p>Ve feedu jsou podobná témata. Vyberte, jak s nimi váš vzkaz souvisí. Zveřejní se až potom.</p>
+        <ul class="nabidka" data-nabidka></ul>
+        <div class="akce">
+          <button class="tlacitko" type="button" data-jine-tema>Je to jiné téma</button>
+          <button class="tlacitko tlacitko--druhe" type="button" data-vyber-zpet>Zpět k úpravám</button>
+        </div>
+      </section>
+
       <section data-pohled="potvrzeno" hidden>
         <h2 tabindex="-1" data-fokus>Vzkaz je potvrzený</h2>
         <!-- Uložení do feedu (13. 11. 2026): stav ukládání a odkaz na vzkaz ve feedu. -->
@@ -183,11 +199,8 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
 
         <section class="odpoved" aria-labelledby="odpoved-titulek" data-odpoved hidden>
           <h3 id="odpoved-titulek" class="odpoved__titulek" tabindex="-1" data-odpoved-titulek>Odpověď na dotaz</h3>
-          <!-- Opakovaný dotaz (13. 11. 2026): na podobný dotaz už je odpověď, odkaz na ni ve feedu. -->
-          <div class="odpoved__podobny" data-odpoved-podobny hidden>
-            <p>Na podobný dotaz už je odpověď: <strong data-podobny-nazev></strong></p>
-            <button class="odkaz" type="button" data-ukazat-podobny>Zobrazit odpověď</button>
-          </div>
+          <!-- Odpověď tématu (F-37): totéž ukáže existující odpověď, poddotaz ji doplní. -->
+          <p class="poznamka odpoved__tema" data-odpoved-tema hidden></p>
           <!-- Odpověď hlasem zvolené postavy (13. 11. 2026). Věcná odpověď a zdroje jsou pod ní. -->
           <div data-odpoved-mluvci></div>
           <div data-odpoved-stav="hledani" hidden>
@@ -205,6 +218,15 @@ const formatZnaku = new Intl.NumberFormat('cs-CZ');
             <h4 class="odpoved__zdroje-titulek">Zdroje</h4>
             <ol class="odpoved__zdroje" data-odpoved-zdroje></ol>
             <p class="poznamka" data-odpoved-upozorneni></p>
+            <!-- F-81: u každé odpovědi autor zvolí, jestli mu stačí, nebo se doptá. -->
+            <div class="potvrzeni-odpovedi" data-potvrzeni-odpovedi hidden>
+              <p class="potvrzeni-odpovedi__otazka">Stačí vám odpověď?</p>
+              <div class="akce" data-potvrzeni-volby>
+                <button class="tlacitko" type="button" data-staci>Odpověď mi stačí</button>
+                <button class="tlacitko tlacitko--druhe" type="button" data-doptat>Chci se doptat</button>
+              </div>
+              <p class="drobne" data-potvrzeni-dik hidden></p>
+            </div>
           </div>
           <div data-odpoved-stav="zastupitelum" hidden>
             <p class="odpoved__oznaceni">Odpověď jsme na webu nenašli</p>
