@@ -1,6 +1,6 @@
 # Alternativní mluvčí odpovědi
 
-*Návrh z 12. 11. 2026, rozhodnutý a v kódu 13. 11. 2026 (krok 8.15 v [plan-mvp.md](plan-mvp.md)). Je to rozšíření MVP pro zkušební a vývojový provoz, zadal ho Tomáš.*
+*Návrh z 12. 11. 2026, rozhodnutý, v kódu a nasazený 13. 11. 2026 (krok 8.15 v [plan-mvp.md](plan-mvp.md)). Je to rozšíření MVP pro zkušební a vývojový provoz, zadal ho Tomáš.*
 
 ## Proč
 
@@ -106,8 +106,13 @@ Co je vidět při čtení:
 
 Proto je u převyprávění vždy štítek „Pro pobavení“ a věcná odpověď se zdroji hned nad ním.
 
-## Než se nasadí
+## Nasazení (13. 11. 2026)
 
-1. Vytvořit tajný klíč na ostré adrese: náhodná hodnota přes `wrangler secret put KLIC_PODPISU`, nikdy do repozitáře ani do výpisu.
-2. `npm run deploy` a vyzkoušet na ostré adrese ukázku i nový dotaz.
-3. Zvuk (čtení nahlas) zatím ne. Kdyby přišel, tak jen obecným syntetickým hlasem, nikdy napodobením hlasu konkrétního herce z dabingu.
+- Tajný klíč `KLIC_PODPISU` je náhodná hodnota nahraná přes `wrangler secret put`. Není v repozitáři ani ve výpisu. Když se změní, podpisy dříve vydaných odpovědí přestanou platit a jejich tlačítka mluvčí nezvládnou. Nové odpovědi fungují hned.
+- Worker verze 37baf02f z commitu 7f0efcd.
+- Ověření na ostré adrese:
+  - Marvin převyprávěl ukázku o lékárně na první pokus za 1,8 s;
+  - nový dotaz na cenu sálu Sokolovny přišel s podpisem a Bart ho převyprávěl na první pokus za 1,1 s;
+  - podvržený podklad se stejným podpisem server odmítl (403);
+  - stránka má místo pro tlačítka u všech 18 zodpovězených ukázek a u odpovědi v panelu.
+- Zvuk (čtení nahlas) zatím ne. Kdyby přišel, tak jen obecným syntetickým hlasem, nikdy napodobením hlasu konkrétního herce z dabingu.
