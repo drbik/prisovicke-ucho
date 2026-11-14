@@ -1,6 +1,6 @@
 # Index zdrojů pro odpovědi z webu
 
-*Krok 8 z [plánu MVP](plan-mvp.md#krok-8-index-webu-a-odpověď-s-citací). Stav indexu k 13. 11. 2026 (okno 4 roky). Tabulka zdrojů níže je ze 13. 11. 2026.*
+*Krok 8 z [plánu MVP](plan-mvp.md#krok-8-index-webu-a-odpověď-s-citací). Stav indexu k 14. 11. 2026 (okno 4 roky, OCR obrázků, stará úřední deska). Tabulka zdrojů níže je ze 13. 11. 2026.*
 
 Index drží text webu obce prisovice.cz a veřejný obsah webu Nezávislých pro Příšovice (karty projektů, Tlampač a podklady). Z něj ucho hledá odpověď na potvrzený dotaz (F-70 až F-76). Index se aktualizuje jen ručně (F-71). Pravidelný běh do MVP nepatří.
 
@@ -23,6 +23,31 @@ Odhad neuronů vychází z poměru předchozích nahrání (zhruba 0,52 neuronu 
 - Staženo 17 obrázků (33 požadavků). Text z obrázku má 8 aktualit: jarmark, rozsvícení stromečku, koncert My Gospel, beseda s Marií Formáčkovou, Panova flétna, Čistá řeka Jizera, divadlo v Pěnčíně a platební portál.
 - Index po nahrání: D1 560 dokumentů a 5 077 úseků, Vectorize 5 077 vektorů. Embeddingy se počítaly pro 9 úseků.
 - `hledat.ts "Kdy budou vánoční trhy?"` najde aktualitu s jarmarkem vektorově i fulltextem. Pozvánka zní: sobota 21. a neděle 22. listopadu 2026, Sokolovna čp. 145, vždy od 10:00 do 15:00 hodin.
+
+**Archiv úřední desky a stará deska na e-obec.cz (14. 11. 2026, pokyn Tomáše):**
+
+- **Archiv na prisovice.cz** (`obecni-urad-prisovice/archiv-ud/`) je výpis, který odkazuje na stejné položky úřední desky jako sitemapa. Všech 312 položek archivu je od 11. 1. 2024 (od ledna 2024 vede obec desku ve WordPressu) a všech 312 už v seznamu stahování bylo: 298 zpracovaných, 14 vynechaných jako řízení soukromých osob. Archiv sám nepřidal nic. Mezi zpracovanými je všech 55 zápisů rady od 10. 1. 2024 a všechny zápisy zastupitelstva.
+- **Stará úřední deska na prisovice.e-obec.cz** (`urednideska.php` a `urednideska.php?akce=archive`) se od 14. 11. 2026 sleduje. Rozhodnutí z 24. 10. 2026, že se nesleduje, tím Tomáš mění. Deska má 20 dokumentů: 6 dosud vyvěšených (střednědobé výhledy rozpočtu, dotace Mikroregionu Jizera, trvale vyvěšené nařízení č. 1/2013) a 14 z archivu (leden 2024: pozvánky, oznámení, záměry, rozpočtové opatření, zápis rady z 10. 1. 2024). Odkaz `urednideska.php?soubor=ID` přesměruje na PDF v `/storage/uredni_deska/`. Bere se, co bylo vyvěšeno v okně nebo co visí dosud. Dokument, který je i na novém webu obce, se v indexu objeví jednou a zůstane kopie z prisovice.cz (stejný text). Přibylo 5 dokumentů (D1 565 dokumentů, 5 106 úseků, Vectorize 5 106 vektorů, embeddingy jen pro 29 úseků). Soubor `robots.txt` na e-obec.cz neexistuje (404), skript bere všechno povolené s rozestupem jedné sekundy.
+
+**Hledání detailů v zápisech rady (14. 11. 2026, hlášení Tomáše „ucho nenachází detaily“):**
+
+Zápisy rady jsou v indexu úplně (54 zápisů, 600 úseků, text je čitelný). Změřeno na 15 dotazech s jistou odpovědí v usnesení (`tests/data/dotazy-zapisy.json`, `npx tsx nastroje/index/mereni-zapisu.ts` a `mereni-zapisu-odpovedi.ts`): správný úsek najde hledání u 14 z 15 dotazů už dnes. Selhávalo něco jiného, až odpověď a ověření: celou cestu přežilo jen 7 z 15 dotazů. Příčiny a opravy:
+
+| Příčina | Dotazů z 15 | Oprava |
+|---|---|---|
+| Model za uzavřenou citaci připsal cizí slovo, JSON byl neplatný | 3 | Věty se přečtou i z poškozeného JSONu (`zachranitVety`). Citace se pak stejně ověřuje doslova ve zdroji. |
+| Model opsal celé usnesení (420 znaků), limit 300 znaků ho odmítl | 2 | Limit přijaté citace je 500 znaků, doslovnost se kontroluje dál. |
+| Ověření označilo dodavatele s IČ (třeba „Arboristika Jakub Kněbort“) za soukromou osobu | 2 | Prompt ověření: podnikatel s IČ, kterého obec uvádí jako dodavatele, soukromá osoba není. Žadatel, nájemce, kupující, stavebník a občan v řízení jí dál jsou. Změkčení pravidla z 12. 11. 2026 potvrdil Tomáš 14. 11. 2026 a rozšířil ho na účinkující na veřejných akcích obce (hudebník, umělec, přednášející). Ověření k tomu dostalo dva příklady, bez nich model kolísal. |
+| Kolísání modelu při jediném pokusu | | Technické chyby (neplatný JSON, špatně opsaná citace, špatné číslo úseku, číslo ve větě mimo citaci, falešná soukromá osoba) se zkusí jednou znovu s teplotou 0,3. Každý pokus prochází celým ověřením. Rozpor se zdrojem (`neplyne-z-citace`) se neopakuje. |
+
+Výsledek: odpověď dostane 12 až 13 ze 15 dotazů (před úpravami 7 z 15). Prompt verze 8 (účinkující) už zodpoví i Z09. Ověření je přísné a u jednoho až dvou dotazů kolísá mezi během (Z10, Z14: `neplyne-z-citace`). Stav dotazů, které dřív neprošly:
+
+- **Z09 (kdo vystoupil na masopustu a kolik to stálo):** od verze 8 promptu odpoví (účinkující na akci obce není soukromá osoba), 3 ze 3 pokusů.
+- **Z15 (smlouva na cyklostezku „Cecilka k Jizeře“):** usnesení rady č. 126/2026 ze 3. 7. 2026 schvaluje výběr M-SILNICE na „Greenway Jizera v úseku Turnov – Svijany, SO E.102“ a aktualita ze 14. 8. 2026 píše o stezce „od Přepeř k břehové části řeky Jizery“. Slovo Cecilka není v žádném z nich. Tomáš 14. 11. 2026 potvrdil, že SO E.102 je cyklostezka přes Cecilku, a je to v seznamu místních názvů (`src/lib/odpovedi/mistopis.ts`) včetně slov pro hledání (Greenway, E102). Hledání teď vrací úseky o E.102, ale usnesení č. 126/2026 mezi šesti úseky pro model dál není a model odpoví „nevím“. Deset úseků a padesát kandidátů ho do výběru dostane, celkově to ale vyšlo hůř (12 z 15, pomalejší odpovědi), proto zůstává šest.
+
+**Místní názvy (14. 11. 2026, pokyn Tomáše):** `src/lib/odpovedi/mistopis.ts` má seznam míst, která občané říkají po svém (zatím Cecilka a Písečáky). Výklad („Cecilka je nejnovější zástavba na východním okraji Příšovic u silnice na Přepeře, ne jméno osoby“) dostane model v odpovědi i v ověření jen tehdy, když se název objeví v dotazu nebo v úryvcích. Slouží jen k porozumění, tvrzení musí mít oporu v úryvku. Do fulltextového hledání se k dotazu s Cecilkou přidá slovo Přepeře. Seznam doplňuje tým, popis u každého místa musí být ověřený.
+
+**Dotaz na poslední zasedání (14. 11. 2026, pokyn Tomáše):** „Co se řešilo na posledním zasedání Rady a zastupitelstva?“ se hledáním podobnosti řešit nedá, rozhoduje datum. `src/lib/odpovedi/zapisy.ts` pozná dotaz (poslední, nejnovější, naposledy, minulé + zasedání, jednání, schůze, zápis) a orgán (rada, zastupitelstvo, jinak oba). Z indexu se vezmou první úseky nejnovějšího zápisu každého orgánu podle data v názvu a model z nich podle zvláštního zadání napíše nejvýš tři věty „Na zasedání rady obce dne … se projednávala …“ s krátkou doslovnou citací z programu. Body se jmény osob se vynechají. Ověření a ostatní pojistky platí jako jindy. Na ostrém indexu se zasedání zastupitelstva 4. 11. 2026 shrnuje stabilně, zasedání rady 21. 10. 2026 v samostatném dotazu 3 ze 3 za 6 až 15 s. Ve společném dotazu na oba orgány se rada občas nevejde do časového limitu a část se podle pravidla F-75 vynechá.
 
 **Čekající dotazy po obnově (13. 11. 2026, pokyn Tomáše):** `npx tsx nastroje/zodpovedet-cekajici.ts` projde čekající témata ve feedu a čekající ukázky stejným hledáním, odpovědí a ověřením jako stránka. Nic nezapisuje. Ucho odpovědělo na téma „Dotaz na termín rozsvícení vánočního stromku“: pátek 27. listopadu 2026 od 17:00 hodin na návsi, zdrojem je pozvánka obce. Odpověď je zapsaná v ostré D1 jako platná část odpovědi z webu (tabulka `odpoved`, `puvod` web) a téma má stav `zodpovezeno-z-webu`. Je to odpověď z webu obce se zdrojem, ne odpověď úřadu. Druhý vzkaz téhož tématu („rozlicení“ s překlepem) hledání samo nenašlo, patří ale ke stejnému tématu, a tak dostal stejnou odpověď. Na žádnou ze 12 čekajících ukázek ucho neodpovědělo, ani na Výdejní box a Nabíječku.
 
@@ -66,7 +91,7 @@ Odhad neuronů vychází z poměru předchozích nahrání (zhruba 0,52 neuronu 
 | Skeny, ze kterých OCR nepřečte nic použitelného | 9 PDF | Mapy, ocenění, plánek směny pozemků a dvě oznámení o vstupu na pozemky se samými výkresy |
 | Strany bez použitelného textu v jinak čitelných PDF | 41 stran nečitelných pro OCR, 21 PDF se stranami bez textu | Výkresy, mapy, grafy a přílohy havarijního plánu. OCR z nich dá jen útržky (do 25 slov), filtr je do indexu nepustí. |
 | Dokumenty v jiném formátu | 32 | Excel a zip zůstávají mimo index (rozhodnuto 10. 11. 2026). Patří sem návrh rozpočtu v Excelu. |
-| Odkazy na jiné weby | 22 | Stará úřední deska prisovice.e-obec.cz (nesleduje se, rozhodnuto 24. 10. 2026) a portál CENIA |
+| Odkazy na jiné weby | 22 | Portál CENIA a další cizí domény. Stará úřední deska prisovice.e-obec.cz se od 14. 11. 2026 sleduje (viz výše). |
 | PDF, které web vrací s chybou 404 | 1 | Informace o GDPR odkázaná z odpovědi podle zákona 106 z listopadu 2022 |
 | Duplicitní PDF | 35 | Obec stejný dokument zveřejnila dvakrát pod jinou adresou. V indexu je jedna kopie. |
 

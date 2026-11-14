@@ -1,4 +1,4 @@
-import { MAX_NEZODPOVEZENO, MAX_VET, MAX_ZNAKU_CITACE, MAX_ZNAKU_NEZODPOVEZENO } from './prompt-odpovedi';
+import { MAX_NEZODPOVEZENO, MAX_VET, MAX_ZNAKU_CITACE_PRIJATE, MAX_ZNAKU_NEZODPOVEZENO } from './prompt-odpovedi';
 import type { NalezenyUsek } from './typy';
 
 export interface VetaOdpovedi {
@@ -55,9 +55,34 @@ export function vyjmoutJson(vystup: string) {
   throw new ZamitnutaOdpoved('neplatny-json');
 }
 
+// Model občas za uzavřenou citaci připíše cizí slovo (`… Kč" way}`) a celý JSON je pak neplatný, i když věty jsou v pořádku
+// (14. 11. 2026: tři z patnácti dotazů na zápisy rady). Věty, které mají všechna tři pole správně uzavřená, se proto
+// přečtou i z poškozeného výstupu. Bezpečnost to nemění: citace se pak stejně ověřuje proti úryvku doslova.
+const POLE_VETY = /"veta"\s*:\s*"((?:[^"\\]|\\.)*)"\s*,\s*"usek"\s*:\s*"?(\d+)"?\s*,\s*"citace"\s*:\s*"((?:[^"\\]|\\.)*)"/g;
+
+export function zachranitVety(vystup: string): VetaOdpovedi[] {
+  const retezec = (text: string) => {
+    try {
+      return (JSON.parse(`"${text}"`) as string).trim();
+    } catch {
+      return text.trim();
+    }
+  };
+  return [...vystup.matchAll(POLE_VETY)]
+    .map((m): VetaOdpovedi => ({ veta: retezec(m[1]), usek: Number(m[2]), citace: retezec(m[3]) }))
+    .filter((v) => v.veta);
+}
+
 // Výstup modelu se vždy čte kódem. Workers AI platný JSON nezaručuje.
 export function precistOdpoved(vystup: string): VetaOdpovedi[] {
-  const data = vyjmoutJson(vystup);
+  let data: Record<string, unknown>;
+  try {
+    data = vyjmoutJson(vystup);
+  } catch (chyba) {
+    const zachranene = zachranitVety(vystup);
+    if (!zachranene.length) throw chyba;
+    return zachranene.slice(0, MAX_VET);
+  }
   if (!Array.isArray(data.vety)) throw new ZamitnutaOdpoved('neplatny-json');
   const vety = data.vety.map((polozka): VetaOdpovedi => {
     const p = (polozka ?? {}) as Record<string, unknown>;
@@ -269,7 +294,9 @@ export function overitKodem(vety: VetaOdpovedi[], useky: NalezenyUsek[]): VetaOd
   return vety.map((veta) => {
     if (!veta.citace) throw new ZamitnutaOdpoved('chybi-citace');
     if (!Number.isInteger(veta.usek) || !useky[veta.usek - 1]) throw new ZamitnutaOdpoved('spatny-usek');
-    if (veta.citace.length > MAX_ZNAKU_CITACE * 2) throw new ZamitnutaOdpoved('citace-neni-v-useku');
+    // Prompt chce nejvýš MAX_ZNAKU_CITACE znaků, ale usnesení rady má i čtyři sta znaků a model je opisuje celé. Doslovná
+    // citace z úseku je v pořádku, hranice jen brání tomu, aby model vydával za citaci celý úsek (14. 11. 2026).
+    if (veta.citace.length > MAX_ZNAKU_CITACE_PRIJATE) throw new ZamitnutaOdpoved('citace-neni-v-useku');
     const poradi = [veta.usek - 1, ...useky.keys()].filter((i, j, vse) => vse.indexOf(i) === j);
     let nalezeno: { index: number; citace: string; opravena: boolean } | null = null;
     for (const [hledat, opravena] of [[citaceVUseku, false], [citaceSOdchylkou, true]] as const) {

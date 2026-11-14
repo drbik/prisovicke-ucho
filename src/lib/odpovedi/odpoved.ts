@@ -1,11 +1,12 @@
 import type { SluzbaAi } from '../ai/rozhrani';
-import { PRAH_PODOBNOSTI, hledatUseky } from './hledani';
+import { PRAH_PODOBNOSTI, USEKU_DO_MODELU, hledatUseky, type VysledekHledani } from './hledani';
 import { oddilCitace } from './misto';
 import { ZamitnutaOdpoved, jeTextVUseku, overitKodem, precistNezodpovezeno, precistOdpoved, precistOvereni, type DuvodZamitnuti } from './overeni';
 import { VERZE_PROMPTU_ODPOVEDI, datumDnes, zpravyOdpovedi, zpravyOvereni } from './prompt-odpovedi';
 import type { IndexZdroju } from './rozhrani';
 import type { NalezenyUsek, WebZdroje } from './typy';
 import { OZNACENI_ZDROJE, UPOZORNENI, datumZdroje, odkazNaZdroj } from './zdroje';
+import { rozpoznatPosledniZapis } from './zapisy';
 
 export interface CitovanyZdroj {
   cislo: number;
@@ -66,6 +67,8 @@ export interface TechnickeOdpovedi {
   rozdeleniMs?: number;
   // Kolik citací model neopsal doslova a kód je nahradil přesným zněním zdroje.
   opravenoCitaci?: number;
+  // Kolikrát se odpověď zkusila znovu po technické chybě modelu (bez textu, jen počet).
+  opakovano?: number;
 }
 
 export type VysledekOdpovedi =
@@ -82,6 +85,11 @@ export interface ZavislostiOdpovedi {
 }
 
 const MAX_TOKENU_ODPOVEDI = 900;
+const MAX_POKUSU_ODPOVEDI = 2;
+const TEPLOTA_OPAKOVANI = 0.3;
+// Jen chyby, které vznikají tvarem výstupu modelu, ne obsahem: neplatný JSON, špatně opsaná citace, špatné číslo úseku
+// a falešný poplach ověření u firmy nebo podnikatele. Rozpor se zdrojem (neplyne-z-citace) se neopakuje.
+const DUVODY_K_OPAKOVANI = new Set<DuvodZamitnuti>(['neplatny-json', 'chybi-citace', 'spatny-usek', 'citace-neni-v-useku', 'cislo-neni-v-citaci', 'soukroma-osoba']);
 const MAX_TOKENU_OVERENI = 200;
 
 // Odpověď ukáže citace v pořadí prvního použití. Jeden odkaz (dokument, u PDF strana) je jeden zdroj,
@@ -132,13 +140,27 @@ function sestavitOdpoved(vety: { veta: string; usek: number; citace: string }[],
   };
 }
 
+// Úseky nejnovějšího zápisu každého orgánu, na který se dotaz ptá. Když se ptá na oba, jde z každého zápisu polovina.
+async function hledatNejnovejsiZapis(dotaz: string, index: IndexZdroju): Promise<VysledekHledani | null> {
+  const organy = rozpoznatPosledniZapis(dotaz);
+  if (!organy || !index.nejnovejsiZapis) return null;
+  const pocet = Math.floor(USEKU_DO_MODELU / organy.length);
+  const useky = (await Promise.all(organy.map((organ) => index.nejnovejsiZapis!(organ, pocet)))).flat();
+  return useky.length ? { useky, nejlepsiPodobnost: 1, shodVektoru: 0, shodSlov: 0, prerazeno: 0 } : null;
+}
+
 // F-73 až F-76: hledání, odpověď jen z úryvků a ověření. Když cokoli neprojde, dotaz jde zastupitelům.
 export async function odpovedetNaDotaz(dotaz: string, z: ZavislostiOdpovedi): Promise<VysledekOdpovedi> {
   const ted = z.ted ?? Date.now;
   const zacatek = ted();
-  const [vektor] = await z.ai.vektory([dotaz]);
-  const preradit = z.ai.preradit ? (text: string, texty: string[]) => z.ai.preradit!(text, texty) : undefined;
-  const hledani = await hledatUseky(z.index, vektor, dotaz, undefined, preradit);
+  // „Co se řešilo na posledním zasedání rady?“: nejnovější zápis se najde podle data, ne podle podobnosti (14. 11. 2026).
+  const zapis = await hledatNejnovejsiZapis(dotaz, z.index);
+  const souhrn = zapis !== null;
+  const hledani = zapis ?? await (async () => {
+    const [vektor] = await z.ai.vektory([dotaz]);
+    const preradit = z.ai.preradit ? (text: string, texty: string[]) => z.ai.preradit!(text, texty) : undefined;
+    return hledatUseky(z.index, vektor, dotaz, undefined, preradit);
+  })();
   z.naHledani?.(hledani.useky, hledani.nejlepsiPodobnost);
   const technicke: TechnickeOdpovedi = {
     useku: hledani.useky.length,
@@ -152,22 +174,34 @@ export async function odpovedetNaDotaz(dotaz: string, z: ZavislostiOdpovedi): Pr
     return { vysledek: 'zastupitelum', duvod: 'nic-nenalezeno', technicke };
   }
 
-  const predOdpovedi = ted();
-  const vystup = await z.ai.generovat(zpravyOdpovedi(dotaz, hledani.useky, datumDnes(ted())), { maxTokenu: MAX_TOKENU_ODPOVEDI });
-  technicke.odpovedMs = ted() - predOdpovedi;
-  try {
-    const navrzene = precistOdpoved(vystup);
-    if (!navrzene.length) return { vysledek: 'zastupitelum', duvod: 'model-nevi', technicke };
-    const vety = overitKodem(navrzene, hledani.useky);
-    technicke.opravenoCitaci = vety.filter((v) => v.opravenaCitace).length;
-    const predOverenim = ted();
-    const kOvereni = vety.map((v) => ({ ...v, zdroj: hledani.useky[v.usek - 1].hlavicka }));
-    const overeni = await z.ai.generovat(zpravyOvereni(dotaz, kOvereni, datumDnes(ted())), { maxTokenu: MAX_TOKENU_OVERENI });
-    technicke.overeniMs = ted() - predOverenim;
-    precistOvereni(overeni, vety.length);
-    return { vysledek: 'odpoved', odpoved: sestavitOdpoved(vety, hledani.useky, precistNezodpovezeno(vystup)), technicke };
-  } catch (chyba) {
-    if (chyba instanceof ZamitnutaOdpoved) return { vysledek: 'zastupitelum', duvod: chyba.duvod, technicke };
-    throw chyba;
+  // Technická chyba modelu (poškozený JSON, citace neopsaná doslova) nebo falešný poplach u dodavatele s IČ se zkusí jednou
+  // znovu s mírně vyšší teplotou (14. 11. 2026: sedm z patnácti správných odpovědí o zápisech rady se zahodilo kvůli tomu).
+  // Každý pokus prochází celým ověřením, opakování tedy nic nepouští bez opory ve zdroji.
+  for (let pokus = 1; ; pokus += 1) {
+    const predOdpovedi = ted();
+    const vystup = await z.ai.generovat(zpravyOdpovedi(dotaz, hledani.useky, datumDnes(ted()), souhrn), {
+      maxTokenu: MAX_TOKENU_ODPOVEDI,
+      ...(pokus > 1 ? { teplota: TEPLOTA_OPAKOVANI } : {}),
+    });
+    technicke.odpovedMs = (technicke.odpovedMs ?? 0) + (ted() - predOdpovedi);
+    try {
+      const navrzene = precistOdpoved(vystup);
+      if (!navrzene.length) return { vysledek: 'zastupitelum', duvod: 'model-nevi', technicke };
+      const vety = overitKodem(navrzene, hledani.useky);
+      technicke.opravenoCitaci = vety.filter((v) => v.opravenaCitace).length;
+      const predOverenim = ted();
+      const kOvereni = vety.map((v) => ({ ...v, zdroj: hledani.useky[v.usek - 1].hlavicka }));
+      const overeni = await z.ai.generovat(zpravyOvereni(dotaz, kOvereni, datumDnes(ted())), { maxTokenu: MAX_TOKENU_OVERENI });
+      technicke.overeniMs = (technicke.overeniMs ?? 0) + (ted() - predOverenim);
+      precistOvereni(overeni, vety.length);
+      return { vysledek: 'odpoved', odpoved: sestavitOdpoved(vety, hledani.useky, precistNezodpovezeno(vystup)), technicke };
+    } catch (chyba) {
+      if (!(chyba instanceof ZamitnutaOdpoved)) throw chyba;
+      if (pokus < MAX_POKUSU_ODPOVEDI && DUVODY_K_OPAKOVANI.has(chyba.duvod)) {
+        technicke.opakovano = pokus;
+        continue;
+      }
+      return { vysledek: 'zastupitelum', duvod: chyba.duvod, technicke };
+    }
   }
 }

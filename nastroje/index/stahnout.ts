@@ -11,10 +11,12 @@ import {
   OKNO_OD_MESIC,
   SLOZKA_DAT,
   VYPISOVE_STRANKY,
+  WEB_EOBEC,
   WEB_NEZAVISLYCH,
   WEB_OBCE,
   jeRizeniSoukromeOsoby,
 } from './nastaveni';
+import { precistDeskuEobec } from './eobec';
 import { odkazyPodkladu } from './nezavisli';
 import { precistRobots, vytvorStahovac } from './sit';
 import { precistSitemapu, rozebratClanek, typSitemapy, type TypPolozky, type ZaznamRest } from './wordpress';
@@ -192,6 +194,69 @@ for (const [url, { rodice }] of odkazy) {
   stav.pdf[url] = { soubor, stazeno: ted(), velikostB: vysledek.bajty.byteLength };
   pocty.stazeno += 1;
   if (pocty.stazeno % 25 === 0) await ulozitJson(souborStavu(), stav);
+}
+
+// 5a. Stará úřední deska na prisovice.e-obec.cz (Tomáš 14. 11. 2026): aktuálně vyvěšené dokumenty a archiv. Bere se, co bylo
+// vyvěšeno v okně, a co visí dosud (třeba nařízení vyvěšené trvale). Dokument, který je i na novém webu obce, se v indexu
+// objeví jednou: zpracování vyřadí kopii se stejným textem.
+{
+  stav.eobec ??= {};
+  const robots = await stahovac.stahnout(`${WEB_EOBEC}/robots.txt`);
+  const jePovolenoEobec = robots.status === 200 ? precistRobots(dekodovat(robots.bajty)) : () => true;
+  const idNaUrl = new Map(Object.entries(stav.eobec).map(([url, z]) => [z.id, url]));
+  const dnes = ted().slice(0, 10);
+  const stranky = [`${WEB_EOBEC}/urednideska.php`, `${WEB_EOBEC}/urednideska.php?akce=archive`];
+  for (const stranka of stranky) {
+    if (!jePovolenoEobec(stranka)) continue;
+    const vysledek = await stahovac.stahnout(stranka);
+    if (vysledek.status !== 200) throw new Error(`${stranka} vrátil ${vysledek.status}.`);
+    for (const p of precistDeskuEobec(dekodovat(vysledek.bajty))) {
+      const odkaz = `${WEB_EOBEC}/urednideska.php?soubor=${p.id}`;
+      const zaznam: ZaznamSeznamu = { url: odkaz, typ: 'pdf', stav: 'stazeno', nazev: p.nazev, datum: p.vyveseno, rodic: stranka };
+      seznam.push(zaznam);
+      const znama = idNaUrl.get(p.id);
+      if (znama && existsSync(path.join(SLOZKA_DAT, souborPrilohy(znama)))) {
+        zaznam.url = znama;
+        zaznam.stav = 'beze-zmeny';
+        stav.eobec[znama] = { id: p.id, nazev: p.nazev, vyveseno: p.vyveseno, sejmuto: p.sejmuto, stranka };
+        pocty.bezeZmeny += 1;
+        continue;
+      }
+      if (!((p.vyveseno ?? '') >= OKNO_OD || (p.sejmuto ?? '') >= dnes)) {
+        zaznam.stav = 'mimo-okno';
+        continue;
+      }
+      if (jeRizeniSoukromeOsoby(p.nazev, [])) {
+        zaznam.stav = 'vynechano';
+        zaznam.duvod = 'řízení soukromé osoby';
+        continue;
+      }
+      if (!jePovolenoEobec(odkaz)) {
+        zaznam.stav = 'robots';
+        continue;
+      }
+      const soubor = await stahovac.stahnout(odkaz);
+      if (soubor.status !== 200) {
+        zaznam.stav = 'chyba';
+        zaznam.duvod = `HTTP ${soubor.status}`;
+        continue;
+      }
+      zaznam.url = soubor.adresa;
+      if (new URL(soubor.adresa).hostname !== new URL(WEB_EOBEC).hostname) {
+        zaznam.stav = 'cizi-domena';
+        continue;
+      }
+      if (!formatPrilohy(soubor.adresa)) {
+        zaznam.stav = 'jiny-format';
+        continue;
+      }
+      const cil = souborPrilohy(soubor.adresa);
+      await fs.writeFile(path.join(SLOZKA_DAT, cil), soubor.bajty);
+      stav.pdf[soubor.adresa] = { soubor: cil, stazeno: ted(), velikostB: soubor.bajty.byteLength };
+      stav.eobec[soubor.adresa] = { id: p.id, nazev: p.nazev, vyveseno: p.vyveseno, sejmuto: p.sejmuto, stranka };
+      pocty.stazeno += 1;
+    }
+  }
 }
 
 // 5b. Obrázky pozvánek a plakátů z aktualit a úřední desky v okně (rozšíření z 13. 11. 2026). Jen z webu obce.

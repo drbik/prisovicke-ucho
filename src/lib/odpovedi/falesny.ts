@@ -1,6 +1,7 @@
 import { bezDiakritiky } from './hledani';
 import type { IndexZdroju } from './rozhrani';
 import type { NalezenyUsek } from './typy';
+import { jeZapisOrganu, nejnovejsiZapis } from './zapisy';
 
 // Index v paměti pro testy a lokální vývoj bez Cloudflare. Podobnost vektorů zadá test, fulltext hledá podle začátků slov.
 export function vytvorFalesnyIndex(useky: NalezenyUsek[] = [], podobnost: (usek: NalezenyUsek) => number = () => 0.8): IndexZdroju & { dotazy: string[] } {
@@ -24,6 +25,11 @@ export function vytvorFalesnyIndex(useky: NalezenyUsek[] = [], podobnost: (usek:
     },
     async nacistUseky(id) {
       return useky.filter((u) => id.includes(u.id));
+    },
+    async nejnovejsiZapis(organ, pocetUseku) {
+      const dokumenty = [...new Map(useky.filter((u) => jeZapisOrganu(u.dokument.nazev, organ)).map((u) => [u.dokumentId, u.dokument])).values()];
+      const zapis = nejnovejsiZapis(dokumenty);
+      return zapis ? useky.filter((u) => u.dokumentId === zapis.id).sort((a, b) => a.poradi - b.poradi).slice(0, pocetUseku) : [];
     },
   };
 }
