@@ -15,10 +15,18 @@ import {
 } from './odpoved';
 import { cislaVTextu, vyjmoutJson } from './overeni';
 import { MAX_CASTI, MAX_ZNAKU_CASTI, VERZE_PROMPTU_ODPOVEDI, zpravyRozdeleni } from './prompt-odpovedi';
+import { rozpoznatPosledniZapis } from './zapisy';
 import { UPOZORNENI } from './zdroje';
 
 // Jedna část dotazu má na hledání, odpověď a ověření stejný čas jako dřív celý dotaz (PRD, Rychlost).
 export const LIMIT_CASTI_MS = 25_000;
+// Souhrn posledního zasedání (14. 11. 2026) píše až sedm bodů z přehledu všech usnesení a na ostrém indexu trval 10 až 24 s.
+// Má proto delší limit. Stránka mezitím ukazuje průběh, takže autor vidí, že se hledá.
+export const LIMIT_SOUHRNU_MS = 40_000;
+
+function limitCasti(cast: string, limit = LIMIT_CASTI_MS) {
+  return rozpoznatPosledniZapis(cast) ? Math.max(limit, LIMIT_SOUHRNU_MS) : limit;
+}
 // Rozdělení je krátké volání (obvykle 1 až 2 s). Když nestihne, platí celý dotaz jako jedna část, jehož hledání
 // už běží. Dotaz na jednu věc tak na rozdělení čeká nejvýš 3 s (ve 3. běhu sady 12. 11. 2026 čekala Q18 na
 // rozdělení 5 s, i když odpověď měla za 1,1 s).
@@ -171,7 +179,7 @@ export async function odpovedetPoCastech(
   const zacatek = ted();
   const odpovedet = async (cast: string, zavislosti: ZavislostiCasti): Promise<VysledekOdpovedi> => {
     try {
-      return await sLimitem(odpovedetNaDotaz(cast, zavislosti), z.limitCastiMs ?? LIMIT_CASTI_MS);
+      return await sLimitem(odpovedetNaDotaz(cast, zavislosti), limitCasti(cast, z.limitCastiMs));
     } catch (chyba) {
       zavislosti.priChybe?.(chyba);
       return { vysledek: 'zastupitelum', duvod: 'chyba-ai', technicke: prazdneTechnicke(z.ai) };
@@ -214,7 +222,7 @@ export async function odpovedetNaCasti(
   const vysledky = await Promise.all(casti.map(async (cast, i): Promise<VysledekOdpovedi> => {
     let vysledek: VysledekOdpovedi;
     try {
-      vysledek = await sLimitem(odpovedetNaDotaz(cast, z), z.limitCastiMs ?? LIMIT_CASTI_MS);
+      vysledek = await sLimitem(odpovedetNaDotaz(cast, z), limitCasti(cast, z.limitCastiMs));
     } catch (chyba) {
       z.priChybe?.(chyba);
       vysledek = { vysledek: 'zastupitelum', duvod: 'chyba-ai', technicke: prazdneTechnicke(z.ai) };

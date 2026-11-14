@@ -6,7 +6,7 @@ import { blokMistnichNazvu, mistniNazvyVTextech, rozsireniHledani } from '../src
 import { odpovedetNaDotaz } from '../src/lib/odpovedi/odpoved';
 import { zpravyOdpovedi, zpravyOvereni } from '../src/lib/odpovedi/prompt-odpovedi';
 import type { NalezenyUsek, ZdrojovyDokument } from '../src/lib/odpovedi/typy';
-import { datumZasedani, nejnovejsiZapis, rozpoznatPosledniZapis } from '../src/lib/odpovedi/zapisy';
+import { datumZasedani, nejnovejsiZapis, rozpoznatPosledniZapis, vybratProSouhrn } from '../src/lib/odpovedi/zapisy';
 import { hlavickaUseku } from '../src/lib/odpovedi/zdroje';
 
 function dokument(id: string, nazev: string): ZdrojovyDokument {
@@ -59,6 +59,44 @@ describe('dotaz na poslední zasedání (14. 11. 2026)', () => {
     expect(vstup).toContain('kadeřnictví');
     expect(vstup).toContain('Volba starosty');
     expect(vstup).not.toContain('Schválení rozpočtu');
+  });
+});
+
+describe('souhrn zasedání z usnesení (14. 11. 2026)', () => {
+  const zapis = [
+    usek(ZASTUPITELSTVO, 0, 'Zápis č. 5/2026\nProgram: 1) Zahájení 2) Složení slibu 3) Volba starosty'),
+    usek(ZASTUPITELSTVO, 1, 'Usnesení UZ č. 57/2026 - Zastupitelstvo obce volí starostou Františka Drbohlava.\nHlasování\nPro: 15 | Proti: 0'),
+    usek(ZASTUPITELSTVO, 2, 'Pro: 15 | Proti: 0\nUsnesení UZ č. 58/2026 - Zastupitelstvo obce volí místostarostou Jana Koška.\nHlasování\nUsnesení UZ č. 59/2026 – Zastupitelstvo obce schvaluje'),
+    usek(ZASTUPITELSTVO, 3, 'Usnesení UZ č. 59/2026 – Zastupitelstvo obce schvaluje časový plán jednání.\nHlasování'),
+  ];
+
+  it('vezme začátek zápisu a přehled všech usnesení, každé jednou a bez hlasování', () => {
+    const [prvni, prehled] = vybratProSouhrn([...zapis].reverse());
+    expect(prvni.id).toBe('zo-0');
+    expect(prehled.strana).toBeNull();
+    expect(prehled.text).toContain('volí starostou Františka Drbohlava.');
+    expect(prehled.text).toContain('volí místostarostou Jana Koška.');
+    expect(prehled.text).toContain('schvaluje časový plán jednání.');
+    expect(prehled.text).not.toContain('Hlasování');
+    expect(prehled.text.match(/UZ č\. 59\/2026/g)).toHaveLength(1);
+  });
+
+  it('zápis bez usnesení dá první úseky', () => {
+    expect(vybratProSouhrn([zapis[0]])).toEqual([zapis[0]]);
+    expect(vybratProSouhrn([])).toEqual([]);
+  });
+
+  it('neověřený bod souhrnu se vynechá a ostatní zůstanou', async () => {
+    const vystup = JSON.stringify({ vety: [
+      { veta: 'Zastupitelstvo obce na zasedání 4. 11. 2026 zvolilo starostou Františka Drbohlava.', usek: 2, citace: 'Zastupitelstvo obce volí starostou Františka Drbohlava' },
+      { veta: 'Zvolilo místostarostou Jana Koška.', usek: 2, citace: 'Zastupitelstvo obce volí místostarostou Jana Koška' },
+      { veta: 'Schválilo nový rozpočet.', usek: 2, citace: 'Zastupitelstvo obce schvaluje časový plán jednání' },
+    ] });
+    const overeni = JSON.stringify({ vysledky: [{ cislo: 1, plyne: true }, { cislo: 2, plyne: true }, { cislo: 3, plyne: false }] });
+    const { ai } = vytvorFalesneAi({ vystupyGenerovani: [vystup, overeni] });
+    const v = await odpovedetNaDotaz('Co se řešilo na posledním zasedání zastupitelstva?', { ai, index: vytvorFalesnyIndex(zapis, () => 0.1) });
+    if (v.vysledek !== 'odpoved') throw new Error(`Čekal jsem odpověď, přišlo ${v.vysledek}.`);
+    expect(v.odpoved.vety.map((x) => x.text)).toEqual(['Zastupitelstvo obce na zasedání 4. 11. 2026 zvolilo starostou Františka Drbohlava.', 'Zvolilo místostarostou Jana Koška.']);
   });
 });
 

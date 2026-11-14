@@ -74,14 +74,14 @@ export function zachranitVety(vystup: string): VetaOdpovedi[] {
 }
 
 // Výstup modelu se vždy čte kódem. Workers AI platný JSON nezaručuje.
-export function precistOdpoved(vystup: string): VetaOdpovedi[] {
+export function precistOdpoved(vystup: string, maxVet = MAX_VET): VetaOdpovedi[] {
   let data: Record<string, unknown>;
   try {
     data = vyjmoutJson(vystup);
   } catch (chyba) {
     const zachranene = zachranitVety(vystup);
     if (!zachranene.length) throw chyba;
-    return zachranene.slice(0, MAX_VET);
+    return zachranene.slice(0, maxVet);
   }
   if (!Array.isArray(data.vety)) throw new ZamitnutaOdpoved('neplatny-json');
   const vety = data.vety.map((polozka): VetaOdpovedi => {
@@ -93,7 +93,7 @@ export function precistOdpoved(vystup: string): VetaOdpovedi[] {
     };
   }).filter((v) => v.veta);
   // Delší odpověď se zkrátí na první věty. Každá zbylá věta projde stejným ověřením.
-  return vety.slice(0, MAX_VET);
+  return vety.slice(0, maxVet);
 }
 
 // Části dotazu, na které model odpověď nenašel. Nejsou to tvrzení ze zdroje, jen oznámení, že odpověď chybí, takže se
@@ -337,4 +337,29 @@ export function precistOvereni(vystup: string, pocetVet: number) {
   for (let cislo = 1; cislo <= pocetVet; cislo += 1) {
     if (plyne.get(cislo) !== true) throw new ZamitnutaOdpoved('neplyne-z-citace');
   }
+}
+
+// Souhrn zasedání (14. 11. 2026) je výčet nezávislých bodů: věta, která neprojde, se vynechá a ostatní zůstanou. Vrací pořadí
+// (od 0) vět, které z citace plynou a nejmenují soukromou osobu. Každá ukázaná věta tedy prošla stejným ověřením jako jinde.
+export function overeneVetySouhrnu(vystup: string, pocetVet: number): number[] {
+  const data = vyjmoutJson(vystup);
+  if (!Array.isArray(data.vysledky)) throw new ZamitnutaOdpoved('neplatny-json');
+  const prosla = new Set<number>();
+  for (const polozka of data.vysledky) {
+    const p = (polozka ?? {}) as Record<string, unknown>;
+    if (p.plyne === true && p.soukroma_osoba !== true) prosla.add(Number(p.cislo));
+  }
+  return Array.from({ length: pocetVet }, (_, i) => i).filter((i) => prosla.has(i + 1));
+}
+
+// Kontrola kódem po větách: souhrn si nechá věty, jejichž citace a čísla sedí, ostatní vynechá.
+export function overitKodemSouhrn(vety: VetaOdpovedi[], useky: NalezenyUsek[]): VetaOdpovedi[] {
+  return vety.flatMap((veta) => {
+    try {
+      return overitKodem([veta], useky);
+    } catch (chyba) {
+      if (chyba instanceof ZamitnutaOdpoved) return [];
+      throw chyba;
+    }
+  });
 }
