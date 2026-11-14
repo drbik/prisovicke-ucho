@@ -13,11 +13,12 @@ import {
 import type { TechnickeUdaje, VysledekPodani } from '../lib/podani/zpracovani';
 import type { DuvodPredani, VetaZobrazene, ZobrazenaOdpoved } from '../lib/odpovedi/odpoved';
 import type { UdalostDotazu, VysledekDotazu } from '../lib/odpovedi/zpracovani';
-import type { PolozkaFeedu } from '../lib/vzkazy/typy';
+import type { TemaFeedu, VolbaTematu } from '../lib/vzkazy/typy';
 import { OBLASTI, TYPY_PODNETU } from '../lib/oblasti';
 import { JMENA_STYLU, POPISY_TLACITKA, jeStyl, type KlicMluvciho, type KlicStylu } from '../lib/odpovedi/mluvci';
 import type { PodepsanyPodklad } from '../lib/odpovedi/styl';
 import { stylizovatVzkaz, ukazatelNacitani, vytvoritPrevypraveni } from './mluvci';
+import { element } from './odpoved-tematu';
 
 type Pohled = 'zadost' | 'nahravani' | 'odesilani' | 'text' | 'vysledek' | 'potvrzeno' | 'chyba';
 
@@ -129,9 +130,15 @@ const stavStylu = prvek('[data-styl-stav]', panel);
 // Uložení do feedu a opakovaný dotaz (13. 11. 2026).
 const ulozeniText = prvek('[data-ulozeni-text]', panel);
 const ukazatVeFeedu = prvek<HTMLButtonElement>('[data-ukazat-ve-feedu]', panel);
-const podobnyBox = prvek('[data-odpoved-podobny]', panel);
-const podobnyNazev = prvek('[data-podobny-nazev]', panel);
-const ukazatPodobny = prvek<HTMLButtonElement>('[data-ukazat-podobny]', panel);
+// Témata ve feedu (13. 11. 2026, F-34 až F-37, F-81).
+const podobnaTemata = prvek('[data-podobna]', panel);
+const tlacitkoPotvrdit = prvek<HTMLButtonElement>('[data-potvrdit]', panel);
+const odpovedTema = prvek('[data-odpoved-tema]', panel);
+const potvrzeniOdpovedi = prvek('[data-potvrzeni-odpovedi]', panel);
+const potvrzeniVolby = prvek('[data-potvrzeni-volby]', panel);
+const potvrzeniDik = prvek('[data-potvrzeni-dik]', panel);
+const doptaniPruh = prvek('[data-doptani]', panel);
+const doptaniNazev = prvek('[data-doptani-nazev]', panel);
 
 let nahravani: Nahravani | null = null;
 let odeslani: AbortController | null = null;
@@ -152,9 +159,13 @@ let poleUkazuje: KlicStylu = 'spisovne';
 const vzkazyPostav = new Map<KlicMluvciho, { text: string; podpis?: string }>();
 // Návrh AI úpravy s podpisem serveru. Při potvrzení se pošle s vzkazem, server podle něj vzkaz uloží (F-14).
 let posledniPodani: VysledekPodani | null = null;
-// Vzkaz a podobné téma ve feedu, na které panel nabídne skok.
+// Téma ve feedu, na které panel nabídne skok.
 let idVeFeedu: string | null = null;
-let idPodobneho: string | null = null;
+// Volba autora k potvrzenému vzkazu (F-35). Hledat znovu ji pošle ještě jednou.
+let volbaTematu: VolbaTematu | undefined;
+// Téma, ke kterému patří ukázaná odpověď, a téma, ke kterému se autor doptává (F-81).
+let temaOdpovedi: { id: string; nazev: string } | null = null;
+let doptaniK: { id: string; nazev: string } | null = null;
 let stylovani: AbortController | null = null;
 // Postava, která odpoví na potvrzený dotaz, a rámeček s její odpovědí.
 let stylOdpovedi: KlicStylu = 'spisovne';
@@ -235,6 +246,7 @@ function ukazatVysledek(data: VysledekPodani) {
   spisovnyText = text;
   vzkazyPostav.clear();
   posledniPodani = data;
+  popsatTlacitko();
   ukazat('vysledek', 'Vzkaz je upravený. Zkontrolujte ho a potvrďte.');
   void ukazatStylVzkazu();
 }
@@ -355,19 +367,49 @@ function skocitNaTema(id: string) {
   document.dispatchEvent(new CustomEvent('ucho:ukazat-tema', { detail: id }));
 }
 
-function ukazatUlozeni(vzkaz?: PolozkaFeedu) {
-  idVeFeedu = vzkaz?.id ?? null;
-  ukazatVeFeedu.hidden = !vzkaz;
-  ulozeniText.textContent = vzkaz
-    ? 'Vzkaz je zveřejněný ve feedu vedle ucha, bez vašeho jména.'
+function ukazatUlozeni(tema?: TemaFeedu) {
+  idVeFeedu = tema?.id ?? null;
+  temaOdpovedi = tema ? { id: tema.id, nazev: tema.nazev } : null;
+  ukazatVeFeedu.hidden = !tema;
+  ulozeniText.textContent = tema
+    ? `Vzkaz je zveřejněný ve feedu u tématu „${tema.nazev}“, bez vašeho jména.`
     : 'Vzkaz se do feedu nepodařilo uložit.';
-  if (vzkaz) document.dispatchEvent(new CustomEvent('ucho:novy-vzkaz', { detail: vzkaz }));
+  if (tema) document.dispatchEvent(new CustomEvent('ucho:zmena-tematu', { detail: tema }));
 }
 
-function ukazatPodobne(tema: { id: string; nazev: string } | null) {
-  idPodobneho = tema?.id ?? null;
-  podobnyNazev.textContent = tema?.nazev ?? '';
-  podobnyBox.hidden = !tema;
+function ukazatDoptani() {
+  doptaniPruh.hidden = !doptaniK;
+  doptaniNazev.textContent = doptaniK ? `„${doptaniK.nazev}“` : '';
+}
+
+// Opravdu podobné téma ve feedu (Tomáš 13. 11. 2026): jen tichý odkaz pod odpovědí, žádný mezikrok.
+function ukazatPodobna(podobna?: { id: string; nazev: string }[]) {
+  podobnaTemata.replaceChildren();
+  podobnaTemata.hidden = !podobna?.length;
+  if (!podobna?.length) return;
+  podobnaTemata.append('Podobné téma ve feedu: ');
+  podobna.forEach((tema, i) => {
+    const odkaz = element('button', 'odkaz', tema.nazev);
+    odkaz.type = 'button';
+    odkaz.addEventListener('click', () => skocitNaTema(tema.id));
+    podobnaTemata.append(...(i ? [', ', odkaz] : [odkaz]));
+  });
+}
+
+// Napsaný návrh, stížnost a pochvala se na webu nehledají (F-72), tlačítko je jen zveřejní.
+function popsatTlacitko() {
+  tlacitkoPotvrdit.textContent = polePotvrzeni.typ.value === 'dotaz' ? 'Vyhledat odpověď' : 'Zveřejnit vzkaz';
+}
+
+// F-81: „Odpověď mi stačí“, nebo „Chci se doptat“. Server ho zapíše podle podpisu návrhu.
+async function poslatPotvrzeni(potvrzeni: 'staci' | 'doptani') {
+  const podpis = posledniPodani?.podpis;
+  if (!podpis) return;
+  try {
+    await fetch(`${API}/potvrzeni`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ podpis, potvrzeni }) });
+  } catch {
+    // Potvrzení je jen záznam, autor nic dalšího nečeká.
+  }
 }
 
 // Odpověď hlasem postavy zvolené při potvrzení. Má ji odpověď z webu i dotaz bez odpovědi, když je server podepsal.
@@ -408,12 +450,18 @@ function odstavecVet(vety: VetaZobrazene[]) {
 function ukazatOdpoved(data: ZobrazenaOdpoved) {
   oznaceniOdpovedi.textContent = data.oznaceni.join(' · ');
   // Dotaz na víc věcí: pod každou zodpovězenou otázkou její věty.
+  // Odpověď tématu: hlavní odpověď nemá otázku, část doplněná poddotazem je označená (F-37).
   if (data.casti?.length) {
     vetyOdpovedi.replaceChildren(...data.casti.flatMap((cast) => {
-      const otazka = document.createElement('h4');
-      otazka.className = 'odpoved__cast';
-      otazka.textContent = cast.otazka;
-      return [otazka, odstavecVet(cast.vety)];
+      const prvky: HTMLElement[] = [];
+      if (cast.otazka) {
+        const otazka = document.createElement('h4');
+        otazka.className = cast.nova ? 'odpoved__cast odpoved__cast--nova' : 'odpoved__cast';
+        otazka.textContent = cast.otazka;
+        if (cast.nova) otazka.append(element('span', 'odpoved__nove', 'Nově doplněno'));
+        prvky.push(otazka);
+      }
+      return [...prvky, odstavecVet(cast.vety)];
     }));
   } else {
     vetyOdpovedi.replaceChildren(odstavecVet(data.vety));
@@ -461,14 +509,16 @@ function ukazatBezOdpovedi(duvod: string, muzeZnovu: boolean) {
 }
 
 // Části dotazu, jak je rozdělila AI. Jedna část se jako seznam neukazuje.
-function ukazatCasti(casti: string[]) {
-  if (casti.length < 2) {
+function ukazatCasti(casti: string[], poddotaz = false) {
+  if (casti.length < 2 && !poddotaz) {
     prubeh.hidden = true;
     prubehPopis.textContent = HLEDAME;
     oznameni.textContent = HLEDAME;
     return;
   }
-  prubehPopis.textContent = `Dotaz má ${casti.length} části. Odpověď hledáme ke každé zvlášť.`;
+  prubehPopis.textContent = poddotaz
+    ? 'Hledáme jen to, co odpověď tématu ještě nemá:'
+    : `Dotaz má ${casti.length} části. Odpověď hledáme ke každé zvlášť.`;
   prubeh.replaceChildren(...casti.map((otazka, i) => {
     const polozka = document.createElement('li');
     polozka.dataset.stav = 'hledani';
@@ -488,7 +538,7 @@ function ukazatCasti(casti: string[]) {
     return polozka;
   }));
   prubeh.hidden = false;
-  oznameni.textContent = `Dotaz má ${casti.length} části. Hledáme odpověď na každou zvlášť. ${casti.map((otazka, i) => `${i + 1}. ${otazka}`).join(' ')}`;
+  oznameni.textContent = `${poddotaz ? 'Hledáme jen to, co odpověď tématu ještě nemá.' : `Dotaz má ${casti.length} části. Hledáme odpověď na každou zvlášť.`} ${casti.map((otazka, i) => `${i + 1}. ${otazka}`).join(' ')}`;
 }
 
 function ukazatHotovouCast(cislo: number, vysledek: 'odpoved' | 'zastupitelum') {
@@ -522,43 +572,57 @@ async function cistPrubeh(telo: ReadableStream<Uint8Array>, priUdalosti: (udalos
 }
 
 // Krok 8.7: potvrzený dotaz projde hledáním na webu obce a v kartách webu Nezávislých (F-70 až F-76).
-async function hledatOdpoved(vzkaz: PotvrzenyVzkaz) {
+// Od 13. 11. 2026 nejdřív server nabídne podobná témata (F-34). Po volbě autora vzkaz uloží k tématu a podle
+// vztahu ukáže odpověď tématu, doplní ji poddotazem, nebo hledá jako dřív (F-35, F-37).
+async function hledatOdpoved(vzkaz: PotvrzenyVzkaz, volba?: VolbaTematu) {
   hledani?.abort();
   const rizeni = new AbortController();
   hledani = rizeni;
   hledanyDotaz = vzkaz;
+  // Doptání (F-81) jde rovnou k tématu, ze kterého autor přišel.
+  volbaTematu = volba ?? (doptaniK ? { tema: doptaniK.id, vztah: vzkaz.typ === 'dotaz' ? 'poddotaz' : 'doplneni' } : undefined);
   const jeDotaz = vzkaz.typ === 'dotaz';
   prubeh.hidden = true;
   prubeh.replaceChildren();
   prubehPopis.textContent = CTEME_DOTAZ;
-  ukazatPodobne(null);
+  odpovedTema.hidden = true;
+  potvrzeniOdpovedi.hidden = true;
   ukazatVeFeedu.hidden = true;
   ulozeniText.textContent = 'Ukládáme vzkaz do feedu…';
-  if (jeDotaz) ukazatStavOdpovedi('hledani');
-  else ukazatStavOdpovedi(null);
-  oznameni.textContent = jeDotaz ? `Vzkaz je potvrzený. ${CTEME_DOTAZ}` : 'Vzkaz je potvrzený. Ukládáme ho do feedu.';
+  ukazatPodobna();
+  // Bez volby se nejdřív hledají podobná témata. Odpověď se začne hledat až s první zprávou o průběhu.
+  ukazatStavOdpovedi(jeDotaz && volbaTematu ? 'hledani' : null);
+  oznameni.textContent = `Vzkaz je potvrzený. ${ulozeniText.textContent}`;
   try {
     const vysledek = await fetch(API_DOTAZU, {
       method: 'POST',
       headers: { 'content-type': 'application/json', accept: TYP_PRUBEHU },
-      body: JSON.stringify({ text: vzkaz.text, typ: vzkaz.typ, ulozit: udajeKUlozeni(vzkaz) }),
+      body: JSON.stringify({ text: vzkaz.text, typ: vzkaz.typ, ulozit: udajeKUlozeni(vzkaz), ...(volbaTematu ? { tema: volbaTematu } : {}) }),
       signal: rizeni.signal,
     });
     const prijato: { data: VysledekDotazu | null } = { data: null };
     if (vysledek.ok && vysledek.body && (vysledek.headers.get('content-type') ?? '').includes(TYP_PRUBEHU)) {
       await cistPrubeh(vysledek.body, (udalost) => {
         if (rizeni.signal.aborted) return;
-        if (udalost.udalost === 'casti') ukazatCasti(udalost.casti);
-        else if (udalost.udalost === 'cast') ukazatHotovouCast(udalost.cislo, udalost.vysledek);
-        else if (udalost.udalost === 'podobne') ukazatPodobne(udalost.tema);
-        else prijato.data = udalost.vysledek;
+        if (udalost.udalost === 'casti') {
+          if (odpoved.hidden) ukazatStavOdpovedi('hledani');
+          ukazatCasti(udalost.casti, udalost.poddotaz);
+        } else if (udalost.udalost === 'cast') {
+          ukazatHotovouCast(udalost.cislo, udalost.vysledek);
+        } else {
+          prijato.data = udalost.vysledek;
+        }
       });
     } else {
       prijato.data = await vysledek.json().catch(() => null) as VysledekDotazu | null;
     }
     const { data } = prijato;
     if (rizeni.signal.aborted) return;
-    ukazatUlozeni(data?.vzkaz);
+    // Doptání je odeslané, další vzkaz už k tématu nepatří.
+    doptaniK = null;
+    ukazatDoptani();
+    ukazatUlozeni(data?.tema);
+    ukazatPodobna(data?.podobna);
     if (!jeDotaz) {
       oznameni.textContent = ulozeniText.textContent;
       return;
@@ -568,6 +632,7 @@ async function hledatOdpoved(vzkaz: PotvrzenyVzkaz) {
     } else if (data.vysledek === 'odpoved') {
       ukazatOdpoved(data.odpoved);
       ukazatOdpovedPostavy(data.prevypraveni);
+      ukazatPoznamkuTematu(data);
     } else if (data.vysledek === 'zastupitelum') {
       ukazatBezOdpovedi(DUVODY_BEZ_ODPOVEDI[data.duvod] ?? NENALEZENO, data.duvod === 'chyba-ai');
       ukazatOdpovedPostavy('prevypraveni' in data ? data.prevypraveni : undefined);
@@ -581,6 +646,22 @@ async function hledatOdpoved(vzkaz: PotvrzenyVzkaz) {
   } finally {
     if (hledani === rizeni) hledani = null;
   }
+}
+
+// Odkud odpověď je: existující odpověď tématu i s původním dotazem (F-37), nebo doplněná poddotazem. Pod odpovědí
+// uloženého vzkazu autor zvolí, jestli mu stačí (F-81).
+function ukazatPoznamkuTematu(data: Extract<VysledekDotazu, { vysledek: 'odpoved' }>) {
+  const doplneno = data.odpoved.casti?.some((cast) => cast.nova);
+  let poznamka = '';
+  if (data.nicNoveho) poznamka = 'Odpověď tématu na váš dotaz už odpovídá. Když vám nestačí, doptejte se konkrétněji.';
+  else if (data.zTematu && data.tema && data.odpoved.nezodpovezeno.length) poznamka = `Na to, na co se ptáte navíc, jsme ve zdrojích odpověď nenašli. Níže je odpověď tématu „${data.tema.nazev}“.`;
+  else if (data.zTematu && data.tema) poznamka = `Na téma „${data.tema.nazev}“ už odpověď je. Původní dotaz: „${data.tema.text}“`;
+  else if (doplneno) poznamka = 'Odpověď tématu jsme doplnili o to, na co se ptáte.';
+  odpovedTema.textContent = poznamka;
+  odpovedTema.hidden = !poznamka;
+  potvrzeniOdpovedi.hidden = !data.tema;
+  potvrzeniVolby.hidden = false;
+  potvrzeniDik.hidden = true;
 }
 
 // Upravený vzkaz existuje jen v prohlížeči, proto se před zahozením ptáme.
@@ -694,10 +775,26 @@ prvek('[data-zpet-k-uprave]', panel).addEventListener('click', () => {
   ukazat('vysledek');
 });
 ukazatVeFeedu.addEventListener('click', () => { if (idVeFeedu) skocitNaTema(idVeFeedu); });
-ukazatPodobny.addEventListener('click', () => { if (idPodobneho) skocitNaTema(idPodobneho); });
 prvek('[data-hledat-znovu]', panel).addEventListener('click', () => {
-  if (hledanyDotaz) void hledatOdpoved(hledanyDotaz);
+  if (hledanyDotaz) void hledatOdpoved(hledanyDotaz, volbaTematu);
 });
+polePotvrzeni.typ.addEventListener('change', popsatTlacitko);
+prvek('[data-staci]', panel).addEventListener('click', () => {
+  void poslatPotvrzeni('staci');
+  potvrzeniVolby.hidden = true;
+  potvrzeniDik.textContent = 'Děkujeme. Když budete mít další otázku, pošlete nový vzkaz.';
+  potvrzeniDik.hidden = false;
+  oznameni.textContent = potvrzeniDik.textContent;
+});
+// Doptání (F-81): nový vzkaz k tématu. Projde úpravou a potvrzením a pak rovnou jako poddotaz, bez nabídky témat.
+prvek('[data-doptat]', panel).addEventListener('click', () => {
+  if (!temaOdpovedi) return;
+  void poslatPotvrzeni('doptani');
+  doptaniK = temaOdpovedi;
+  ukazatDoptani();
+  ukazatText();
+});
+prvek('[data-doptani-namluvit]', panel).addEventListener('click', () => void zacitNahravat());
 prvek('[data-prejit-na-text]', panel).addEventListener('click', () => ukazatText());
 opakovat.addEventListener('click', () => poOpakovani());
 for (const zrusit of panel.querySelectorAll('[data-zrusit]')) zrusit.addEventListener('click', () => panel.close());
@@ -727,6 +824,8 @@ panel.addEventListener('cancel', (udalost) => {
 // Všechny cesty k zavření končí tady: rozdělanou nahrávku zahodí a odeslání přeruší.
 panel.addEventListener('close', () => {
   aktualniPohled = null;
+  doptaniK = null;
+  ukazatDoptani();
   cisloPokusu += 1;
   nahravani?.zrusit();
   nahravani = null;

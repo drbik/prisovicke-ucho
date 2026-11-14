@@ -145,6 +145,11 @@ Stačí telefon a asi 15 minut. Po každém pokusu rozbalte na stránce „Techn
 - Do Workers Logs jdou časy a velikosti, ne audio ani text vzkazu (viz níže).
 - Limit požadavků je jen přibližný, viz [Otevřené body](#otevřené-body).
 
+## Témata ve feedu (13. 11. 2026)
+
+- Ověřeno v prohlížeči počítače (emulace, falešná AI) a na šířce 375 px: nabídka podobných témat, volby „Je to totéž“, „Ptám se na víc“ a „Je to jiné téma“, doptání, filtry, hledání a ovládání klávesnicí. Panel má na 375 px šířku 359 px, bez vodorovného posunu, tlačítka jsou vysoká 51 px.
+- Na skutečném telefonu (Opera pro Android) a na ostré adrese s namluveným vzkazem ještě neověřeno. Zkušební vzkaz na ostré adrese se neposílal, protože se zveřejní.
+
 ## Otevřené body
 
 - **Limit požadavků nestačí jako tvrdá ochrana.** Nastavený limit je 6 požadavků za minutu na IP. Ve skutečnosti z 52 rychlých požadavků za sebou prošlo 49, protože Rate Limiting binding je podle dokumentace Cloudflare přibližný a čítače synchronizuje na pozadí. Přepis 3 minut stojí 0,15 centu, škoda je tedy malá, ale endpoint je do kroku 5 veřejný bez přihlášení. Pevnější ochranu dá až přihlášení, případně pravidlo WAF na zóně, to ale patří do nastavení domény.

@@ -16,6 +16,8 @@ Zkušební provoz běží na https://nezavisli-prisovice.cz/ucho (stav k 13. 11.
 - [Vyhodnocení odpovědí](docs/vyhodnoceni-odpovedi.md) – výsledky běhů nad typovými otázkami
 - [Alternativní mluvčí](docs/navrh-alternativni-mluvci.md) – převyprávění hlasem postav
 - [Feed vzkazů](docs/feed-vzkazu.md) – ukládání vzkazů, feed a skrytí nevhodného vzkazu
+- [Témata ve feedu](docs/temata-feedu.md) – jedna odpověď na téma, nabídka podobných témat, měření a nasazení
+- [Sada pro sdružování](docs/sada-temat.md) – schválená testovací sada témat
 - [Aplikace na ploše](docs/pwa.md) – manifest, service worker a ikony
 - [CLAUDE.md](CLAUDE.md) – kontext a pravidla pro práci s Claude Code
 

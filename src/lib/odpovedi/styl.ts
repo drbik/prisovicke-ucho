@@ -274,7 +274,8 @@ export function podkladOdpovedi(
   return {
     dotaz,
     casti: odpoved.casti?.length
-      ? odpoved.casti.map((cast) => ({ otazka: cast.otazka, vety: cast.vety.map((v) => v.text) }))
+      // Hlavní odpověď tématu nemá otázku (prázdný řetězec), poddotazy ano.
+      ? odpoved.casti.map((cast) => ({ otazka: cast.otazka || null, vety: cast.vety.map((v) => v.text) }))
       : [{ otazka: null, vety: odpoved.vety.map((v) => v.text) }],
   };
 }

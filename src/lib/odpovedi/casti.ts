@@ -27,8 +27,9 @@ const MAX_TOKENU_ROZDELENI = 400;
 // Kolik nezodpovězených částí stránka ukáže u dotazu na víc věcí.
 const MAX_NEZODPOVEZENO_CELKEM = 6;
 
+// U poddotazu (13. 11. 2026) jsou části nové otázky, na které odpověď tématu ještě neodpovídá.
 export type PrubehOdpovedi =
-  | { udalost: 'casti'; casti: string[] }
+  | { udalost: 'casti'; casti: string[]; poddotaz?: true }
   | { udalost: 'cast'; cislo: number; vysledek: 'odpoved' | 'zastupitelum' };
 
 export interface ZavislostiCasti extends ZavislostiOdpovedi {
@@ -201,4 +202,30 @@ export async function odpovedetPoCastech(
     return vysledek;
   }));
   return spojitVysledky(casti, vysledky, rozdeleniMs);
+}
+
+// Poddotaz k tématu (13. 11. 2026, F-37): otázky už vybrala AI (nové otázky), hledají se souběžně bez rozdělení.
+export async function odpovedetNaCasti(
+  casti: string[],
+  z: ZavislostiCasti,
+  priPrubehu: (udalost: PrubehOdpovedi) => void = () => {},
+): Promise<VysledekOdpovedi> {
+  priPrubehu({ udalost: 'casti', casti, poddotaz: true });
+  const vysledky = await Promise.all(casti.map(async (cast, i): Promise<VysledekOdpovedi> => {
+    let vysledek: VysledekOdpovedi;
+    try {
+      vysledek = await sLimitem(odpovedetNaDotaz(cast, z), z.limitCastiMs ?? LIMIT_CASTI_MS);
+    } catch (chyba) {
+      z.priChybe?.(chyba);
+      vysledek = { vysledek: 'zastupitelum', duvod: 'chyba-ai', technicke: prazdneTechnicke(z.ai) };
+    }
+    priPrubehu({ udalost: 'cast', cislo: i + 1, vysledek: vysledek.vysledek });
+    return vysledek;
+  }));
+  // Jedna otázka poddotazu má v odpovědi nadpis, aby bylo vidět, na co odpovídá.
+  if (vysledky.length === 1 && vysledky[0].vysledek === 'odpoved') {
+    const { odpoved } = vysledky[0];
+    return { ...vysledky[0], odpoved: { ...odpoved, casti: [{ otazka: casti[0], vety: odpoved.vety }] } };
+  }
+  return spojitVysledky(casti, vysledky, 0);
 }
