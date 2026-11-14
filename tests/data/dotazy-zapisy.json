@@ -1,0 +1,20 @@
+{
+  "popis": "Dotazy na detaily ze zápisů rady (14. 11. 2026). Pole opora je seznam textů: aspoň jeden musí být v textu úseku předaného modelu. Odpovědi jsou přímo v usneseních zápisů.",
+  "dotazy": [
+    { "id": "Z01", "text": "Na kolik se zvýšilo stravné pro zaměstnance obce od února 2025?", "opora": ["UR č. 34/2025"] },
+    { "id": "Z02", "text": "Kolik stálo rizikové kácení stromů u Jachtklubu?", "opora": ["UR č. 92/2025"] },
+    { "id": "Z03", "text": "Kolik stál zrcadlový sloup, který obec nechala zabudovat?", "opora": ["UR č. 93/2025"] },
+    { "id": "Z04", "text": "Kolik obec přispěla Alzheimer Home na sociální služby pro naše občany?", "opora": ["UR č. 90/2025"] },
+    { "id": "Z05", "text": "Kolik stála výměna plynových topidel v kadeřnictví?", "opora": ["UR č. 112/2025"] },
+    { "id": "Z06", "text": "Kolik stála projektová dokumentace úsekového měřiče rychlosti u zdravotního střediska?", "opora": ["UR č. 161/2024"] },
+    { "id": "Z07", "text": "Za kolik obec nechala upravit okolí cyklostezky u propustku?", "opora": ["UR č. 237/2024"] },
+    { "id": "Z08", "text": "Kdy rada schválila provozní řád rekreační oblasti u Písečáků a od kdy platí?", "opora": ["UR č. 210/2024"] },
+    { "id": "Z09", "text": "Kdo vystoupil na masopustu v DPS v roce 2024 a kolik to stálo?", "opora": ["UR č. 5/2024"] },
+    { "id": "Z10", "text": "Souhlasila rada s modernizací bytu v domě čp. 194?", "opora": ["UR č. 168/2025"] },
+    { "id": "Z11", "text": "Jaká firma postavila stezku podél silnice II/279 přes D10 a za kolik?", "opora": ["UR č. 77/2024"] },
+    { "id": "Z12", "text": "Kolik dotace dostala obec z IROPu na Greenway Jizera, úsek Příšovice II. část?", "opora": ["UR č. 218/2023"] },
+    { "id": "Z13", "text": "Kolik stál technický dozor a BOZP při stavbě cyklostezky k průmyslové zóně?", "opora": ["UR č. 93/2024"] },
+    { "id": "Z14", "text": "Kdy byla schválena Radou obce smlouva na výstavbu cyklostezky GW Jizera Turnov Svijany SO E.102?", "opora": ["UR č. 126/2026"] },
+    { "id": "Z15", "text": "Kdy byla schválena Radou obce smlouva na výstavbu cyklostezky GW Jizera v lokalitě Cecilka k Jizeře?", "opora": ["UR č. 126/2026", "UR č. 55/2024"] }
+  ]
+}

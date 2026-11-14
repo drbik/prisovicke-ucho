@@ -9,6 +9,7 @@ import { precistRobots } from '../nastroje/index/sit';
 import { formatPrilohy, souborPrilohy } from '../nastroje/index/spolecne';
 import { DELKA_USEKU, PREKRYV, prekryv, rozdelitNaMisto, rozdelitNaUseky } from '../nastroje/index/useky';
 import { datumZdroje } from '../src/lib/odpovedi/zdroje';
+import { precistDeskuEobec } from '../nastroje/index/eobec';
 import { naIsoDatum, precistSitemapu, rozebratClanek, typSitemapy } from '../nastroje/index/wordpress';
 
 const CLANEK = `<html><body><nav>Menu Úvod Kontakty</nav>
@@ -46,6 +47,16 @@ describe('stránky webu obce (8.4)', () => {
       'https://prisovice.cz/wp-content/uploads/2026/11/pozvanka.png',
     ]);
     expect(rozebratClanek(CLANEK, 'https://prisovice.cz/2026/10/vlakova-vyluka/')?.obrazky).toEqual([]);
+  });
+
+  it('přečte starou úřední desku na e-obec.cz (14. 11. 2026)', () => {
+    const html = `<div class="block_deska">
+<div class="nadpis_sekce"><a href="urednideska.php?soubor=1946" title="Kliknutím"><img alt="Typ souboru" src="acrobat.gif" /></a>&nbsp;<a href="urednideska.php?soubor=1946" onclick="x">Zápis ze&nbsp;schůze rady obce konané dne 10.01.2024</a></div>
+<div class="text_uredni_deska">Vyvěšení: <strong>17.&nbsp;01.&nbsp;2024</strong> &nbsp; &nbsp;  Sejmutí: <strong>1.&nbsp;02.&nbsp;2024</strong></div>
+</div>
+<div class="mezera"></div>`;
+    expect(precistDeskuEobec(html)).toEqual([{ id: '1946', nazev: 'Zápis ze schůze rady obce konané dne 10.01.2024', vyveseno: '2024-01-17', sejmuto: '2024-02-01' }]);
+    expect(precistDeskuEobec('<p>prázdná deska</p>')).toEqual([]);
   });
 
   it('přečte sitemapu a její druh', () => {

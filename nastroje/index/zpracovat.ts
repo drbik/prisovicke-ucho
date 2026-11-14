@@ -141,6 +141,12 @@ for (const zaznam of seznam) {
   }, [{ strana: null, text: [clanek.text, ...zObrazku].filter(Boolean).join('\n\n') }]);
 }
 
+// 1b. Stará úřední deska na prisovice.e-obec.cz (14. 11. 2026): název a datum vyvěšení dává deska sama. Když stejný dokument
+// je i na novém webu obce, zůstane kopie se stejným textem jen jednou (dřív zpracovaná je z prisovice.cz).
+for (const [url, d] of Object.entries(stav.eobec ?? {})) {
+  rodice.set(url, [{ url: d.stranka, typ: 'uredni-deska', nazev: d.nazev, datum: d.vyveseno, pocetPriloh: 1, textOdkazu: '' }]);
+}
+
 // 2. Přílohy: PDF, Word a ODT. Název a datum dává stránka, která na přílohu odkazuje, přednostně položka úřední desky.
 // V indexu mají typ „pdf“ (přiložený soubor), aby se nemusela měnit tabulka v D1.
 

@@ -1,9 +1,10 @@
+import { rozsireniHledani } from './mistopis';
 import type { IndexZdroju } from './rozhrani';
 import type { NalezenyUsek } from './typy';
 
 // Kolik úseků jde do modelu (krok 8, architektura) a kolik kandidátů vrací každá metoda.
 export const USEKU_DO_MODELU = 6;
-const KANDIDATU = 20;
+export const KANDIDATU = 20;
 // Z jednoho dokumentu nejvýš tři úseky. Jinak dlouhé PDF obsadí všechna místa a článek s odpovědí vypadne (8.8, Q07).
 // Dva úseky nestačily na dotaz o více věcech: provozní řád Písečáků má zákaz koupání psů na straně 5 a pokuty
 // na straně 6 a druhý úsek zabral jiný odstavec téhož dokumentu (10. 11. 2026).
@@ -80,11 +81,13 @@ export async function hledatUseky(
   text: string,
   pocet = USEKU_DO_MODELU,
   preradit?: Preradit,
+  kandidatu = KANDIDATU,
 ): Promise<VysledekHledani> {
-  const fts = dotazProFulltext(text);
+  // Místní název v dotazu přidá do fulltextu slova, kterými zdroje místo vyjadřují (mistopis.ts).
+  const fts = dotazProFulltext(`${text} ${rozsireniHledani(text)}`, 14);
   const [podleVektoru, podleSlov] = await Promise.all([
-    index.hledatVektorem(vektor, KANDIDATU),
-    fts ? index.hledatSlovy(fts, KANDIDATU) : Promise.resolve([]),
+    index.hledatVektorem(vektor, kandidatu),
+    fts ? index.hledatSlovy(fts, kandidatu) : Promise.resolve([]),
   ]);
   const nejlepsiPodobnost = podleVektoru.reduce((max, s) => Math.max(max, s.skore), 0);
   const skore = new Map<string, number>();

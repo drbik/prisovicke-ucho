@@ -151,18 +151,21 @@ describe('POST /api/dotaz (krok 8.6)', () => {
 
   it('tvrzení s citací, která v úseku není, odpověď zastaví (F-75)', async () => {
     const vymyslena = JSON.stringify({ vety: [{ veta: 'Pronájem stojí 4 000 Kč.', usek: 1, citace: 'pronájem sálu stojí 4.000 Kč na den' }] });
-    const { api, generovani } = sestavit({ vystupyGenerovani: [vymyslena, OVERENO] });
+    // Technická chyba se zkusí jednou znovu (14. 11. 2026). Vymyšlená citace i napodruhé odpověď zastaví.
+    const { api, generovani } = sestavit({ vystupyGenerovani: [vymyslena, vymyslena, OVERENO] });
     const { data } = await poslat(api);
     expect(data).toMatchObject({ vysledek: 'zastupitelum', duvod: 'citace-neni-v-useku' });
     // Ověření modelem se po neúspěchu kontroly kódem už nevolá.
-    expect(generovani).toHaveLength(1);
+    expect(generovani).toHaveLength(2);
   });
 
   it('číslo, které v citaci není, odpověď zastaví (F-75)', async () => {
     const cislo = JSON.stringify({ vety: [{ veta: 'Pronájem na víkend stojí 8 000 Kč.', usek: 1, citace: 'upravuje výši pronájmu samotného sálu sokolovny na 4.000,--Kč + energie' }] });
-    const { api } = sestavit({ vystupyGenerovani: [cislo, OVERENO] });
+    // Chyba se zkusí jednou znovu (14. 11. 2026). Číslo bez opory ve zdroji odpověď zastaví i napodruhé.
+    const { api, generovani } = sestavit({ vystupyGenerovani: [cislo, cislo, OVERENO] });
     const { data } = await poslat(api);
     expect(data).toMatchObject({ vysledek: 'zastupitelum', duvod: 'cislo-neni-v-citaci' });
+    expect(generovani).toHaveLength(2);
   });
 
   it('když ověření modelem řekne, že věta z citace neplyne, jde dotaz zastupitelům (F-75, F-76)', async () => {
@@ -172,10 +175,33 @@ describe('POST /api/dotaz (krok 8.6)', () => {
     expect(data).toMatchObject({ vysledek: 'zastupitelum', duvod: 'neplyne-z-citace' });
   });
 
-  it('neplatný výstup modelu pošle dotaz zastupitelům', async () => {
-    const { api } = sestavit({ vystupyGenerovani: ['Pronájem stojí 4 000 Kč.'] });
+  it('neplatný výstup modelu i při opakování pošle dotaz zastupitelům', async () => {
+    const { api, generovani } = sestavit({ vystupyGenerovani: ['Pronájem stojí 4 000 Kč.', 'Kauce je 4 000 Kč.'] });
     const { data } = await poslat(api);
     expect(data).toMatchObject({ vysledek: 'zastupitelum', duvod: 'neplatny-json' });
+    expect(generovani).toHaveLength(2);
+  });
+
+  it('technická chyba modelu se zkusí jednou znovu a druhý pokus projde celým ověřením (14. 11. 2026)', async () => {
+    const { api, generovani } = sestavit({ vystupyGenerovani: ['Pronájem stojí 4 000 Kč.', ODPOVED, OVERENO] });
+    const { data } = await poslat(api);
+    expect(data).toMatchObject({ vysledek: 'odpoved', technicke: { opakovano: 1 } });
+    expect(generovani).toHaveLength(3);
+  });
+
+  it('rozpor se zdrojem se neopakuje: model neověřenou větu nedostane znovu zkusit (14. 11. 2026)', async () => {
+    const neplyne = JSON.stringify({ vysledky: [{ cislo: 1, plyne: true }, { cislo: 2, plyne: false }] });
+    const { api, generovani } = sestavit({ vystupyGenerovani: [ODPOVED, neplyne, ODPOVED, OVERENO] });
+    const { data } = await poslat(api);
+    expect(data).toMatchObject({ vysledek: 'zastupitelum', duvod: 'neplyne-z-citace' });
+    expect(generovani).toHaveLength(2);
+  });
+
+  it('poškozený JSON se záchrání, když jsou věty správně uzavřené, a citace se stejně ověří (14. 11. 2026)', () => {
+    const poskozeny = '```json {"vety": [{"veta": "Kauce je 4 000 Kč.", "usek": 1, "citace": "vratná kauce ve výši 4.000,--Kč" tem"}], "nezodpovezeno": []} ```';
+    expect(precistOdpoved(poskozeny)).toEqual([{ veta: 'Kauce je 4 000 Kč.', usek: 1, citace: 'vratná kauce ve výši 4.000,--Kč' }]);
+    expect(() => overitKodem(precistOdpoved(poskozeny.replace('vratná kauce', 'zrušená kauce')), [USEK_SOKOLOVNA])).toThrow(ZamitnutaOdpoved);
+    expect(() => precistOdpoved('{"vety": [{"veta": "Bez citace"')).toThrow(ZamitnutaOdpoved);
   });
 
   it('výpadek AI dotaz nechá zastupitelům a stránka se to dozví', async () => {

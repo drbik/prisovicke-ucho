@@ -1,6 +1,8 @@
 import { ROZESTUP_MS, USER_AGENT } from './nastaveni';
 
 export interface Stazeno {
+  // Konečná adresa po přesměrování.
+  adresa: string;
   status: number;
   hlavicky: Headers;
   bajty: Uint8Array;
@@ -30,7 +32,7 @@ export function vytvorStahovac({ rozestupMs = ROZESTUP_MS, pokusu = 3 } = {}) {
           await pockat(5000 * pokus);
           continue;
         }
-        return { status: odpoved.status, hlavicky: odpoved.headers, bajty };
+        return { adresa: odpoved.url || url, status: odpoved.status, hlavicky: odpoved.headers, bajty };
       } catch (chyba) {
         konecPosledniho = Date.now();
         if (pokus >= pokusu) throw chyba;

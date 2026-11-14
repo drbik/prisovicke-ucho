@@ -14,6 +14,8 @@ export interface StavStazeni {
   nezavisli?: { soubory: Record<string, { soubor: string; stazeno: string; otisk: string }> };
   // Obrázky pozvánek a plakátů v aktualitách a na úřední desce pro OCR (rozšíření z 13. 11. 2026).
   obrazky?: Record<string, { soubor: string; stazeno: string; velikostB: number }>;
+  // Dokumenty staré úřední desky na prisovice.e-obec.cz. Klíč je konečná adresa souboru (PDF je v seznamu pdf).
+  eobec?: Record<string, { id: string; nazev: string; vyveseno: string | null; sejmuto: string | null; stranka: string }>;
   posledniBeh?: string;
 }
 

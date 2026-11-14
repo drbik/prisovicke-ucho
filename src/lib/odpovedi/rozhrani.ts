@@ -1,4 +1,5 @@
 import type { NalezenyUsek, Usek, ZdrojovyDokument } from './typy';
+import type { OrganObce } from './zapisy';
 
 export interface Shoda {
   id: string;
@@ -11,6 +12,9 @@ export interface IndexZdroju {
   hledatVektorem(vektor: number[], pocet: number): Promise<Shoda[]>;
   hledatSlovy(dotazFts: string, pocet: number): Promise<Shoda[]>;
   nacistUseky(id: string[]): Promise<NalezenyUsek[]>;
+  // Prvních několik úseků nejnovějšího zápisu rady nebo zastupitelstva podle data zasedání (14. 11. 2026). Nepovinné:
+  // bez něj se dotaz na „poslední zasedání“ hledá jako každý jiný.
+  nejnovejsiZapis?(organ: OrganObce, pocetUseku: number): Promise<NalezenyUsek[]>;
 }
 
 // Zápis používá jen ruční skript indexu (8.5), Worker index jen čte.

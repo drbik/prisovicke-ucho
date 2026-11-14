@@ -1,5 +1,6 @@
 import type { IndexZdroju, ZapisIndexu } from './rozhrani';
 import type { NalezenyUsek, TypDokumentu, Usek, WebZdroje, ZdrojovyDokument } from './typy';
+import { nejnovejsiZapis, VZOR_NAZVU_ZAPISU } from './zapisy';
 
 // Vlastní minimální popis vazeb D1 a Vectorize. Typy Workers by se tloukly s typy prohlížeče (src/env.d.ts).
 export interface PrikazD1 {
@@ -50,7 +51,7 @@ function poDavkach<T>(polozky: T[], velikost: number) {
 }
 
 export function vytvorIndexCloudflare(db: VazbaD1, vektory: VazbaVectorize): IndexZdroju & ZapisIndexu {
-  return {
+  const index: IndexZdroju & ZapisIndexu = {
     async hledatVektorem(vektor, pocet) {
       const { matches } = await vektory.query(vektor, { topK: pocet, returnValues: false, returnMetadata: 'none' });
       return matches.map((m) => ({ id: m.id, skore: m.score }));
@@ -98,6 +99,20 @@ export function vytvorIndexCloudflare(db: VazbaD1, vektory: VazbaVectorize): Ind
       }));
     },
 
+    async nejnovejsiZapis(organ, pocetUseku) {
+      const { results: zapisy } = await db
+        .prepare(`SELECT id, nazev FROM zdrojovy_dokument WHERE typ = 'pdf' AND nazev LIKE 'Zápis%' AND nazev LIKE ?1 LIMIT 400`)
+        .bind(VZOR_NAZVU_ZAPISU[organ])
+        .all<{ id: string; nazev: string }>();
+      const zapis = nejnovejsiZapis(zapisy);
+      if (!zapis) return [];
+      const { results } = await db
+        .prepare('SELECT id FROM usek WHERE dokument_id = ?1 ORDER BY poradi LIMIT ?2')
+        .bind(zapis.id, pocetUseku)
+        .all<{ id: string }>();
+      return (await index.nacistUseky(results.map((r) => r.id))).sort((a, b) => a.poradi - b.poradi);
+    },
+
     async smazatVse() {
       // Citace je zatím prázdná (F-77), jinak by mazání dokumentů zastavila vazba na ně.
       await db.batch([db.prepare('DELETE FROM usek'), db.prepare('DELETE FROM zdrojovy_dokument')]);
@@ -139,4 +154,5 @@ export function vytvorIndexCloudflare(db: VazbaD1, vektory: VazbaVectorize): Ind
       };
     },
   };
+  return index;
 }

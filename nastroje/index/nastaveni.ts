@@ -20,6 +20,8 @@ export const ROZESTUP_MS = 1000;
 
 export const WEB_OBCE = 'https://prisovice.cz';
 export const WEB_NEZAVISLYCH = 'https://nezavisli-prisovice.cz';
+// Stará úřední deska obce. Do 13. 11. 2026 se nesledovala, Tomáš ji 14. 11. 2026 zařadil do indexu.
+export const WEB_EOBEC = 'https://prisovice.e-obec.cz';
 
 // Stažený obsah nepatří do repozitáře. Výchozí složka je v profilu uživatele, jde změnit proměnnou UCHO_DATA.
 export const SLOZKA_DAT = process.env.UCHO_DATA ?? path.join(os.homedir(), '.prisovicke-ucho', 'index');
