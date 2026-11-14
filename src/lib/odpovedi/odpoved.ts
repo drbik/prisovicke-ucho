@@ -1,12 +1,22 @@
 import type { SluzbaAi } from '../ai/rozhrani';
-import { PRAH_PODOBNOSTI, USEKU_DO_MODELU, hledatUseky, type VysledekHledani } from './hledani';
+import { PRAH_PODOBNOSTI, hledatUseky, type VysledekHledani } from './hledani';
 import { oddilCitace } from './misto';
-import { ZamitnutaOdpoved, jeTextVUseku, overitKodem, precistNezodpovezeno, precistOdpoved, precistOvereni, type DuvodZamitnuti } from './overeni';
-import { VERZE_PROMPTU_ODPOVEDI, datumDnes, zpravyOdpovedi, zpravyOvereni } from './prompt-odpovedi';
+import {
+  ZamitnutaOdpoved,
+  jeTextVUseku,
+  overeneVetySouhrnu,
+  overitKodem,
+  overitKodemSouhrn,
+  precistNezodpovezeno,
+  precistOdpoved,
+  precistOvereni,
+  type DuvodZamitnuti,
+} from './overeni';
+import { MAX_VET, MAX_VET_SOUHRNU, VERZE_PROMPTU_ODPOVEDI, datumDnes, zpravyOdpovedi, zpravyOvereni } from './prompt-odpovedi';
 import type { IndexZdroju } from './rozhrani';
 import type { NalezenyUsek, WebZdroje } from './typy';
 import { OZNACENI_ZDROJE, UPOZORNENI, datumZdroje, odkazNaZdroj } from './zdroje';
-import { rozpoznatPosledniZapis } from './zapisy';
+import { rozpoznatPosledniZapis, vybratProSouhrn } from './zapisy';
 
 export interface CitovanyZdroj {
   cislo: number;
@@ -86,6 +96,9 @@ export interface ZavislostiOdpovedi {
 
 const MAX_TOKENU_ODPOVEDI = 900;
 const MAX_POKUSU_ODPOVEDI = 2;
+// Souhrn zasedání: kolik ověřených bodů musí zůstat a víc tokenů na ověření sedmi vět.
+const MIN_VET_SOUHRNU = 2;
+const MAX_TOKENU_OVERENI_SOUHRNU = 400;
 const TEPLOTA_OPAKOVANI = 0.3;
 // Jen chyby, které vznikají tvarem výstupu modelu, ne obsahem: neplatný JSON, špatně opsaná citace, špatné číslo úseku
 // a falešný poplach ověření u firmy nebo podnikatele. Rozpor se zdrojem (neplyne-z-citace) se neopakuje.
@@ -140,12 +153,14 @@ function sestavitOdpoved(vety: { veta: string; usek: number; citace: string }[],
   };
 }
 
-// Úseky nejnovějšího zápisu každého orgánu, na který se dotaz ptá. Když se ptá na oba, jde z každého zápisu polovina.
+// Nejvíc úseků jednoho zápisu, ze kterých se sbírají usnesení. Ustavující zasedání zastupitelstva 4. 11. 2026 jich má 31.
+const MAX_USEKU_ZAPISU = 80;
+
+// Nejnovější zápis každého orgánu, na který se dotaz ptá: začátek s programem a přehled všech usnesení (vybratProSouhrn).
 async function hledatNejnovejsiZapis(dotaz: string, index: IndexZdroju): Promise<VysledekHledani | null> {
   const organy = rozpoznatPosledniZapis(dotaz);
   if (!organy || !index.nejnovejsiZapis) return null;
-  const pocet = Math.floor(USEKU_DO_MODELU / organy.length);
-  const useky = (await Promise.all(organy.map((organ) => index.nejnovejsiZapis!(organ, pocet)))).flat();
+  const useky = (await Promise.all(organy.map(async (organ) => vybratProSouhrn(await index.nejnovejsiZapis!(organ, MAX_USEKU_ZAPISU))))).flat();
   return useky.length ? { useky, nejlepsiPodobnost: 1, shodVektoru: 0, shodSlov: 0, prerazeno: 0 } : null;
 }
 
@@ -185,15 +200,23 @@ export async function odpovedetNaDotaz(dotaz: string, z: ZavislostiOdpovedi): Pr
     });
     technicke.odpovedMs = (technicke.odpovedMs ?? 0) + (ted() - predOdpovedi);
     try {
-      const navrzene = precistOdpoved(vystup);
+      const navrzene = precistOdpoved(vystup, souhrn ? MAX_VET_SOUHRNU : MAX_VET);
       if (!navrzene.length) return { vysledek: 'zastupitelum', duvod: 'model-nevi', technicke };
-      const vety = overitKodem(navrzene, hledani.useky);
+      // Souhrn zasedání vynechá jednotlivé neověřené body, běžná odpověď při jakékoli chybě jde zastupitelům (F-75).
+      let vety = souhrn ? overitKodemSouhrn(navrzene, hledani.useky) : overitKodem(navrzene, hledani.useky);
+      if (souhrn && vety.length < MIN_VET_SOUHRNU) throw new ZamitnutaOdpoved('citace-neni-v-useku');
       technicke.opravenoCitaci = vety.filter((v) => v.opravenaCitace).length;
       const predOverenim = ted();
       const kOvereni = vety.map((v) => ({ ...v, zdroj: hledani.useky[v.usek - 1].hlavicka }));
-      const overeni = await z.ai.generovat(zpravyOvereni(dotaz, kOvereni, datumDnes(ted())), { maxTokenu: MAX_TOKENU_OVERENI });
+      const overeni = await z.ai.generovat(zpravyOvereni(dotaz, kOvereni, datumDnes(ted())), { maxTokenu: souhrn ? MAX_TOKENU_OVERENI_SOUHRNU : MAX_TOKENU_OVERENI });
       technicke.overeniMs = (technicke.overeniMs ?? 0) + (ted() - predOverenim);
-      precistOvereni(overeni, vety.length);
+      if (souhrn) {
+        const prosla = overeneVetySouhrnu(overeni, vety.length);
+        if (prosla.length < MIN_VET_SOUHRNU) throw new ZamitnutaOdpoved('neplyne-z-citace');
+        vety = prosla.map((i) => vety[i]);
+      } else {
+        precistOvereni(overeni, vety.length);
+      }
       return { vysledek: 'odpoved', odpoved: sestavitOdpoved(vety, hledani.useky, precistNezodpovezeno(vystup)), technicke };
     } catch (chyba) {
       if (!(chyba instanceof ZamitnutaOdpoved)) throw chyba;

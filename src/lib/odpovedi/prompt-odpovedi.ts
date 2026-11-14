@@ -6,9 +6,12 @@ import type { NalezenyUsek } from './typy';
 // Verze 5 (12. 11. 2026): dotaz se dělí na části, záhlaví tabulky patří do citace, novější zdroj má přednost.
 // Verze 6 (14. 11. 2026): podnikatel s IČ jako dodavatel obce není soukromá osoba. Verze 7: výklad místních názvů.
 // Verze 8 (14. 11. 2026, Tomáš): účinkující na veřejné akci obce také není soukromá osoba.
-export const VERZE_PROMPTU_ODPOVEDI = 8;
+// Verze 9: souhrn posledního zasedání z usnesení, až 7 bodů.
+export const VERZE_PROMPTU_ODPOVEDI = 9;
 // Na jednu část dotazu. Ceník má často čtyři řádky (celá sokolovna, přísálí, sál, kuchyň).
 export const MAX_VET = 4;
+// Souhrn posledního zasedání (14. 11. 2026): víc bodů, každý krátký.
+export const MAX_VET_SOUHRNU = 7;
 export const MAX_ZNAKU_CITACE = 150;
 // Nejdelší doslovná citace, kterou kód přijme. Prompt chce kratší, ale usnesení rady má i čtyři sta znaků (14. 11. 2026).
 export const MAX_ZNAKU_CITACE_PRIJATE = 500;
@@ -81,11 +84,11 @@ export function datumDnes(ted: number) {
     .replace(/\s+/g, ' ');
 }
 
-// Dotaz na „poslední zasedání“ (14. 11. 2026): úryvky jsou začátek nejnovějšího zápisu a občan chce přehled, co se projednávalo.
-// Dlouhé věty o tom, co zastupitelé schválili, model z programu domýšlel a ověření je právem zamítalo.
+// Dotaz na „poslední zasedání“ (14. 11. 2026): občan chce přehled, co se na nejnovějším zasedání řešilo a rozhodlo.
+// Úryvky jsou začátek zápisu (program) a přehled všech usnesení (vybratProSouhrn). Bez usnesení model vybíral formality.
 const POKYNY_SOUHRNU = `
 
-Tento dotaz se ptá na přehled toho, co se projednávalo na nejnovějším zasedání. Úryvky jsou začátek jeho zápisu: program a první body. Vyber nejvýš 3 nejdůležitější body programu a každý napiš jednou krátkou větou, nejvýš 20 slov, ve tvaru „Na zasedání rady obce dne 21. 10. 2026 se projednávala žádost o …“ (rada, nebo zastupitelstvo, a datum zasedání z názvu zápisu). Citace je jen začátek názvu bodu z programu, nejvýš 60 znaků, přesně tak, jak v programu stojí. Nepiš, že něco bylo schváleno, zvoleno nebo rozhodnuto, pokud to citace výslovně neříká. Body, jejichž název obsahuje jméno člověka nebo rodiny, vynech a vyber jiné.`;
+Tento dotaz se ptá na přehled toho, co se řešilo na nejnovějším zasedání. První úryvek je začátek zápisu s programem, další úryvek jsou všechna usnesení ze zápisu. Vyber nejvýš ${MAX_VET_SOUHRNU} nejdůležitějších věcí, přednostně z usnesení: co rada nebo zastupitelstvo schválilo, zvolilo, rozhodlo nebo zamítlo. Formality vynech (zahájení, slib, ověřovatelé zápisu, schválení programu, kontrola usnesení). Každou věc napiš jednou krátkou větou, nejvýš 15 slov. Datum zasedání z názvu zápisu dej jen do první věty („Zastupitelstvo obce na zasedání 4. 11. 2026 zvolilo …“), další věty začni rovnou („Zvolilo místostarostou …“, „Schválilo …“). Citace je krátký doslovný kus usnesení bez čísla usnesení, nejvýš 70 znaků (třeba „Zastupitelstvo obce volí místostarostou Jana Koška“). Usnesení, které jmenuje žadatele, nájemce nebo jinou soukromou osobu, vynech. Jména starosty, místostarosty, zastupitelů a předsedů výborů uvést smíš.`;
 
 export function zpravyOdpovedi(dotaz: string, useky: NalezenyUsek[], dnes = datumDnes(Date.now()), souhrn = false): ZpravaModelu[] {
   return [

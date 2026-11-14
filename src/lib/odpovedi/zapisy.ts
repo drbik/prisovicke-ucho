@@ -1,6 +1,9 @@
 // Dotazy na „poslední zasedání“ (Tomáš 14. 11. 2026): o tom, co se řešilo naposledy, nerozhoduje význam textu, ale datum
 // zasedání. Hledání podle podobnosti na takový dotaz vrací zápisy ze všech let. Proto se nejnovější zápis rady nebo
 // zastupitelstva najde podle data v názvu a model z něj udělá souhrn stejnou cestou jako jindy: věty s doslovnou citací.
+import type { NalezenyUsek } from './typy';
+import { hlavickaUseku } from './zdroje';
+
 export type OrganObce = 'rada' | 'zastupitelstvo';
 
 // \b u českých písmen nefunguje (slovo končí na „í“), proto se hranice slova hlídá přes \p{L}.
@@ -34,6 +37,36 @@ export const VZOR_NAZVU_ZAPISU: Record<OrganObce, string> = {
 
 export function jeZapisOrganu(nazev: string, organ: OrganObce) {
   return /^Zápis/u.test(nazev) && nazev.toLowerCase().includes(VZOR_NAZVU_ZAPISU[organ].replaceAll('%', ''));
+}
+
+// Usnesení zápisu doslova, bez hlasování: „Usnesení UZ č. 58/2026 – Zastupitelstvo obce volí místostarostou …“.
+const USNESENI = /Usnesení\s+U[RZ]\s*č\.\s*(\d+\/\d{4})\s*[–-][\s\S]*?(?=\n\s*Hlasování|\n\s*Usnesení\s+U[RZ]|$)/gu;
+const MAX_ZNAKU_USNESENI = 400;
+const MAX_ZNAKU_PREHLEDU = 6000;
+
+// Souhrn zasedání (14. 11. 2026, Tomáš: „tam se probíralo víc věcí“): začátek zápisu má jen formality (zahájení, slib,
+// ověřovatelé), důležité je až v usneseních rozesetých po celém zápisu. Model proto dostane první úsek (hlavička
+// a program) a k němu úsek se všemi usneseními zápisu. Každé usnesení je doslovný výňatek ze zápisu, citace tedy
+// projde stejnou kontrolou jako jinde. Úseky se překrývají, stejné usnesení se vezme jednou (nejdelší výňatek).
+export function vybratProSouhrn(useky: NalezenyUsek[]): NalezenyUsek[] {
+  if (!useky.length) return [];
+  const serazene = [...useky].sort((a, b) => a.poradi - b.poradi);
+  const usneseni = new Map<string, string>();
+  for (const usek of serazene) {
+    for (const shoda of usek.text.matchAll(USNESENI)) {
+      const text = shoda[0].trim().slice(0, MAX_ZNAKU_USNESENI);
+      if (text.length > (usneseni.get(shoda[1])?.length ?? 0)) usneseni.set(shoda[1], text);
+    }
+  }
+  const prvni = serazene[0];
+  if (!usneseni.size) return serazene.slice(0, 3);
+  let text = '';
+  for (const u of usneseni.values()) {
+    if (text.length + u.length > MAX_ZNAKU_PREHLEDU) break;
+    text += `${text ? '\n\n' : ''}${u}`;
+  }
+  const prehled: NalezenyUsek = { ...prvni, id: `${prvni.dokumentId}-usneseni`, strana: null, hlavicka: hlavickaUseku(prvni.dokument, null), text };
+  return [prvni, prehled];
 }
 
 // Z názvů vybere nejnovější podle data zasedání.
