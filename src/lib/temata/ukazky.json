@@ -690,17 +690,33 @@
     {
       "id": "ukazka-24",
       "nazev": "Výdejní box na balíky",
-      "text": "Je v Příšovicích nějaký výdejní box na balíky?",
+      "text": "Je v Příšovicích výdejní box na balíky, třeba Z-box?",
       "typ": "dotaz",
       "oblast": "ostatni",
-      "stav": "ceka-na-spravce",
-      "hlidat": [
-        "vydejni (box|mist)",
-        "zasilkovn",
-        "balikovn",
-        "alzabox",
-        "z-box"
-      ]
+      "stav": "zodpovezeno-z-webu",
+      "odpoved": {
+        "vety": [
+          {
+            "text": "V obci se nachází stávající Z-BOX, který rada obce schválila pro rozšíření o další modul včetně úpravy pozemku s přístupovou plochou pro uživatele.",
+            "zdroj": 1
+          }
+        ],
+        "zdroje": [
+          {
+            "cislo": 1,
+            "url": "https://prisovice.cz/wp-content/uploads/2024/10/anyonymiz-rada-2024-10-09.pdf#page=4",
+            "nazev": "Zápis č. 16/2024 ze schůze rady obce konané dne 09.10.2024",
+            "datum": "zveřejněno 21. 10. 2024",
+            "web": "prisovice.cz",
+            "oznaceni": "Odpověď z webu obce",
+            "uryvek": "Rada obce schvaluje rozšíření stávajícího Z-BOXU o další modul včetně úpravy pozemku s přístupovou plochou pro uživatele",
+            "misto": "strana 4"
+          }
+        ],
+        "oznaceni": [
+          "Odpověď z webu obce"
+        ]
+      }
     },
     {
       "id": "ukazka-25",
