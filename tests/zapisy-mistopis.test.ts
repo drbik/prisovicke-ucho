@@ -83,7 +83,11 @@ describe('místní názvy (14. 11. 2026)', () => {
   });
 
   it('místo v dotazu přidá do fulltextu slova, kterými ho zdroje vyjadřují', () => {
-    expect(rozsireniHledani('Cyklostezka na Cecilce')).toBe('Přepeře');
+    expect(rozsireniHledani('Cyklostezka na Cecilce')).toBe('Přepeře Greenway E102');
+    // SO E.102 je cyklostezka přes Cecilku (potvrdil Tomáš 14. 11. 2026), dotaz na ni dostane i slovo Cecilka.
+    expect(mistniNazvyVTextech('smlouva na SO E.102')).toHaveLength(1);
+    expect(mistniNazvyVTextech('Greenway Jizera SO E102')).toHaveLength(1);
+    expect(rozsireniHledani('smlouva na SO E.102')).toBe('Cecilka Přepeře');
     expect(dotazProFulltext('Cyklostezka na Cecilce Přepeře', 14)).toContain('"prepe"*');
     expect(rozsireniHledani('Cena sálu')).toBe('');
   });

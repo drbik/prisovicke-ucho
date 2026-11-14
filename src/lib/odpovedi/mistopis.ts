@@ -15,8 +15,14 @@ export const MISTNI_NAZVY: MistniNazev[] = [
   {
     nazev: 'Cecilka (Na Cecilce)',
     tvary: ['cecilk', 'cecilc'],
-    popis: 'Místní název části Příšovic, ne jméno osoby. Je to nejnovější zástavba rodinných domů na východním okraji Příšovic, u silnice směrem na Přepeře. Dokumenty obce píšou „lokalita Cecilka“, „část obce Na Cecilce“, nebo místo jen popisují (třeba cyklostezka „od Přepeř k břehové části řeky Jizery“).',
-    hledat: ['Přepeře'],
+    popis: 'Místní název části Příšovic, ne jméno osoby. Je to nejnovější zástavba rodinných domů na východním okraji Příšovic, u silnice směrem na Přepeře. Dokumenty obce píšou „lokalita Cecilka“, „část obce Na Cecilce“, nebo místo jen popisují (třeba cyklostezka „od Přepeř k břehové části řeky Jizery“). Cyklostezka od Přepeř přes Cecilku na břeh Jizery je stavba Greenway Jizera, úsek Turnov – Svijany, označená v dokumentech obce SO E.102 (E102).',
+    hledat: ['Přepeře', 'Greenway', 'E102'],
+  },
+  {
+    nazev: 'SO E.102 (cyklostezka Greenway Jizera)',
+    tvary: ['e.102', 'e102'],
+    popis: 'Označení stavby cyklostezky Greenway Jizera v úseku Turnov – Svijany. Je to cyklostezka od Přepeř přes část obce Cecilka na břeh řeky Jizery (potvrdil Tomáš 14. 11. 2026).',
+    hledat: ['Cecilka', 'Přepeře'],
   },
   {
     nazev: 'Písečáky',
