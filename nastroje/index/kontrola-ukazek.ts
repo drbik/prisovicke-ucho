@@ -15,6 +15,7 @@ const dokumenty = await nacistJson<ZdrojovyDokument[]>(path.join(SLOZKA_DAT, 'do
 const useky = await nacistJson<Usek[]>(path.join(SLOZKA_DAT, 'useky.json'), []);
 if (!useky.length) throw new Error(`V ${SLOZKA_DAT} chybí useky.json. Nejdřív spusťte npm run index:zpracovat.`);
 const podleUrl = new Map(dokumenty.map((d) => [d.url, d]));
+const urlDokumentu = new Map(dokumenty.map((d) => [d.id, d.url]));
 
 // Text úseků bez diakritiky a velkých písmen, s jednou mezerou mezi slovy. V něm se hledají hlídané vzory.
 const bezDiakritiky = (text: string) => text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/\s+/g, ' ');
@@ -29,7 +30,9 @@ for (const tema of UKAZKOVA_TEMATA) {
   for (const vzor of tema.hlidat ?? []) {
     hlidanych += 1;
     const vyraz = new RegExp(vzor, 'u');
-    const nalezene = textyUseku.filter(({ text }) => vyraz.test(text));
+    // Dokumenty, které tým prověřil a na dotaz neodpovídají, se přeskočí (hlidatKrome).
+    const krome = new Set(tema.hlidatKrome ?? []);
+    const nalezene = textyUseku.filter(({ usek, text }) => !krome.has(urlDokumentu.get(usek.dokumentId) ?? '') && vyraz.test(text));
     if (!nalezene.length) continue;
     chyb += 1;
     console.log(`${tema.id} ČEKAJÍCÍ DOTAZ „${tema.nazev}“ MÁ V INDEXU ${nalezene.length} ÚSEKŮ PRO VZOR ${vzor}`);

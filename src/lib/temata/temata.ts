@@ -32,10 +32,13 @@ export interface UkazkoveTema {
   // Jen u čekajícího dotazu: vzory bez diakritiky, které v indexu zdrojů nesmí nic najít. Čekat smí jen dotaz,
   // ke kterému index opravdu nic nemá (pokyn z 11. 11. 2026). Hlídá to nastroje/index/kontrola-ukazek.ts.
   hlidat?: string[];
+  // Adresy dokumentů, které tým prověřil: vzor v nich je, ale na dotaz neodpovídají (třeba jen žádost, kterou rada
+  // neschválila). Kontrola je přeskočí. Tomáš 14. 11. 2026: dotaz čeká, dokud odpověď na webu opravdu není.
+  hlidatKrome?: string[];
 }
 
 const POVOLENY_ZDROJ = /^https:\/\/(?:prisovice\.cz|nezavisli-prisovice\.cz)\//;
-const KLICE_TEMATU = new Set(['id', 'nazev', 'text', 'typ', 'oblast', 'stav', 'odpoved', 'hlidat']);
+const KLICE_TEMATU = new Set(['id', 'nazev', 'text', 'typ', 'oblast', 'stav', 'odpoved', 'hlidat', 'hlidatKrome']);
 const KLICE_ZDROJE = new Set(['cislo', 'url', 'nazev', 'datum', 'web', 'oznaceni', 'uryvek', 'misto']);
 
 const jeText = (hodnota: unknown): hodnota is string => typeof hodnota === 'string' && hodnota.trim().length > 0;
@@ -98,7 +101,11 @@ export function overitUkazky(data: unknown): UkazkoveTema[] {
         throw new Error(`Ukázka ${id}: hlídaný vzor ${vzor} není platný.`);
       }
     }
-    return { ...zaklad, hlidat };
+    const krome = t.hlidatKrome === undefined ? [] : Array.isArray(t.hlidatKrome) ? t.hlidatKrome : null;
+    if (!krome || !krome.every((url) => jeText(url) && POVOLENY_ZDROJ.test(url) || (jeText(url) && url.startsWith('https://prisovice.e-obec.cz/')))) {
+      throw new Error(`Ukázka ${id}: výjimky hlídaných vzorů musí být adresy zdrojů.`);
+    }
+    return { ...zaklad, hlidat, ...(krome.length ? { hlidatKrome: krome as string[] } : {}) };
   });
 }
 
